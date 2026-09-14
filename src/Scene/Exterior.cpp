@@ -219,7 +219,7 @@ void RoomScene::buildExterior()
     // ---- buildings ----
     const char* const facadeMaterials[] = {"facade_render", "brick_red", "facade_render_2", "facade_render_3", "facade_render_4"};
     ChunkSet facades[5];
-    ChunkSet frames, glassDark, glassLit, glassLitDim, glassLitCool, roofsTile, roofsSlate, doors, chimneys;
+    ChunkSet frames, glassDark, glassLit, glassLitDim, glassLitCool, roofsTile, roofsSlate, doors, chimneys, sills, gutters, plinths;
     Dice dice(20260912u);
 
     // Adds one building whose front plane is z = front, facing +Z (towards
@@ -230,27 +230,47 @@ void RoomScene::buildExterior()
         const float zMin = std::min(zFront, zBack), zMax = std::max(zFront, zBack);
         const float bx = (b.x0 + b.x1) * 0.5f;
         MeshBuilder& wall = facades[b.material].at(bx);
-        wall.addBoxWorldUv(Vector3(b.x0, ground, zMin), Vector3(b.x1, h, zMax), 2.0f, kAllFaces & ~kFaceNegY);
+        // The body stops a reveal's depth behind the front plane; the front is
+        // a skin in pieces around the openings, so every window and door sits
+        // in a real recess with reveals that take the sun's shadow.
+        constexpr float kReveal = 0.20f;
+        const float zSkinIn = zFront - facing * kReveal;
+        const float zBodyMin = std::min(zSkinIn, zBack), zBodyMax = std::max(zSkinIn, zBack);
+        wall.addBoxWorldUv(Vector3(b.x0, ground, zBodyMin), Vector3(b.x1, h, zBodyMax), 2.0f, kAllFaces & ~kFaceNegY);
+        const float zSkin0 = std::min(zFront, zSkinIn), zSkin1 = std::max(zFront, zSkinIn);
+        const auto skin = [&](float x0, float y0, float x1, float y1) {
+            if (x1 - x0 < 0.005f || y1 - y0 < 0.005f) return;
+            wall.addBoxWorldUv(Vector3(x0, y0, zSkin0), Vector3(x1, y1, zSkin1), 2.0f, kAllFaces & ~kFaceNegY);
+        };
+        // A plinth: a concrete band at the foot of the front, a little proud.
+        const float zPlinth1 = zFront + facing * 0.025f;
+        plinths.at(bx).addBoxWorldUv(Vector3(b.x0, ground, std::min(zFront, zPlinth1)), Vector3(b.x1, ground + 0.45f, std::max(zFront, zPlinth1)), 1.0f, kAllFaces & ~kFaceNegY);
         // Windows: bays every ~2.6 m, one door bay on the ground floor.
         const float width = b.x1 - b.x0;
         const int bays = std::max(1, static_cast<int>(width / 2.6f));
         const float bay = width / static_cast<float>(bays);
         const float winW = std::min(1.2f, bay * 0.5f), winH = 1.45f;
-        const float zFace = zFront + facing * 0.012f;      // glass just proud of the render
-        const float zFrame0 = zFront, zFrame1 = zFront + facing * 0.06f;
+        const float zFace = zSkinIn + facing * 0.012f;                        // glass just proud of the recess's back
+        const float zFrame0 = zSkinIn, zFrame1 = zSkinIn + facing * 0.06f;   // the frame in the recess
         const int doorBay = b.doorLeft ? 0 : bays - 1;
         for (int s = 0; s < b.storeys; ++s)
         {
-            const float sill = ground + static_cast<float>(s) * b.storeyHeight + (s == 0 ? 1.0f : 0.95f);
+            const float floorY = ground + static_cast<float>(s) * b.storeyHeight;
+            const float ceilY = s == b.storeys - 1 ? h : floorY + b.storeyHeight;
+            const float sill = floorY + (s == 0 ? 1.0f : 0.95f);
             for (int i = 0; i < bays; ++i)
             {
                 const float cx = b.x0 + (static_cast<float>(i) + 0.5f) * bay;
+                const float bayX0 = b.x0 + static_cast<float>(i) * bay, bayX1 = bayX0 + bay;
                 if (s == 0 && i == doorBay)
                 {
-                    // Door: a recessed dark panel with a frame and a step.
+                    // Door: a dark panel at the back of its recess with a frame and a step.
                     const float dw = 1.0f, dh = 2.15f;
-                    doors.at(bx).addBoxWorldUv(Vector3(cx - dw * 0.5f, ground, std::min(zFace, zFront)),
-                                        Vector3(cx + dw * 0.5f, ground + dh, std::max(zFace, zFront)), 1.0f, kAllFaces);
+                    skin(bayX0, floorY, cx - dw * 0.5f - 0.08f, ceilY);
+                    skin(cx + dw * 0.5f + 0.08f, floorY, bayX1, ceilY);
+                    skin(cx - dw * 0.5f - 0.08f, ground + dh + 0.08f, cx + dw * 0.5f + 0.08f, ceilY);
+                    doors.at(bx).addBoxWorldUv(Vector3(cx - dw * 0.5f, ground, std::min(zFace, zSkinIn)),
+                                        Vector3(cx + dw * 0.5f, ground + dh, std::max(zFace, zSkinIn)), 1.0f, kAllFaces);
                     frames.at(bx).addBoxWorldUv(Vector3(cx - dw * 0.5f - 0.08f, ground, std::min(zFrame0, zFrame1)),
                                          Vector3(cx - dw * 0.5f, ground + dh + 0.08f, std::max(zFrame0, zFrame1)), 0.5f, kAllFaces);
                     frames.at(bx).addBoxWorldUv(Vector3(cx + dw * 0.5f, ground, std::min(zFrame0, zFrame1)),
@@ -263,6 +283,11 @@ void RoomScene::buildExterior()
                 }
                 const float x0 = cx - winW * 0.5f, x1 = cx + winW * 0.5f;
                 const float y0 = sill, y1 = sill + winH;
+                // The skin around this window: piers either side, the spandrel below, the lintel above.
+                skin(bayX0, floorY, x0, ceilY);
+                skin(x1, floorY, bayX1, ceilY);
+                skin(x0, floorY, x1, y0);
+                skin(x0, y1, x1, ceilY);
                 // Lit at night: about a third of the windows, fixed per window;
                 // most warm, some dim behind curtains, a few in television blue.
                 const bool lit = dice.next() < 0.35f;
@@ -278,11 +303,23 @@ void RoomScene::buildExterior()
                 frames.at(bx).addBoxWorldUv(Vector3(x1, y0 - t, zf0), Vector3(x1 + t, y1 + t, zf1), 0.5f, kAllFaces);
                 frames.at(bx).addBoxWorldUv(Vector3(x0, y1, zf0), Vector3(x1, y1 + t, zf1), 0.5f, kAllFaces);
                 frames.at(bx).addBoxWorldUv(Vector3(x0 - t, y0 - t, zf0), Vector3(x1 + t, y0, zf1), 0.5f, kAllFaces);
-                // Glazing bar and sill.
+                // Glazing bar, and a stone sill through the recess and a little proud of the front.
                 frames.at(bx).addBoxWorldUv(Vector3(cx - 0.025f, y0, zf0), Vector3(cx + 0.025f, y1, zf0 + 0.03f), 0.5f, kAllFaces);
-                const float zs1 = zFront + facing * 0.12f;
-                frames.at(bx).addBoxWorldUv(Vector3(x0 - 0.12f, y0 - 0.12f, std::min(zFront, zs1)), Vector3(x1 + 0.12f, y0 - 0.04f, std::max(zFront, zs1)), 0.5f, kAllFaces);
+                const float zs1 = zFront + facing * 0.06f;
+                sills.at(bx).addBoxWorldUv(Vector3(x0 - 0.06f, y0 - 0.07f, std::min(zSkinIn, zs1)), Vector3(x1 + 0.06f, y0, std::max(zSkinIn, zs1)), 0.5f, kAllFaces);
             }
+        }
+        // Rainwater: a gutter along the front eave (or the parapet's foot) and a downpipe down one end.
+        {
+            const float gutterZ = b.pitched ? zFront + facing * 0.35f : zFront + facing * 0.02f;
+            const float gutterY = b.pitched ? h - 0.02f : h + 0.45f;
+            gutters.at(bx).addBoxWorldUv(Vector3(b.x0 - 0.05f, gutterY, std::min(gutterZ - 0.06f, gutterZ + 0.06f)),
+                                          Vector3(b.x1 + 0.05f, gutterY + 0.11f, std::max(gutterZ - 0.06f, gutterZ + 0.06f)), 0.5f, kAllFaces);
+            const float pipeX = b.doorLeft ? b.x1 - 0.22f : b.x0 + 0.22f;
+            const float pipeZ = zFront + facing * 0.09f;
+            gutters.at(bx).addCylinder(Vector3(pipeX, ground + 0.02f, pipeZ), 0.045f, gutterY - ground - 0.02f, 8, 0.5f, false);
+            // The swan neck from the gutter to the wall.
+            gutters.at(bx).addBoxWorldUv(Vector3(pipeX - 0.045f, gutterY - 0.02f, std::min(pipeZ, gutterZ)), Vector3(pipeX + 0.045f, gutterY + 0.06f, std::max(pipeZ, gutterZ)), 0.5f, kAllFaces);
         }
         // Roof.
         if (b.pitched)
@@ -389,6 +426,9 @@ void RoomScene::buildExterior()
     placeChunks(roofsSlate, "roof_slate", "exterior_roofs_slate", true);
     placeChunks(doors, "door_dark", "exterior_doors", false);
     placeChunks(chimneys, "brick_red", "exterior_chimneys", true);
+    placeChunks(sills, "concrete", "exterior_sills", true);
+    placeChunks(plinths, "concrete", "exterior_plinths", true);
+    placeChunks(gutters, "gutter_metal", "exterior_gutters", true);
 
     // ---- trees ----
     {

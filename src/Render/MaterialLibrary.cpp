@@ -299,6 +299,7 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     surfaced("street_lamp_head", [&] { return TextureBaker::flat(size / 4, seed + 37u, 0.85f, 0.85f, 0.82f, 0.30f, 0.0f, 0.02f); }, 1.0f, 0.0f);
     surfaced("facade_distant", [&] { return TextureBaker::flat(size / 4, seed + 38u, 0.52f, 0.54f, 0.58f, 0.85f, 0.0f, 0.06f); }, 1.0f, 0.0f);
     surfaced("door_dark", [&] { return TextureBaker::paintedWood(size / 2, seed + 39u, 0.16f, 0.18f, 0.22f, 0.35f); }, 1.0f, 0.0f);
+    surfaced("gutter_metal", [&] { return TextureBaker::flat(size / 4, seed + 176u, 0.30f, 0.31f, 0.32f, 0.45f, 0.0f, 0.04f); }, 1.0f, 0.0f);
 
     raindrops_ = own(TextureBaker::upload(device_, TextureBaker::raindrops(std::max(64, size / 2), seed + 40u), false));
     {

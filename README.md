@@ -170,10 +170,11 @@ PageUp/PageDown or F2 give them back.
 - Artificial lights in lumens: pendant, floor lamp, table lamp, two sconces, television; one
   punctual light per object (the most influential), a cube shadow map for the pendant, emissive
   shades and screen.
-- A procedural street outside: terraced houses whose windows show curtains, lampshades and
-  television glow behind their glass (lit at night in warm, dim and cool kinds), neighbours,
-  trees, clipped hedges with a leafy fringe, street lights, a distant skyline; window panes
-  that reflect the room and transmit the street.
+- A procedural street outside: terraced houses with recessed windows and doors (reveals, sills,
+  plinths, gutters and downpipes) whose windows show curtains, lampshades and television glow
+  behind their glass (lit at night in warm, dim and cool kinds), neighbours, trees whose
+  crowns shade as one volume, clipped hedges with a leafy fringe, street lights, a distant
+  skyline; window panes that reflect the room and transmit the street.
 - Procedural PBR surfaces (plaster, oak, carpet, weave, paint, concrete, brick, asphalt, grass,
   paving, roof tiles, bark, masked foliage)
   with normal maps and linear-light mip chains; imported glTF materials with per-slot UV

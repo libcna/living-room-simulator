@@ -691,6 +691,14 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 
 ## 29. Completed work
 
+- 2026-09-14 M9 facade detail: every street building's front is now a 0.2 m skin in pieces
+  around its openings (piers, spandrels, lintels per bay and storey; the door bay open to
+  its lintel) over a body that stops a reveal's depth behind, so the windows and doors sit in
+  real recesses whose reveals take the sun's shadow, with the frames and the glass at the
+  back of the recess and a concrete sill through it; a concrete plinth band at the foot of
+  each front; a gutter along each eave (or the parapet's foot) with a downpipe and its swan
+  neck down one end in a dark painted metal. Sixty thousand triangles in the street view
+  against forty before, no measurable cost on the frame.
 - 2026-09-14 M9 the candle: the candlestick on the low cabinet was the steel alone; it now
   holds a wax candle (a cylinder in the cup) with two crossed flame cards of their own
   material (a smaller, brighter card) and a 12 lm lamp, lit with the room's lamps and
