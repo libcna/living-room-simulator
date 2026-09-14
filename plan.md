@@ -698,6 +698,10 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 
 ## 29. Completed work
 
+- 2026-09-14 M9 a shop front: the terrace building the bicycle leans on has a shop on its
+  ground floor, one wide window in a dark painted frame with two mullions across the bays
+  beside its door, lit at night like the lit rooms, under a fascia board proud of the front
+  over door and window alike.
 - 2026-09-14 M9 lofted cars: the box bodies became hulls lofted through five cross-sections
   (a sill that tucks in, the waist at its widest, a shoulder, a top sloping to the nose and
   a little to the tail) with fanned nose and tail caps; the profile now reads as a hatchback

@@ -60,6 +60,7 @@ struct Building
     bool pitched;        ///< pitched tiled roof versus flat parapet
     bool doorLeft;
     float doorX;
+    bool shop = false;   ///< a shop front on the ground floor: one wide lit window under a fascia
 };
 
 /// Mesh builders keyed by a 12 m segment along the street. PbrEffect lights
@@ -219,7 +220,7 @@ void RoomScene::buildExterior()
     // ---- buildings ----
     const char* const facadeMaterials[] = {"facade_render", "brick_red", "facade_render_2", "facade_render_3", "facade_render_4"};
     ChunkSet facades[5];
-    ChunkSet frames, glassDark, glassLit, glassLitDim, glassLitCool, roofsTile, roofsSlate, doors, chimneys, sills, gutters, plinths;
+    ChunkSet frames, glassDark, glassLit, glassLitDim, glassLitCool, roofsTile, roofsSlate, doors, chimneys, sills, gutters, plinths, shopTrim;
     Dice dice(20260912u);
 
     // Adds one building whose front plane is z = front, facing +Z (towards
@@ -258,6 +259,45 @@ void RoomScene::buildExterior()
             const float floorY = ground + static_cast<float>(s) * b.storeyHeight;
             const float ceilY = s == b.storeys - 1 ? h : floorY + b.storeyHeight;
             const float sill = floorY + (s == 0 ? 1.0f : 0.95f);
+            if (s == 0 && b.shop && bays >= 2)
+            {
+                // The shop: its door in the door bay, one wide window across the
+                // rest in a dark painted frame with two mullions, lit at night,
+                // and a fascia board over the whole front.
+                const float dx0 = b.x0 + static_cast<float>(doorBay) * bay, dx1 = dx0 + bay;
+                const float cxd = (dx0 + dx1) * 0.5f, dw = 1.0f, dh = 2.15f;
+                skin(dx0, floorY, cxd - dw * 0.5f - 0.08f, ceilY);
+                skin(cxd + dw * 0.5f + 0.08f, floorY, dx1, ceilY);
+                skin(cxd - dw * 0.5f - 0.08f, ground + dh + 0.08f, cxd + dw * 0.5f + 0.08f, ceilY);
+                doors.at(bx).addBoxWorldUv(Vector3(cxd - dw * 0.5f, ground, std::min(zFace, zSkinIn)), Vector3(cxd + dw * 0.5f, ground + dh, std::max(zFace, zSkinIn)), 1.0f, kAllFaces);
+                const float zf0 = std::min(zFrame0, zFrame1), zf1 = std::max(zFrame0, zFrame1);
+                shopTrim.at(bx).addBoxWorldUv(Vector3(cxd - dw * 0.5f - 0.08f, ground, zf0), Vector3(cxd - dw * 0.5f, ground + dh + 0.08f, zf1), 0.5f, kAllFaces);
+                shopTrim.at(bx).addBoxWorldUv(Vector3(cxd + dw * 0.5f, ground, zf0), Vector3(cxd + dw * 0.5f + 0.08f, ground + dh + 0.08f, zf1), 0.5f, kAllFaces);
+                shopTrim.at(bx).addBoxWorldUv(Vector3(cxd - dw * 0.5f - 0.08f, ground + dh, zf0), Vector3(cxd + dw * 0.5f + 0.08f, ground + dh + 0.08f, zf1), 0.5f, kAllFaces);
+                const float wx0 = (b.doorLeft ? dx1 : b.x0) + 0.30f, wx1 = (b.doorLeft ? b.x1 : dx0) - 0.30f;
+                const float wy0 = ground + 0.55f, wy1 = ground + 2.45f;
+                skin(b.doorLeft ? dx1 : b.x0, floorY, wx0, ceilY);
+                skin(wx1, floorY, b.doorLeft ? b.x1 : dx0, ceilY);
+                skin(wx0, floorY, wx1, wy0);
+                skin(wx0, wy1, wx1, ceilY);
+                MeshBuilder& pane = glassLit.at(bx);
+                if (facing > 0.0f) pane.addQuadUv(Vector3(wx0, wy0, zFace), Vector3(wx1, wy0, zFace), Vector3(wx1, wy1, zFace), Vector3(wx0, wy1, zFace));
+                else pane.addQuadUv(Vector3(wx1, wy0, zFace), Vector3(wx0, wy0, zFace), Vector3(wx0, wy1, zFace), Vector3(wx1, wy1, zFace));
+                const float t = 0.10f;
+                shopTrim.at(bx).addBoxWorldUv(Vector3(wx0 - t, wy0 - t, zf0), Vector3(wx0, wy1 + t, zf1), 0.5f, kAllFaces);
+                shopTrim.at(bx).addBoxWorldUv(Vector3(wx1, wy0 - t, zf0), Vector3(wx1 + t, wy1 + t, zf1), 0.5f, kAllFaces);
+                shopTrim.at(bx).addBoxWorldUv(Vector3(wx0, wy1, zf0), Vector3(wx1, wy1 + t, zf1), 0.5f, kAllFaces);
+                shopTrim.at(bx).addBoxWorldUv(Vector3(wx0 - t, wy0 - t, zf0), Vector3(wx1 + t, wy0, zf1), 0.5f, kAllFaces);
+                for (int m = 1; m <= 2; ++m)
+                {
+                    const float mx = wx0 + (wx1 - wx0) * static_cast<float>(m) / 3.0f;
+                    shopTrim.at(bx).addBoxWorldUv(Vector3(mx - 0.03f, wy0, zf0), Vector3(mx + 0.03f, wy1, zf0 + 0.03f), 0.5f, kAllFaces);
+                }
+                // The fascia, proud of the front over door and window alike.
+                const float zFascia1 = zFront + facing * 0.10f;
+                shopTrim.at(bx).addBoxWorldUv(Vector3(b.x0 + 0.05f, ground + 2.58f, std::min(zFront, zFascia1)), Vector3(b.x1 - 0.05f, ground + 3.08f, std::max(zFront, zFascia1)), 0.5f, kAllFaces);
+                continue;
+            }
             for (int i = 0; i < bays; ++i)
             {
                 const float cx = b.x0 + (static_cast<float>(i) + 0.5f) * bay;
@@ -364,6 +404,7 @@ void RoomScene::buildExterior()
             lastMaterial = b.material;
             b.pitched = dice.next() < 0.75f;
             b.doorLeft = dice.next() < 0.5f;
+            b.shop = b.x0 < 6.0f && b.x1 > 6.0f;   // the one the bicycle leans on
             addBuilding(b, farPavementZ, 1.0f);
             x = b.x1 + (dice.next() < 0.3f ? dice.range(1.5f, 4.0f) : 0.0f);
         }
@@ -662,6 +703,7 @@ void RoomScene::buildExterior()
     placeChunks(sills, "concrete", "exterior_sills", true);
     placeChunks(plinths, "concrete", "exterior_plinths", true);
     placeChunks(gutters, "gutter_metal", "exterior_gutters", true);
+    placeChunks(shopTrim, "bench_wood", "exterior_shop_trim", true);
 
     // ---- trees ----
     {
