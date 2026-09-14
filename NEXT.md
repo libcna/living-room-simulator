@@ -25,9 +25,10 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
 1d. Done in M9 rounds 17-18: dust motes in the beams, a wall clock that keeps the scene's
    time, the wood stove lit on cool evenings (embers, flame cards, a flickering lamp), a candle
    lit with the lamps, the street facades with recessed windows, sills, plinths, gutters and
-   downpipes, a bench, a bin and a bicycle across the road. Next of that kind: steam over a
-   cup, the television's glow flickering with its programme, a parked car (a procedural body
-   would do at 20 m), a shop front on the terrace opposite.
+   downpipes, a bench, a bin and a bicycle across the road; in rounds 19-20 three parked cars
+   (lofted procedural bodies), a shop front on the terrace opposite, and the beam march at
+   half size (its cost now within the frame's noise). Next of that kind: steam over a cup,
+   the television's glow flickering with its programme, the sconces' shades in daylight.
 2. Exposure: the meter is in; a histogram measure could follow if the pendant views still drift.
 3. Done earlier: street lights switch on their own elevation thresholds (0.5 / 3 degrees) and
    the lamps and street lights ramp over a second (`RoomScene::update`).

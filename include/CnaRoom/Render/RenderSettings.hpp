@@ -40,6 +40,7 @@ struct RenderSettings
     float sunbeams = 0.12f;          ///< the room air's scattering per metre (0 off): sunbeams through the windows
     float sunbeamAnisotropy = 0.75f; ///< Henyey-Greenstein g: forward-biased, brightest looking toward the window
     int sunbeamSteps = 24;
+    bool sunbeamHalfResolution = true;   ///< march at half size and upsample (a quarter of the cost)
     int sunbeamMotes = 400;          ///< dust motes drifting in the beams (0 off)
     float sunbeamMoteSize = 2.0f;    ///< a mote's diameter in pixels at a 540-line frame
     /// Depth of field as a thin lens on a 24 mm sensor: focal length (mm),

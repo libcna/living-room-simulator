@@ -124,6 +124,7 @@ bool RoomApplication::configure(int argc, char** argv)
                 "  --volumetric D            the pipeline's volumetric fog density (experimental, default 0)\n"
                 "  --sunbeams D[,G,N]        sunlight scattered by the room's air: density per metre (default 0.12, 0 off),\n"
                 "                            anisotropy (default 0.75) and march steps (default 24)\n"
+                "  --sunbeams-full           march the beams at full size (the default marches at half size and upsamples)\n"
                 "  --motes N[,PX]            dust motes drifting in the beams (default 400, 0 off) and their size in pixels at 540p (default 2)\n"
                 "  --no-reflections          planar reflections off (mirror, television screen)\n"
                 "  --no-specular-classes     CNA's 8-bit prefiltered specular instead of the half-float roughness classes\n"
@@ -248,6 +249,7 @@ bool RoomApplication::configure(int argc, char** argv)
         }
         else if (arg == "--focus") settings_.dofFocusDistance = std::strtof(next("--focus"), nullptr);
         else if (arg == "--volumetric") settings_.volumetricFog = std::strtof(next("--volumetric"), nullptr);
+        else if (arg == "--sunbeams-full") settings_.sunbeamHalfResolution = false;
         else if (arg == "--motes")
         {
             const std::string v = next("--motes");

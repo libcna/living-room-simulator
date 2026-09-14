@@ -13,6 +13,7 @@ namespace Microsoft::Xna::Framework::Graphics {
     class BlendState;
     class GraphicsDevice;
     class IndexBuffer;
+    class RenderTarget2D;
     class ShaderEffect;
     class Texture2D;
     class VertexBuffer;
@@ -70,6 +71,10 @@ public:
         Microsoft::Xna::Framework::Matrix viewProjection;
         Microsoft::Xna::Framework::Vector3 cameraRight;
         Microsoft::Xna::Framework::Vector3 cameraUp;
+        // The march at half size: drawn into a target of its own before the
+        // scene target is bound (march()), and added over the scene with a
+        // bilinear upsample (the beams are low frequency; the cost is a quarter).
+        bool halfResolution = true;
     };
 
     explicit Sunbeams(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
@@ -78,7 +83,12 @@ public:
     [[nodiscard]] bool supported() const { return supported_; }
     [[nodiscard]] const std::string& reason() const { return reason_; }
 
-    /// Draws the beams over the bound target (additive).
+    /// The half-size march into its own target; call with no scene target
+    /// bound (it leaves the back buffer bound). draw() then adds the result.
+    /// Without it (or at full size) draw() marches directly over the scene.
+    void march(const Inputs& in, int width, int height);
+    /// Draws the beams over the bound target (additive): the upsampled march
+    /// from march(), else a full-size march; then the motes.
     void draw(const Inputs& in, int width, int height);
 
 private:
@@ -86,6 +96,14 @@ private:
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::ShaderEffect> effect_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> quad_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> quadIndices_;
+    std::unique_ptr<Microsoft::Xna::Framework::Graphics::ShaderEffect> copyEffect_;
+    std::unique_ptr<Microsoft::Xna::Framework::Graphics::RenderTarget2D> halfTarget_;
+    int halfWidth_ = 0, halfHeight_ = 0;
+    bool halfTargetFailed_ = false;
+    bool halfMarched_ = false;   ///< march() filled halfTarget_ for this frame
+    bool ensureHalfTarget(int width, int height);
+    void marchQuad(const Inputs& in, bool opaque);
+    void drawQuad();
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::ShaderEffect> moteEffect_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> moteVertices_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> moteIndices_;

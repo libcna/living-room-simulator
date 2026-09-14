@@ -688,6 +688,13 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   cars (the red one's roof over the hedge, the blue one through the left window), every
   other view within a level of round 18. No regressions. The lofted bodies, the shop front,
   the snow on the props and the motes' gate came after this round's binary.
+- 2026-09-14 audit round 20 (29 views, `screenshots/audit20/`, with the lofted car bodies, the
+  shop front, the snow on the props and the motes' gate): the per-view differences against
+  round 19 sit in the five street views only (the shop's lit glass in the yellow building,
+  the cars' chamfered sills and sloped bonnets, the snow-topped red car in `snow-day-street`),
+  every interior view within a level of round 19. No regressions. The sun views' frame
+  times in the log (2.5 s for `sun-corner`) are contention: the half-size beam renders
+  ran alongside this round. The half-size march came after this round's binary.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
@@ -790,6 +797,17 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   march would cut it); the pass is measured by the exposure meter like any light. The depth
   and the atlas are read with `texelFetch`: a custom-effect draw keeps the last stock draw's
   sampler state on each unit (R-33), and neither may be filtered.
+- 2026-09-14 M9 half-size sunbeam march: the march now runs into a half-size target of its
+  own (HalfVector4 where the device renders to it, else Color) and is added over the scene
+  through a bilinear upsample; the beams are low frequency, so the two frames differ by a
+  level or so at most (a per-pixel compare of the window view at 960x540: mean 0.2, peak 13
+  of 255, no halos at the window frames). The march happens before the pipeline opens its
+  scene target: re-binding that target afterwards discards it (the pipeline's usage), which
+  the first attempt did and lost the opaque scene, leaving only the transparents over black.
+  At 960x540 the window view costs 850 ms with the beams off, 856 with the half-size march
+  and 939 marching every pixel, so the beams are now within the frame's noise. The debug
+  views (`CNA_ROOM_DEBUG_SUNBEAMS`) stay full size over the scene; `--sunbeams-full` marches
+  every pixel.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as
@@ -1057,6 +1075,7 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 | 2026-09-13 | M9 round 6 | sun-window, 13:00 clear | 960×540 | 960 CPU (shadow 141, opaque 67, post 734) | post dominates: SSAO + bloom + FXAA + grain/aberration at 960×540 on llvmpipe |
 | 2026-09-14 | M9 sunbeams | window, sun 45/180 clear | 1280×720 (1024² textures) | 1294 CPU (shadow 128, prepass 50, opaque 271, beams 214, post 844) | the beam march at full size, 24 steps with one atlas tap each; the sun now enters the room (the front skin cut) |
 | 2026-09-14 | M9 round 18 | entrance, noon cloudy | 1280×720 (1024² textures) | 1644 CPU (shadow 245, prepass 121, reflection 19 [60 draws], opaque 398, post 862) | 328 draws + 462 shadow, 843k tris (the facades' recesses, the props, the canvases, the clock); the beams' 210 ms land in "post" (asynchronous GL) |
+| 2026-09-14 | M9 half beams | window, sun 45/180 clear | 960×540 (512² textures) | 850 CPU beams off / 856 half-size march / 939 full-size march (the least of frames 5-16) | the half-size march with the bilinear upsample costs within the frame's noise; the full-size march about 90 ms here |
 | 2026-09-14 | M9 round 18 | sofa-to-tv, 22:00 clear | 1280×720 | 1640 CPU (shadow 395, prepass 57, reflection 142 [180 draws], opaque 73, post 974) | the stove's fire and the candle burning; two reflection planes (television, mirror) |
 | 2026-09-13 | M9 DoF | material, noon cloudy | 960×540 | 1011 CPU (shadow 304, prepass 48, reflection 48, opaque 300, post 311 with DoF; 235 without) | the depth-of-field pass costs ~90 ms of post here; the autofocus readback is under a millisecond |
 | 2026-09-14 | M9 wet street | street, 22:00 rain | 960×540 | 659 CPU (reflection 197 [304 draws: the panes' capture of the room plus the street's of the houses], opaque ~120, post ~250) | the street capture is 105 exterior draws, 20-40 ms; dry it costs nothing (the plane is disabled) |

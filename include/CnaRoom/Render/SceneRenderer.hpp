@@ -6,6 +6,7 @@
 #include "CnaRoom/Render/TelevisionContent.hpp"
 #include "CnaRoom/Render/RenderSettings.hpp"
 #include "CnaRoom/Render/SkySystem.hpp"
+#include "CnaRoom/Render/Sunbeams.hpp"
 
 #include "Microsoft/Xna/Framework/BoundingBox.hpp"
 #include "Microsoft/Xna/Framework/BoundingSphere.hpp"
@@ -46,7 +47,6 @@ class GpuMesh;
 class PlanarReflection;
 struct ReflectionPlane;
 class Vignette;
-class Sunbeams;
 struct Material;
 
 /// An environment captured from inside the room: what a surface near it
@@ -244,6 +244,8 @@ private:
     [[nodiscard]] Microsoft::Xna::Framework::Vector3 whiteBalanceGain(const RenderSettings& settings) const;
     void dumpDepth(const Camera& camera, const RenderSettings& settings);
     void drawOpaque(const Camera& camera, const RenderSettings& settings);
+    bool sunbeamInputs(const Camera& camera, const RenderSettings& settings, Sunbeams::Inputs& in);
+    void marchSunbeams(const Camera& camera, const RenderSettings& settings);
     void drawSunbeams(const Camera& camera, const RenderSettings& settings);
     void drawTransparent(const Camera& camera, const RenderSettings& settings);
     void applyLighting(const RenderSettings& settings);

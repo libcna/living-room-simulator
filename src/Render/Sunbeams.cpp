@@ -12,6 +12,10 @@
 #include "Microsoft/Xna/Framework/Graphics/IndexElementSize.hpp"
 #include "Microsoft/Xna/Framework/Graphics/PrimitiveType.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RasterizerState.hpp"
+#include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
+#include "Microsoft/Xna/Framework/Graphics/RenderTargetUsage.hpp"
+#include "Microsoft/Xna/Framework/Graphics/DepthFormat.hpp"
+#include "Microsoft/Xna/Framework/Graphics/SurfaceFormat.hpp"
 #include "Microsoft/Xna/Framework/Graphics/ShaderEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/VertexBuffer.hpp"
@@ -39,6 +43,11 @@ using Microsoft::Xna::Framework::Graphics::IndexBuffer;
 using Microsoft::Xna::Framework::Graphics::IndexElementSize;
 using Microsoft::Xna::Framework::Graphics::PrimitiveType;
 using Microsoft::Xna::Framework::Graphics::RasterizerState;
+using Microsoft::Xna::Framework::Graphics::RenderTarget2D;
+using Microsoft::Xna::Framework::Graphics::RenderTargetUsage;
+using Microsoft::Xna::Framework::Graphics::DepthFormat;
+using Microsoft::Xna::Framework::Graphics::SurfaceFormat;
+using Microsoft::Xna::Framework::Graphics::Texture2D;
 using Microsoft::Xna::Framework::Graphics::ShaderEffect;
 using Microsoft::Xna::Framework::Graphics::VertexBuffer;
 using Microsoft::Xna::Framework::Graphics::VertexPositionColorTexture;
@@ -179,6 +188,17 @@ void main() {
 }
 )";
 
+// The upsample: the half-size march added over the scene, sampled bilinearly
+// (whatever sampler the unit carries, R-33, which for the stock draws is
+// linear).
+constexpr const char* kCopyFragmentSource = R"(#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uBeams;
+out vec4 fragColor;
+void main() { fragColor = vec4(texture(uBeams, vUv).rgb, 1.0); }
+)";
+
 // The motes: one quad per speck, its centre drifting through the room box,
 // lit by the same atlas compare as the air (in the vertex shader, one tap per
 // speck), collapsed when unlit. Attribute locations follow the vertex
@@ -317,6 +337,12 @@ Sunbeams::Sunbeams(GraphicsDevice& device) : device_(device)
         quad_->SetData(vertices.data(), 4);
         quadIndices_ = std::make_unique<IndexBuffer>(device_, IndexElementSize::SixteenBits, 6, BufferUsage::WriteOnly);
         quadIndices_->SetData(indices.data(), 6);
+        copyEffect_ = std::make_unique<ShaderEffect>(device_, kVertexSource, kCopyFragmentSource);
+        if (!copyEffect_->IsEffectValid())
+        {
+            CNA::Logger::Warn("cna-room: the sunbeam upsample shader did not compile: " + copyEffect_->GetCompileErrorEXT());
+            copyEffect_.reset();
+        }
         // The motes' buffers: a fixed population, drawn in part.
         moteEffect_ = std::make_unique<ShaderEffect>(device_, kMoteVertexSource, kMoteFragmentSource);
         if (!moteEffect_->IsEffectValid())
@@ -364,10 +390,40 @@ Sunbeams::Sunbeams(GraphicsDevice& device) : device_(device)
 
 Sunbeams::~Sunbeams() = default;
 
-void Sunbeams::draw(const Inputs& in, int width, int height)
+bool Sunbeams::ensureHalfTarget(int width, int height)
 {
-    if (!supported_ || in.depth == nullptr || in.shadowAtlas == nullptr || in.cascadeCount <= 0 || width <= 0 || height <= 0) return;
-    device_.setBlendStateProperty(in.debug != 0 ? BlendState::Opaque : BlendState::Additive);
+    const int w = std::max(width / 2, 1), h = std::max(height / 2, 1);
+    if (halfTarget_ != nullptr && halfWidth_ == w && halfHeight_ == h) return true;
+    if (halfTargetFailed_) return false;
+    try
+    {
+        const SurfaceFormat format = device_.SupportsSurfaceFormatAsRenderTargetEXT(SurfaceFormat::HalfVector4) ? SurfaceFormat::HalfVector4
+                                                                                                                  : SurfaceFormat::Color;
+        halfTarget_ = std::make_unique<RenderTarget2D>(device_, w, h, false, format, DepthFormat::None, 0, RenderTargetUsage::DiscardContents);
+        halfWidth_ = w;
+        halfHeight_ = h;
+        return true;
+    }
+    catch (const std::exception& error)
+    {
+        halfTargetFailed_ = true;
+        CNA::Logger::Warn(std::string("cna-room: the sunbeam half target failed, marching at full size: ") + error.what());
+        return false;
+    }
+}
+
+void Sunbeams::drawQuad()
+{
+    device_.SetVertexBuffer(quad_.get());
+    device_.setIndicesProperty(quadIndices_.get());
+    device_.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, 4, 0, 2);
+    device_.SetVertexBuffer(nullptr);
+    device_.setIndicesProperty(nullptr);
+}
+
+void Sunbeams::marchQuad(const Inputs& in, bool opaque)
+{
+    device_.setBlendStateProperty(opaque ? BlendState::Opaque : BlendState::Additive);
     device_.setDepthStencilStateProperty(DepthStencilState::None);
     device_.setRasterizerStateProperty(RasterizerState::CullNone);
     effect_->Apply();
@@ -398,11 +454,46 @@ void Sunbeams::draw(const Inputs& in, int width, int height)
     // applies its slots at the draw, over whatever the effect bound.
     effect_->SetTexture(0, *in.depth);
     effect_->SetTexture(1, *in.shadowAtlas);
-    device_.SetVertexBuffer(quad_.get());
-    device_.setIndicesProperty(quadIndices_.get());
-    device_.DrawIndexedPrimitives(PrimitiveType::TriangleList, 0, 0, 4, 0, 2);
-    device_.SetVertexBuffer(nullptr);
-    device_.setIndicesProperty(nullptr);
+    drawQuad();
+}
+
+void Sunbeams::march(const Inputs& in, int width, int height)
+{
+    // Into the half target, opaque (the upsample adds it). Skipped for the
+    // debug views (full size, over the scene) and when the target failed;
+    // draw() then marches at full size. Re-binding the pipeline's scene
+    // target would discard it, so this runs before the pipeline opens.
+    halfMarched_ = false;
+    if (!supported_ || in.depth == nullptr || in.shadowAtlas == nullptr || in.cascadeCount <= 0 || width <= 0 || height <= 0) return;
+    if (!in.halfResolution || in.debug != 0 || copyEffect_ == nullptr || !ensureHalfTarget(width, height)) return;
+    device_.SetRenderTarget(halfTarget_.get());
+    device_.Clear(Color::Black);
+    marchQuad(in, true);
+    device_.SetRenderTarget(nullptr);
+    device_.setBlendStateProperty(BlendState::Opaque);
+    device_.setDepthStencilStateProperty(DepthStencilState::Default);
+    halfMarched_ = true;
+}
+
+void Sunbeams::draw(const Inputs& in, int width, int height)
+{
+    if (!supported_ || in.depth == nullptr || in.shadowAtlas == nullptr || in.cascadeCount <= 0 || width <= 0 || height <= 0) return;
+    if (halfMarched_)
+    {
+        // The half-size march, bilinear, added over the scene.
+        halfMarched_ = false;
+        device_.setBlendStateProperty(BlendState::Additive);
+        device_.setDepthStencilStateProperty(DepthStencilState::None);
+        device_.setRasterizerStateProperty(RasterizerState::CullNone);
+        copyEffect_->Apply();
+        copyEffect_->SetUniformInt("uBeams", 0);
+        copyEffect_->SetTexture(0, static_cast<Texture2D&>(*halfTarget_));
+        drawQuad();
+    }
+    else
+    {
+        marchQuad(in, in.debug != 0);
+    }
     if (in.debug == 0)
     {
         Inputs sized = in;

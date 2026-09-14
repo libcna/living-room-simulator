@@ -1118,6 +1118,8 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     drawReflections(camera, settings);
     const float afterReflections = milliseconds(watch);
     stats_.reflectionMs = afterReflections - afterPrepass;
+    marchSunbeams(camera, settings);
+    const float afterMarch = milliseconds(watch);
 
     if (gpuTimingAvailable_) pipeline_->setGpuTimingEnabledEXT(true);
     pipeline_->setCamera(camera.view(), camera.projection(), camera.nearPlane(), settings.prepassFarPlane);
@@ -1139,7 +1141,7 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     openStage(GpuStage::Sunbeams);
     drawSunbeams(camera, settings);
     closeStage(GpuStage::Sunbeams);
-    stats_.sunbeamMs = milliseconds(watch) - afterOpaque;
+    stats_.sunbeamMs = (milliseconds(watch) - afterOpaque) + (afterMarch - afterReflections);
     // Image-based exposure: the HDR scene target holds this frame's opaque
     // radiance (the pipeline only hands it out while the frame is open, so
     // the measurement runs before end() and asks for next frame's exposure).
@@ -1189,7 +1191,7 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     stats_.cullMs = afterCull;
     stats_.shadowMs = afterShadow - afterCull;
     stats_.prepassMs = afterPrepass - afterShadow;
-    stats_.skyMs = afterSky - afterReflections;
+    stats_.skyMs = afterSky - afterMarch;
     stats_.opaqueMs = afterOpaque - afterSky;
     stats_.postMs = milliseconds(watch) - afterOpaque;
     stats_.frameMs = milliseconds(watch);
@@ -1736,7 +1738,7 @@ void SceneRenderer::setSunbeamVolume(const Vector3& min, const Vector3& max)
     sunbeamVolumeSet_ = true;
 }
 
-void SceneRenderer::drawSunbeams(const Camera& camera, const RenderSettings& settings)
+bool SceneRenderer::sunbeamInputs(const Camera& camera, const RenderSettings& settings, Sunbeams::Inputs& in)
 {
     // Sunlight scattered by the room's air, from the cascades and the prepass
     // depth: needs both this frame, and a key light worth casting.
@@ -1747,13 +1749,12 @@ void SceneRenderer::drawSunbeams(const Camera& camera, const RenderSettings& set
             CNA::Logger::Info(std::string("cna-room: sunbeams skipped this frame: ") + why);
         }
     };
-    if (sunbeams_ == nullptr || !sunbeams_->supported()) return;
-    if (settings.sunbeams <= 0.0f) return;
-    if (!sunbeamVolumeSet_) { skip("no volume"); return; }
-    if (!cascadesFitted_) { skip("cascades not fitted"); return; }
-    if (shadows_ == nullptr || shadows_->getShadowTexture() == nullptr) { skip("no atlas"); return; }
-    if (!prepassDrawn_) { skip("no prepass"); return; }
-    Sunbeams::Inputs in;
+    if (sunbeams_ == nullptr || !sunbeams_->supported()) return false;
+    if (settings.sunbeams <= 0.0f) return false;
+    if (!sunbeamVolumeSet_) { skip("no volume"); return false; }
+    if (!cascadesFitted_) { skip("cascades not fitted"); return false; }
+    if (shadows_ == nullptr || shadows_->getShadowTexture() == nullptr) { skip("no atlas"); return false; }
+    if (!prepassDrawn_) { skip("no prepass"); return false; }
     in.inverseViewProjection = Matrix::Invert(camera.view() * camera.projection());
     in.cameraPosition = camera.position();
     in.cameraForward = camera.forward();
@@ -1779,6 +1780,7 @@ void SceneRenderer::drawSunbeams(const Camera& camera, const RenderSettings& set
     in.roomMax = sunbeamMax_;
     in.motes = settings.sunbeamMotes;
     in.moteSize = settings.sunbeamMoteSize;
+    in.halfResolution = settings.sunbeamHalfResolution;
     // Motes show only in real sunbeams: their glint fades with the key light's
     // strength against the ambient (a cloud-dimmed sun lights the air but not
     // the specks, which read as snowflakes otherwise).
@@ -1844,7 +1846,20 @@ void SceneRenderer::drawSunbeams(const Camera& camera, const RenderSettings& set
             }
         }
     }
-    sunbeams_->draw(in, width_, height_);
+    return true;
+}
+
+void SceneRenderer::marchSunbeams(const Camera& camera, const RenderSettings& settings)
+{
+    // The half-size march, before the pipeline opens its scene target.
+    Sunbeams::Inputs in;
+    if (sunbeamInputs(camera, settings, in)) sunbeams_->march(in, width_, height_);
+}
+
+void SceneRenderer::drawSunbeams(const Camera& camera, const RenderSettings& settings)
+{
+    Sunbeams::Inputs in;
+    if (sunbeamInputs(camera, settings, in)) sunbeams_->draw(in, width_, height_);
 }
 
 void SceneRenderer::drawOpaque(const Camera& camera, const RenderSettings& settings)
