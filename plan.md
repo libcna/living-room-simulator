@@ -749,6 +749,12 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   moved 7-10 with the haze and the far row's lamp-lit probes. The frame times ran a third
   high because the two clips recorded alongside. No regressions; the sectioned floor's
   seams do not show in any view.
+- 2026-09-14 audit round 28 (29 views, `screenshots/audit28/`, with the crowns swaying; taken
+  before the second set of props): every interior view within a level of round 27; the
+  street views moved 2-3 levels, all of it the canopies' outlines a few pixels from where
+  they stood (the sixth frame of a storm or a breeze), the largest `storm-night-street`
+  at 1.8 % of pixels past 40 levels. No regressions. Next round takes in the slippers,
+  the newspaper and the bag.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant

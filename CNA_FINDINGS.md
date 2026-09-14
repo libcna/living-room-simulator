@@ -43,6 +43,7 @@ behaviour contradicts CNA's own documentation or produces wrong pictures from va
 | R-24 | `ShaderEffect` GLSL samplers | note | A `sampler2D`/`samplerCube` without a precision qualifier returns `lowp`/`mediump` values on this ES driver: an RGBE exponent read as `t.a * 255` came back a fraction of an octave off | `precision highp sampler2D;` in the shader and the exponent code rounded |
 | R-22 | `EnvironmentProcessor::generateIrradiance` | limitation | Monte-Carlo with the given sample count: 16 samples against a 400:1 environment produce texel-to-texel speckle that normal maps spread per pixel; 96 samples cost ~2 s per probe on this machine | Replaced by an exact CPU convolution over an 8×8-per-face downsample (~5 ms) |
 | R-20 | `HeightFogPass` via `RenderPipeline` | limitation | The pass has `setColor`, the pipeline exposes only density/falloff/base height, so the fog keeps CNA's daylight haze colour | Fog density scaled by daylight, off at night |
+| R-36 | `PbrEffect` environment lighting | limitation | One environment cube (and one irradiance cube) per draw and no per-pixel blend: a game with a grid of probes cannot fade between them across a surface, only split the surface and accept a step at every seam; the renderer generates the shader, so an SH ambient or a cube-array lookup cannot be added from outside | Nine probes in a grid, the floor in 3x3 sections each on its nearest probe; walls and ceiling whole (a step on plain plaster reads as an edge) |
 
 ## R-21 / R-23 Half-float IBL products
 
@@ -136,3 +137,15 @@ back and integrate on the CPU; for three probes that is ~0.4 s per rebake on thi
 is what forced the incremental probe bake (one face per frame, products at the sixth). A GPU
 convolution (the pipeline already has the fullscreen machinery) would make sky and probe
 rebakes per frame affordable.
+
+## R-36 One environment probe per draw
+
+`PbrEffect` samples one prefiltered cube and one irradiance cube, chosen per draw, and its
+program comes from the renderer's built-in effect family, so a game cannot add a second probe
+sampler, a spherical-harmonics ambient or a cube-array lookup to blend probes per pixel. With
+nine probes in the room the only gradient available is per item: the floor is cut into 3x3
+sections that each take their nearest probe (`RoomScene::buildFloorAndCeiling`), and the
+level steps at the seams; the ceiling and walls stay whole because the same step on plain
+plaster reads as a rendering edge (plan.md §29, 2026-09-14 probes). An irradiance volume (a
+3D texture or SH uniforms the fragment shader interpolates by world position) would give the
+per-pixel gradient the section split approximates.
