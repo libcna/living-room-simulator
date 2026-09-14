@@ -42,6 +42,8 @@ struct RenderSettings
     int sunbeamSteps = 24;
     bool sunbeamHalfResolution = true;   ///< march at half size and upsample (a quarter of the cost)
     float lampHaze = 0.35f;              ///< the shadowed lamp's light scattered by the air at night (0 off)
+    float contactShadows = 0.0f;         ///< screen-space contact shadows toward the sun (0 off, the default; how dark a full hit goes)
+    float contactRange = 0.12f;          ///< metres the contact ray walks toward the sun
     int sunbeamMotes = 400;          ///< dust motes drifting in the beams (0 off)
     bool steam = true;               ///< the plume over the cup on the coffee table
     float sunbeamMoteSize = 2.0f;    ///< a mote's diameter in pixels at a 540-line frame
@@ -68,7 +70,6 @@ struct RenderSettings
     int ssaoSamples = 16;
     float prepassFarPlane = 16.0f;
     bool ssr = false;
-    bool contactShadows = false;
     bool colourGrade = false;
 
     bool shadows = true;

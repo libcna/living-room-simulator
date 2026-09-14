@@ -9,6 +9,7 @@
 #include "CnaRoom/Render/PlanarReflection.hpp"
 #include "CnaRoom/Render/Material.hpp"
 #include "CnaRoom/Render/Sunbeams.hpp"
+#include "CnaRoom/Render/ContactShadows.hpp"
 #include "CnaRoom/Render/Vignette.hpp"
 
 #include "CNA/Graphics/AutoExposureEXT.hpp"
@@ -209,6 +210,8 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
     vignette_ = std::make_unique<Vignette>(device_);
     sunbeams_ = std::make_unique<Sunbeams>(device_);
     if (!sunbeams_->supported()) limitations_.emplace_back("sunbeams off: " + sunbeams_->reason());
+    contact_ = std::make_unique<ContactShadows>(device_);
+    if (!contact_->supported()) limitations_.emplace_back("contact shadows off: " + contact_->reason());
     if (!vignette_->supported()) limitations_.emplace_back("vignette off: " + vignette_->reason());
     for (auto& reflection : reflections_)
         reflection->resize(std::max(16, static_cast<int>(static_cast<float>(width) * settings.reflectionScale)),
@@ -1152,6 +1155,8 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     stats_.reflectionMs = afterReflections - afterPrepass;
     marchSunbeams(camera, settings);
     const float afterMarch = milliseconds(watch);
+    marchContactShadows(camera, settings);
+    const float afterContact = milliseconds(watch);
 
     if (gpuTimingAvailable_) pipeline_->setGpuTimingEnabledEXT(true);
     pipeline_->setCamera(camera.view(), camera.projection(), camera.nearPlane(), settings.prepassFarPlane);
@@ -1168,7 +1173,9 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     openStage(GpuStage::Opaque);
     drawOpaque(camera, settings);
     closeStage(GpuStage::Opaque);
+    if (contact_ != nullptr) contact_->apply();
     const float afterOpaque = milliseconds(watch);
+    stats_.contactMs = afterContact - afterMarch;
     // Its CPU time says little under asynchronous GL; the GPU stage timer does.
     openStage(GpuStage::Sunbeams);
     drawSunbeams(camera, settings);
@@ -1394,7 +1401,9 @@ void SceneRenderer::dumpAtlas(const char* path)
 void SceneRenderer::drawPrepass(const Camera& camera, const RenderSettings& settings)
 {
     prepassDrawn_ = false;
-    if (prepass_ == nullptr || pipeline_ == nullptr || !(settings.ssao || settings.ssr || settings.depthOfField || settings.sunbeams > 0.0f || settings.lampHaze > 0.0f)) return;
+    if (prepass_ == nullptr || pipeline_ == nullptr
+        || !(settings.ssao || settings.ssr || settings.depthOfField || settings.sunbeams > 0.0f || settings.lampHaze > 0.0f || settings.contactShadows > 0.0f))
+        return;
     ShaderEffect* prepassEffect = prepass_->getPrepassEffect();
     if (prepassEffect == nullptr || !prepassEffect->IsEffectValid()) return;
 
@@ -1898,6 +1907,35 @@ bool SceneRenderer::sunbeamInputs(const Camera& camera, const RenderSettings& se
         }
     }
     return true;
+}
+
+void SceneRenderer::marchContactShadows(const Camera& camera, const RenderSettings& settings)
+{
+    // The sun's contact shadows: only while the cascades are fitted (the sun
+    // up and casting), scaled down as the sky's cloud softens the shadows,
+    // since a soft shadow has no hard contact to sharpen.
+    if (contact_ == nullptr || !contact_->supported() || prepass_ == nullptr || settings.contactShadows <= 0.0f) return;
+    if (!cascadesFitted_ || shadows_ == nullptr || shadows_->getShadowTexture() == nullptr) return;
+    const float softness = std::clamp(sky_.lighting().shadowSoftness, 0.0f, 1.0f);
+    const float strength = settings.contactShadows * (1.0f - softness);
+    if (strength <= 0.01f) return;
+    static const int debug = std::getenv("CNA_ROOM_DEBUG_CONTACT") != nullptr ? std::atoi(std::getenv("CNA_ROOM_DEBUG_CONTACT")) : 0;
+    ContactShadows::Inputs in;
+    in.depth = prepass_->getDepthTexture();
+    in.normals = prepass_->getNormalTexture();
+    in.view = camera.view();
+    in.projection = camera.projection();
+    in.inverseProjection = Matrix::Invert(in.projection);
+    in.inverseView = Matrix::Invert(camera.view());
+    in.nearPlane = settings.nearPlane;
+    in.farPlane = settings.prepassFarPlane;
+    in.lightDirection = keyLightDirection_;
+    in.intensity = strength;
+    in.maxDistance = settings.contactRange;
+    in.thickness = std::max(0.04f, settings.contactRange * 0.5f);
+    in.bias = 0.03f;
+    in.debug = debug;
+    contact_->march(in, width_, height_);
 }
 
 void SceneRenderer::marchSunbeams(const Camera& camera, const RenderSettings& settings)

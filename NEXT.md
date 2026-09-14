@@ -53,7 +53,9 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
    locations 12..15, so imported models (the book rows, the chairs) qualify; procedural
    `GpuMesh` items would need a part built around their buffers. Little to gain on llvmpipe,
    where the draw count is not the cost.
-6. Contact shadows (`ContactShadowPass` exists but the pipeline has no hook).
+6. Contact shadows: integrated as a mask multiplied after the opaque pass (`--contact-shadows D`,
+   off by default) since the pipeline has no hook before the tonemap; the pass rims every
+   silhouette with this prepass depth, so it stays off until that is cured (plan.md §29).
 7. Done: depth of field with centre-point autofocus (`--dof`, `--focus`). Next for the lens: the
    pipeline's lens flare and motion blur passes (a walk through the room at 24 fps), colour
    grading with a LUT for the night look.

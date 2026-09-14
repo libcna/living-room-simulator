@@ -126,7 +126,8 @@ mean each frame and `CNA_ROOM_TV_TIME_SCALE` runs the programme faster; `CNA_ROO
 logs the lamp each item took; `CNA_ROOM_WINDOW_LIGHT=S` scales the windows' light (0 off);
 `CNA_ROOM_DEBUG_REFLECTIONS` and `CNA_ROOM_DEBUG_PUDDLES=1|2` expose the planar reflections and
 the puddle mask; `CNA_ROOM_NO_TREE_SHADOWS` drops the trees' shadow proxies and
-`CNA_ROOM_TREE_SWAY=N` scales their sway; `CNA_ROOM_NO_CNB`
+`CNA_ROOM_TREE_SWAY=N` scales their sway; `CNA_ROOM_DEBUG_CONTACT=1|2` paints the contact-shadow
+mask (gated by the normals, or raw); `CNA_ROOM_NO_CNB`
 imports the glTF sources instead of the compiled models and `CNA_ROOM_MODEL_DEBUG` logs the import.
 
 ## Controls
@@ -208,6 +209,9 @@ PageUp/PageDown or F2 give them back.
   one, so the probes' light falls off across the floor from the windows inward.
 - Lamp haze at night: the pendant's light scattered by the room's air, shadowed by its cube
   map, in the same half-size march as the sunbeams (`--lamp-haze D`).
+- Screen-space contact shadows toward the sun (CNAEXT `ContactShadowPass` run as a
+  visibility mask multiplied into the lit scene), experimental and off by default
+  (`--contact-shadows D`): the pass rims silhouettes on this prepass.
 - Running raindrops: the panes' droplets are an eight-frame flipbook whose runners slide down
   the glass while it rains.
 - Passing clouds: under a broken sky the sun swaps between gap and cloud over a minute or so,

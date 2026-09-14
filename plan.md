@@ -1058,6 +1058,21 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   ten game minutes: one face at the default pace at 60 fps, eight at 0.7 game minutes a
   frame, eleven at a minute a frame, never more than a quarter of the queue; the
   application feeds it the clock's pace each frame (`setProbeBakePace`).
+- 2026-09-14 M9 contact shadows, evaluated and left off: CNAEXT's `ContactShadowPass` has no
+  place in the pipeline before the tonemap (user passes run last, on display values), and the
+  scene target cannot be read and rebound mid-frame, so `Render/ContactShadows` runs the pass
+  before the frame opens with a 1x1 white source over the prepass depth into a visibility
+  mask, then multiplies the mask into the lit scene after the opaque pass with a
+  Zero/SourceColor blend (`--contact-shadows D`, `CNA_ROOM_DEBUG_CONTACT=1|2` paints the mask
+  gated or raw). Three things learnt: the mask comes out mirrored in V (the FullscreenPass,
+  R-8); the pass takes no normals, so every surface facing away from the light shadows
+  itself (its ray dips behind its own depth within the thickness) and the copy shader gates
+  the mask by the prepass normal's cosine to the light; and with the light along the camera
+  axis the raw mask still rims every silhouette (the depth sampled across an edge lands in
+  the bias..thickness band), a thin dark outline round the furniture at any bias tried
+  (0.015, 0.03). What remains under the furniture in a sunlit corner view is within what the
+  SSAO already draws (`corner`, 15:30 clear: 2.0 levels mean difference, most of it the
+  rims). Default 0; the machinery stays for a renderer whose prepass edges behave.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

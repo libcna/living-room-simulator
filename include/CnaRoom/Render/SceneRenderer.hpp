@@ -8,6 +8,7 @@
 #include "CnaRoom/Render/SkySystem.hpp"
 #include "CnaRoom/Render/Steam.hpp"
 #include "CnaRoom/Render/Sunbeams.hpp"
+#include "CnaRoom/Render/ContactShadows.hpp"
 
 #include "Microsoft/Xna/Framework/BoundingBox.hpp"
 #include "Microsoft/Xna/Framework/BoundingSphere.hpp"
@@ -141,6 +142,7 @@ public:
         float cullMs = 0.0f, shadowMs = 0.0f, prepassMs = 0.0f, skyMs = 0.0f, opaqueMs = 0.0f;
         float reflectionMs = 0.0f;
         float sunbeamMs = 0.0f;
+        float contactMs = 0.0f;
         int reflectionDrawCalls = 0;
         float postMs = 0.0f, frameMs = 0.0f;
         double gpuShadowMs = -1.0, gpuPrepassMs = -1.0, gpuSkyMs = -1.0, gpuOpaqueMs = -1.0, gpuSunbeamMs = -1.0;
@@ -266,6 +268,7 @@ private:
     void drawOpaque(const Camera& camera, const RenderSettings& settings);
     bool sunbeamInputs(const Camera& camera, const RenderSettings& settings, Sunbeams::Inputs& in);
     void marchSunbeams(const Camera& camera, const RenderSettings& settings);
+    void marchContactShadows(const Camera& camera, const RenderSettings& settings);
     void drawSunbeams(const Camera& camera, const RenderSettings& settings);
     void drawTransparent(const Camera& camera, const RenderSettings& settings);
     void applyLighting(const RenderSettings& settings);
@@ -367,6 +370,7 @@ private:
     std::unique_ptr<ExposureMeter> exposureMeter_;
     std::unique_ptr<Vignette> vignette_;
     std::unique_ptr<Sunbeams> sunbeams_;
+    std::unique_ptr<ContactShadows> contact_;
     Microsoft::Xna::Framework::Vector3 sunbeamMin_, sunbeamMax_;
     bool sunbeamVolumeSet_ = false;
     Microsoft::Xna::Framework::Vector3 keyLightDirection_{0.0f, -1.0f, 0.0f};   ///< the cascades' light, as fitted this frame

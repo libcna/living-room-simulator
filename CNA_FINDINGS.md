@@ -44,6 +44,7 @@ behaviour contradicts CNA's own documentation or produces wrong pictures from va
 | R-22 | `EnvironmentProcessor::generateIrradiance` | limitation | Monte-Carlo with the given sample count: 16 samples against a 400:1 environment produce texel-to-texel speckle that normal maps spread per pixel; 96 samples cost ~2 s per probe on this machine | Replaced by an exact CPU convolution over an 8×8-per-face downsample (~5 ms) |
 | R-20 | `HeightFogPass` via `RenderPipeline` | limitation | The pass has `setColor`, the pipeline exposes only density/falloff/base height, so the fog keeps CNA's daylight haze colour | Fog density scaled by daylight, off at night |
 | R-36 | `PbrEffect` environment lighting | limitation | One environment cube (and one irradiance cube) per draw and no per-pixel blend: a game with a grid of probes cannot fade between them across a surface, only split the surface and accept a step at every seam; the renderer generates the shader, so an SH ambient or a cube-array lookup cannot be added from outside | Nine probes in a grid, the floor in 3x3 sections each on its nearest probe; walls and ceiling whole (a step on plain plaster reads as an edge) |
+| R-37 | `ContactShadowPass` | limitation | Runs only as a pipeline user pass (after the tonemap, on display values) or by hand; takes no normals, so surfaces facing away from the light shadow themselves within the thickness; rims every silhouette even with the light along the camera axis (the depth sampled across an edge falls in the bias..thickness band); output mirrored in V like every FullscreenPass draw (R-8) | `Render/ContactShadows`: a mask marched before the frame over a white source, gated by the prepass normals, multiplied in after the opaque pass; off by default |
 
 ## R-21 / R-23 Half-float IBL products
 
@@ -149,3 +150,18 @@ level steps at the seams; the ceiling and walls stay whole because the same step
 plaster reads as a rendering edge (plan.md §29, 2026-09-14 probes). An irradiance volume (a
 3D texture or SH uniforms the fragment shader interpolates by world position) would give the
 per-pixel gradient the section split approximates.
+
+## R-37 ContactShadowPass rims silhouettes and shadows back faces
+
+`ContactShadowPass::apply` marches the prepass depth from each pixel toward the light and
+darkens where a nearer surface lies within `bias..thickness` of the ray. Run over a 1x1 white
+source into a mask (there is no pipeline hook before the tonemap, and the scene target cannot
+be read and rebound mid-frame), three things showed in the room: every surface facing away
+from the light comes out shadowed, because the ray dips behind the surface's own depth within
+the thickness and the pass has no normal to know it (cna-room gates the mask by the prepass
+normal's cosine to the light in its own composite); with the light direction set along the
+camera axis so the ray climbs straight out of the depth, the mask still rims every silhouette
+(the depth read across an edge mixes near and far and lands in the band), at bias 0.015 and
+0.03 alike; and the mask arrives mirrored in V (R-8). The sanity probe that fixed the sign
+conventions: light travelling away from the camera gives a white mask, toward it a grey one,
+as documented.
