@@ -80,6 +80,8 @@ cmake --build build --target cna-room
 
 The clock runs by default (one game day in 24 real minutes, starting 14:30); `--time 22:00`
 starts at night, `--day-length 2` runs a day in two minutes, `--sun ELEV,AZIM` freezes the sun.
+The probes' re-capture keeps pace with the clock: however fast the day runs, a bake finishes
+within ten game minutes.
 
 Weather evolves on its own from cloudy; `--weather rain|storm|snow|hail|clear|overcast|cloudy`
 starts in a kind, `--hold-weather` keeps it, `--temperature -3` makes rain into snow.

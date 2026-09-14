@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "CnaRoom/Sim/TimeOfDay.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -100,6 +101,14 @@ bool TimeOfDay::parseClock(const std::string& text, float& hours)
     if (end == text.c_str() || value < 0.0f || value > 24.0f) return false;
     hours = value;
     return true;
+}
+
+int bakeFacesPerFrame(std::size_t total, float gameMinutesPerFrame, float withinMinutes)
+{
+    if (total == 0 || gameMinutesPerFrame <= 0.0f || withinMinutes <= 0.0f) return 1;
+    const float wanted = std::ceil(static_cast<float>(total) * gameMinutesPerFrame / withinMinutes);
+    const int cap = std::max(1, static_cast<int>(total / 4));
+    return std::clamp(static_cast<int>(std::min(wanted, 1.0e6f)), 1, cap);
 }
 
 }  // namespace CnaRoom

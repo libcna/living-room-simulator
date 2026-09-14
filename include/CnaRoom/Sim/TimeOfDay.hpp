@@ -3,6 +3,7 @@
 
 #include "Microsoft/Xna/Framework/Vector3.hpp"
 
+#include <cstddef>
 #include <string>
 
 namespace CnaRoom {
@@ -63,5 +64,11 @@ private:
     bool paused_ = false;
     float moonAgeDays_ = 10.0f;       // waxing gibbous
 };
+
+/// How many faces of a `total`-face probe bake to capture this frame so the
+/// whole bake completes within `withinMinutes` of game time at the clock's
+/// current pace: at least one, at most a quarter of the bake (the frame's cost
+/// bound). At the default day length (a game minute a real minute) it is one.
+[[nodiscard]] int bakeFacesPerFrame(std::size_t total, float gameMinutesPerFrame, float withinMinutes = 10.0f);
 
 }  // namespace CnaRoom

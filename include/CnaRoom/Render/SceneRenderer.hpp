@@ -231,6 +231,11 @@ public:
                           const RenderSettings& settings, int iterations = 1);
     /// Captures up to `faces` faces of the queued bake; returns true while work remains.
     bool stepProbeBake(int faces);
+    /// Game minutes that pass per frame: the per-frame bake budget is sized so a
+    /// full rebake completes within about ten game minutes (one face at least,
+    /// a quarter of the queue at most), whatever the clock's speed or frame rate.
+    void setProbeBakePace(float gameMinutesPerFrame) { probeBakeMinutesPerFrame_ = std::max(0.0f, gameMinutesPerFrame); }
+    [[nodiscard]] int probeBakeFacesPerFrame() const;
     [[nodiscard]] bool probeBakePending() const { return !probeBakeQueue_.empty(); }
     [[nodiscard]] std::size_t probeCount() const { return probes_.size(); }
 
@@ -333,6 +338,8 @@ private:
     bool probeMirrorX_ = true;    ///< readback orientation, verified against the sky at first bake
     bool probeFlipY_ = false;
     bool probeMappingKnown_ = false;
+    std::size_t probeBakeQueueTotal_ = 0;
+    float probeBakeMinutesPerFrame_ = 0.0f;
     const RenderSettings* currentSettings_ = nullptr;
     std::vector<Lamp> lamps_;
     bool lampsDirty_ = true;

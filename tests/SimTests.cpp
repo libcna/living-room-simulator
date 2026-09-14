@@ -211,12 +211,33 @@ void testPassingClouds()
     check(near(cloudBehindSun(0.5f, 0.0f), 0.5f, 0.01f), "second zero sits at the typical state");
 }
 
+void testBakePace()
+{
+    using CnaRoom::bakeFacesPerFrame;
+    check(bakeFacesPerFrame(108, 0.0f) == 1, "a paused clock bakes one face a frame");
+    check(bakeFacesPerFrame(108, 1.0f / 60.0f) == 1, "the default day length (a game minute a real minute at 60 fps) bakes one face a frame");
+    check(bakeFacesPerFrame(108, 1.0f) == 11, "a game minute a frame bakes eleven faces, so the 108 finish within ten minutes: " + std::to_string(bakeFacesPerFrame(108, 1.0f)));
+    check(bakeFacesPerFrame(108, 0.7f) == 8, "a slow frame of 0.7 game minutes bakes eight: " + std::to_string(bakeFacesPerFrame(108, 0.7f)));
+    check(bakeFacesPerFrame(108, 30.0f) == 27, "however fast the clock, a frame bakes at most a quarter of the queue");
+    check(bakeFacesPerFrame(0, 5.0f) == 1 && bakeFacesPerFrame(3, 5.0f) == 1, "a tiny or empty bake still steps one face");
+    bool monotone = true;
+    int previous = 0;
+    for (int i = 0; i <= 40; ++i)
+    {
+        const int faces = bakeFacesPerFrame(108, static_cast<float>(i) * 0.1f);
+        monotone = monotone && faces >= previous;
+        previous = faces;
+    }
+    check(monotone, "the budget never falls as the clock speeds up");
+}
+
 int main()
 {
     testTimeOfDay();
     testWeather();
     testChimneySmoke();
     testPassingClouds();
+    testBakePace();
     if (failures == 0) std::printf("cna_room_sim_tests: all checks passed\n");
     return failures == 0 ? 0 : 1;
 }

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "CnaRoom/Render/SceneRenderer.hpp"
+#include "CnaRoom/Sim/TimeOfDay.hpp"
 
 #include "CnaRoom/Render/ExposureMeter.hpp"
 #include "CnaRoom/Render/FloatCube.hpp"
@@ -835,6 +836,12 @@ void SceneRenderer::requestProbeBake(const std::vector<Vector3>& positions, cons
     probeBakePeak_ = 1e-4f;
     probeBakeWatch_ = Stopwatch::StartNew();
     probeBakeStepsDone_ = 0;
+    probeBakeQueueTotal_ = probeBakeQueue_.size();
+}
+
+int SceneRenderer::probeBakeFacesPerFrame() const
+{
+    return bakeFacesPerFrame(probeBakeQueueTotal_, probeBakeMinutesPerFrame_);
 }
 
 bool SceneRenderer::stepProbeBake(int faces)
@@ -1127,7 +1134,7 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
 
     // Spread probe re-captures over frames (one face per frame; the whole
     // set is 18 faces for three probes at one bounce iteration).
-    if (!probeBakeQueue_.empty()) stepProbeBake(1);
+    if (!probeBakeQueue_.empty()) stepProbeBake(probeBakeFacesPerFrame());
     cull(camera);
     const float afterCull = milliseconds(watch);
     openStage(GpuStage::Shadow);

@@ -546,6 +546,7 @@ void RoomApplication::updateWeather(float dt)
                                 ? 0.0f
                                 : dt * (24.0f / clock_.secondsPerDay());
     weather_.advance(gameHours, dt, clock_.hours());
+    renderer_->setProbeBakePace(gameHours * 60.0f);
     const WeatherState& w = weather_.state();
     if (!weatherForced_)
     {

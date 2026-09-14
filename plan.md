@@ -1050,6 +1050,14 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   the strap slumped over the top; the first placing, under the small pictures, was behind
   the damask chair). Three materials: `newsprint`, `slipper_felt` (a lighter weave; the
   first bake read as dark leather in the sofa's shadow), `bag_leather`.
+- 2026-09-14 M9 probe bake pace: the probes re-captured one face a frame whatever the
+  clock did, so at `--day-length 0.4` (a day in 24 s, a game minute a frame) the 108-face
+  bake trailed the sun by 108 game minutes, and on llvmpipe's 0.7 s frames at the default
+  day length by over an hour of game time as well. `bakeFacesPerFrame(total, gameMinutesPerFrame)`
+  (`Sim/TimeOfDay`, with a sim test) sizes the frame's budget so a bake completes within
+  ten game minutes: one face at the default pace at 60 fps, eight at 0.7 game minutes a
+  frame, eleven at a minute a frame, never more than a quarter of the queue; the
+  application feeds it the clock's pace each frame (`setProbeBakePace`).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as
