@@ -138,6 +138,33 @@ SurfaceImages TextureBaker::carpet(int size, std::uint32_t seed, float r, float 
     return out;
 }
 
+SurfaceImages TextureBaker::knit(int size, std::uint32_t seed, float r, float g, float b)
+{
+    SurfaceImages out;
+    out.albedo = Image(size, size);
+    out.orm = Image(size, size);
+    Field height(size, size);
+    out.tileMetres = 0.12f;
+    constexpr int kRibs = 12, kRows = 14;   // a stitch a centimetre, rows a little shorter
+    for (int y = 0; y < size; ++y)
+        for (int x = 0; x < size; ++x)
+        {
+            const float u = (static_cast<float>(x) + 0.5f) / static_cast<float>(size), v = (static_cast<float>(y) + 0.5f) / static_cast<float>(size);
+            const int rib = static_cast<int>(u * kRibs);
+            const float across = 0.5f + 0.5f * std::sin(u * kRibs * 2.0f * kPi);                       // the rib's round
+            const float bead = 0.55f + 0.45f * std::sin(v * kRows * 2.0f * kPi + (rib % 2 ? kPi : 0.0f));  // stitches staggered rib to rib
+            const float fuzz = Noise::fbm(u, v, 120, 3, 0.5f, seed);
+            const float wear = Noise::fbm(u, v, 3, 3, 0.5f, seed + 4u);
+            const float h = across * bead * 0.8f + fuzz * 0.2f;
+            height.ref(x, y) = h;
+            const float shade = 0.78f + 0.30f * h + 0.08f * (wear - 0.5f);
+            out.albedo.set(x, y, clamp01(r * shade), clamp01(g * shade), clamp01(b * shade));
+            packOrm(out.orm, x, y, 0.7f + 0.3f * h, 0.92f - 0.05f * h, 0.0f);
+        }
+    out.normal = normalMapFromHeight(height, 2.2f);
+    return out;
+}
+
 SurfaceImages TextureBaker::fabricWeave(int size, std::uint32_t seed, float r, float g, float b)
 {
     SurfaceImages out;

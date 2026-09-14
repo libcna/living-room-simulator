@@ -869,6 +869,15 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   television's picture drops from 200 to 120 cd/m^2 (a set's dark-room mode; its lamp from
   250 to 150 lm to match): at 200 the picture paled under the tonemapper next to the
   lamp-lit walls, and the ACES curve desaturated it.
+- 2026-09-14 M9 lived-in props: a knitted throw draped over the left end of the sofa's back
+  (a strip of quads down the front, over the top and down the back from the placed model's
+  back bounds, with folds across its width that deepen down the hangs and a wavy hem;
+  double-sided, in a new `TextureBaker::knit` rib pattern, cream wool), a paperback left open
+  face up on the magazine (cloth covers under two page blocks), and on the chest of drawers'
+  free end three envelopes and a bunch of keys on a ring (a torus and two keys in polished
+  metal), placed from the chest's bounds. The knit's first bake came back in the old ochre
+  after its recolour: the bake cache keys on name, seed and size, not on the baker's
+  parameters, so `kCacheVersion` is 7 now (the rule: bump it whenever a bake changes).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

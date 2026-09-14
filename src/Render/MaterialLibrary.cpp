@@ -84,7 +84,7 @@ const Material* MaterialLibrary::find(const std::string& name) const
 
 namespace {
 
-constexpr int kCacheVersion = 6;   // bump when any baker's output changes
+constexpr int kCacheVersion = 7;   // bump when any baker's output changes
 
 bool readImage(GraphicsDevice& device, const std::string& path, CnaRoom::Assets::Image& out)
 {
@@ -209,6 +209,10 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     surfaced("radiator_enamel", [&] { return TextureBaker::flat(size / 4, seed + 18u, 0.94f, 0.94f, 0.92f, 0.35f, 0.0f, 0.05f); }, 1.0f, 0.0f);
     surfaced("ceramic_white", [&] { return TextureBaker::flat(size / 4, seed + 19u, 0.95f, 0.95f, 0.94f, 0.15f, 0.0f, 0.02f); }, 1.0f, 0.0f);
     surfaced("paper", [&] { return TextureBaker::flat(size / 4, seed + 20u, 0.90f, 0.88f, 0.82f, 0.90f, 0.0f, 0.08f); }, 1.0f, 0.0f);
+    // Lived-in props: a knitted throw in ochre wool, a paperback's cloth cover.
+    surfaced("throw_knit", [&] { return TextureBaker::knit(size / 2, seed + 21u, 0.74f, 0.68f, 0.58f); }, 1.0f, 0.0f);
+    if (Material* m = edit("throw_knit")) m->doubleSided = true;
+    surfaced("book_cover", [&] { return TextureBaker::flat(size / 8, seed + 22u, 0.16f, 0.30f, 0.34f, 0.75f, 0.0f, 0.05f); }, 1.0f, 0.0f);
     surfaced("facade_render", [&] { return TextureBaker::plaster(size, seed + 21u, 0.80f, 0.74f, 0.62f); }, 1.0f, 0.0f);
     surfaced("facade_render_2", [&] { return TextureBaker::plaster(size, seed + 22u, 0.70f, 0.72f, 0.70f); }, 1.0f, 0.0f);
     surfaced("facade_render_3", [&] { return TextureBaker::plaster(size, seed + 25u, 0.78f, 0.62f, 0.42f); }, 1.0f, 0.0f);

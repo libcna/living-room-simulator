@@ -146,8 +146,9 @@ PageUp/PageDown or F2 give them back.
   target bound as its emissive picture, whose light on the room takes the picture's mean
   colour and level each frame (read back from a 32x18 render of the same programme), a wall
   clock whose hands follow the scene's time, steam rising from the cup on the coffee table
-  (a small plume lit by the light at the cup), and a wood stove that burns on cool evenings
-  (embers, flickering flames and their light), with a candle lit alongside the lamps.
+  (a small plume lit by the light at the cup), a knitted throw over the sofa's back, an open
+  paperback, the day's post and keys on the chest, and a wood stove that burns on cool
+  evenings (embers, flickering flames and their light), with a candle lit alongside the lamps.
 - Weather that drifts between clear, cloudy, overcast, rain, storm (lightning), hail and snow:
   rain streaks, flakes and hailstones outside the windows, wet and glossy or snow-covered
   street surfaces (the wet road and pavements mirror the houses, lamps and sky through a

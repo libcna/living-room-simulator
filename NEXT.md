@@ -30,8 +30,9 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
    (lofted procedural bodies), a shop front on the terrace opposite, and the beam march at
    half size (its cost now within the frame's noise), the television's light on the room
    following its picture, steam over the cup, the sconces rebuilt as linen drum wall lights.
-   Handles on the windows are in. Next of that kind: a throw over the sofa's arm, a book
-   left open on the table, keys and post on the chest of drawers.
+   Handles on the windows, a throw over the sofa's back, an open paperback, post and keys on
+   the chest are in. Next of that kind: a coat and a bag by the door, slippers by the sofa,
+   a newspaper on the armchair.
 2. Exposure: the meter is in; a histogram measure could follow if the pendant views still drift.
 3. Done earlier: street lights switch on their own elevation thresholds (0.5 / 3 degrees) and
    the lamps and street lights ramp over a second (`RoomScene::update`).

@@ -124,6 +124,25 @@ void testSurfaces()
     check(meanChannel(canvas0.orm, 1) > 0.6f && meanChannel(canvas0.orm, 1) < 0.8f, "canvas paint is matte");
     check(std::fabs(meanChannel(canvas0.normal, 2) - 1.0f) < 0.15f, "canvas normals point mostly up");
 
+    // The knit: cream wool, rough, with ribs (the albedo's column means swing
+    // with the ribs) and a relief (the normals lean away from straight up).
+    const SurfaceImages knit = TextureBaker::knit(size, 5u, 0.74f, 0.68f, 0.58f);
+    check(meanChannel(knit.albedo, 0) > meanChannel(knit.albedo, 2) + 0.05f, "the knit is warm");
+    check(meanChannel(knit.orm, 1) > 0.85f, "the knit is rough");
+    {
+        float lightest = 0.0f, darkest = 1.0f;
+        for (int x = 0; x < size; ++x)
+        {
+            float column = 0.0f;
+            for (int y = 0; y < size; ++y) column += knit.albedo.at(x, y).r;
+            column /= static_cast<float>(size);
+            lightest = std::max(lightest, column);
+            darkest = std::min(darkest, column);
+        }
+        check(lightest - darkest > 0.05f, "the knit's ribs show in its columns, swing " + std::to_string(lightest - darkest));
+    }
+    check(meanChannel(knit.normal, 2) < 0.97f, "the knit has relief in its normals");
+
     // The clock dial: round (transparent corners), light inside, dark at the
     // 12 o'clock bar.
     const SurfaceImages dial = TextureBaker::clockDial(size, 5u);

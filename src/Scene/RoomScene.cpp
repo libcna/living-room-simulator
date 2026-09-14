@@ -443,7 +443,56 @@ void RoomScene::buildFurniture()
             m.baseColour = m.baseColour * 0.84f;
         }
     };
-    placeModel("leather-sofa", Vector3(0.0f, 0.0f, -0.75f), 180.0f, 0.0f, true, leather);
+    {
+        const std::size_t sofaFirst = renderer_.itemCount();
+        placeModel("leather-sofa", Vector3(0.0f, 0.0f, -0.75f), 180.0f, 0.0f, true, leather);
+        // A knitted throw folded over the left end of the sofa's back (the
+        // part of the model furthest back), hanging a little down both faces.
+        const BoundingBox* back = nullptr;
+        for (std::size_t i = sofaFirst; i < renderer_.itemCount(); ++i)
+        {
+            const BoundingBox& b = renderer_.item(i).worldBounds;
+            if (back == nullptr || (b.Min.Z + b.Max.Z) < (back->Min.Z + back->Max.Z)) back = &renderer_.item(i).worldBounds;
+        }
+        if (back != nullptr)
+        {
+            // A strip of cloth draped over the back: down the front, over the
+            // top and down the back, with soft folds along its width and a
+            // wavy hem, as quads between path samples (double-sided knit).
+            const float top = back->Max.Y, z0 = back->Min.Z, z1 = back->Max.Z;
+            const float x0 = std::max(back->Min.X + 0.05f, -0.62f), x1 = x0 + 0.42f;
+            const float zm = (z0 + z1) * 0.5f;
+            const float lift = 0.012f;   // the cloth's thickness over the back
+            const Vector2 path[] = {   // (z, y), front hem first
+                Vector2(z1 + 0.03f, top - 0.30f), Vector2(z1 + 0.03f, top - 0.16f), Vector2(z1 + 0.028f, top - 0.05f),
+                Vector2(z1 + 0.012f, top + lift * 0.4f), Vector2(zm, top + lift), Vector2(z0 - 0.012f, top + lift * 0.4f),
+                Vector2(z0 - 0.028f, top - 0.05f), Vector2(z0 - 0.03f, top - 0.20f), Vector2(z0 - 0.03f, top - 0.40f)};
+            constexpr int kAcross = 8;
+            const int along = static_cast<int>(sizeof(path) / sizeof(path[0]));
+            std::vector<Vector3> grid(static_cast<std::size_t>(along) * (kAcross + 1));
+            for (int i = 0; i < along; ++i)
+                for (int j = 0; j <= kAcross; ++j)
+                {
+                    const float t = static_cast<float>(j) / kAcross;
+                    const float x = x0 + (x1 - x0) * t;
+                    // Folds: a ripple across the width that deepens down the hangs.
+                    const float hang = std::max(0.0f, top - path[i].Y);
+                    const float ripple = (std::sin(t * 6.2831853f * 2.5f + static_cast<float>(i) * 0.7f) + 0.5f * std::sin(t * 6.2831853f * 5.3f + 2.0f))
+                                         * (0.006f + 0.06f * hang);
+                    const float front = path[i].X > zm ? 1.0f : -1.0f;
+                    const float y = path[i].Y - (i == 0 || i == along - 1 ? 0.02f * std::sin(t * 6.2831853f * 1.5f + 1.0f) : 0.0f);
+                    grid[static_cast<std::size_t>(i) * (kAcross + 1) + static_cast<std::size_t>(j)] = Vector3(x, y, path[i].X + ripple * front);
+                }
+            MeshBuilder throwCloth;
+            for (int i = 0; i + 1 < along; ++i)
+                for (int j = 0; j < kAcross; ++j)
+                {
+                    const auto at = [&](int a, int b) { return grid[static_cast<std::size_t>(a) * (kAcross + 1) + static_cast<std::size_t>(b)]; };
+                    throwCloth.addQuad(at(i, j), at(i, j + 1), at(i + 1, j + 1), at(i + 1, j), 0.12f);
+                }
+            place(throwCloth.take(), "throw_knit", "throw", Matrix::getIdentityProperty(), true);
+        }
+    }
     placeModel("coffee-table", Vector3(0.0f, 0.0f, 0.45f), 0.0f, 0.0f, true, lacquer);
     placeModel("leather-armchair-a", Vector3(-2.05f, 0.0f, 0.55f), 55.0f, 0.0f, true, leather);
     placeModel("leather-armchair-a", Vector3(2.05f, 0.0f, 0.55f), -55.0f, 0.0f, true, leather);
@@ -456,6 +505,18 @@ void RoomScene::buildFurniture()
 
     // Things on the coffee table (top at 0.419 m).
     placeModel("magazine", Vector3(-0.30f, 0.419f, 0.42f), 12.0f, 0.0f, false);
+    {
+        // A paperback left open, face up, on the magazine: cloth covers under
+        // two blocks of pages, the spine along the book's short axis.
+        MeshBuilder covers, pages;
+        covers.addBox(Vector3(-0.135f, 0.0f, -0.10f), Vector3(-0.003f, 0.004f, 0.10f), 0.3f);
+        covers.addBox(Vector3(0.003f, 0.0f, -0.10f), Vector3(0.135f, 0.004f, 0.10f), 0.3f);
+        pages.addBox(Vector3(-0.128f, 0.004f, -0.095f), Vector3(-0.004f, 0.016f, 0.095f), 0.3f);
+        pages.addBox(Vector3(0.004f, 0.004f, -0.095f), Vector3(0.128f, 0.016f, 0.095f), 0.3f);
+        const Matrix world = Matrix::CreateRotationY(MathHelper::ToRadians(-8.0f)) * Matrix::CreateTranslation(-0.30f, 0.425f, 0.42f);
+        place(covers.take(), "book_cover", "open book covers", world, true);
+        place(pages.take(), "paper", "open book pages", world, true);
+    }
     placeModel("fruit-bowl", Vector3(0.22f, 0.419f, 0.40f), 0.0f);
     {
         const std::size_t cupFirst = renderer_.itemCount();
@@ -592,7 +653,33 @@ void RoomScene::buildFurniture()
     }
 
     // --- the door wall (+X) ---
-    placeModel("chest-of-drawers", Vector3(L.halfWidth - 0.17f, 0.0f, -1.10f), 180.0f);
+    {
+        const std::size_t chestFirst = renderer_.itemCount();
+        placeModel("chest-of-drawers", Vector3(L.halfWidth - 0.17f, 0.0f, -1.10f), 180.0f);
+        if (renderer_.itemCount() > chestFirst)
+        {
+            // The day's post and a bunch of keys dropped on the chest's near end.
+            BoundingBox chest = renderer_.item(chestFirst).worldBounds;
+            for (std::size_t i = chestFirst + 1; i < renderer_.itemCount(); ++i) chest = BoundingBox::CreateMerged(chest, renderer_.item(i).worldBounds);
+            const float top = chest.Max.Y + 0.001f;
+            const float cx = (chest.Min.X + chest.Max.X) * 0.5f, cz = chest.Min.Z + 0.17f;   // the end past the vase
+            CNA::Logger::Info("cna-room: chest top " + std::to_string(top) + " x " + std::to_string(chest.Min.X) + ".." + std::to_string(chest.Max.X) + " z "
+                              + std::to_string(chest.Min.Z) + ".." + std::to_string(chest.Max.Z));
+            MeshBuilder post;
+            post.addBox(Vector3(-0.055f, 0.0f, -0.11f), Vector3(0.055f, 0.003f, 0.11f), 0.3f);
+            post.addBox(Vector3(-0.05f, 0.003f, -0.10f), Vector3(0.06f, 0.006f, 0.12f), 0.3f);
+            post.addBox(Vector3(-0.065f, 0.006f, -0.09f), Vector3(0.045f, 0.009f, 0.115f), 0.3f);
+            place(post.take(), "paper", "post", Matrix::CreateRotationY(MathHelper::ToRadians(14.0f)) * Matrix::CreateTranslation(cx, top, cz), true);
+            MeshBuilder keys;
+            keys.addTorus(Vector3(0.0f, 0.002f, 0.0f), 0.013f, 0.0015f, 20, 6, 0.3f);
+            keys.addBox(Vector3(0.010f, 0.0f, -0.004f), Vector3(0.056f, 0.002f, 0.004f), 0.3f);   // a key's blade and bow
+            keys.addBox(Vector3(0.006f, 0.0f, -0.008f), Vector3(0.020f, 0.002f, 0.008f), 0.3f);
+            keys.addBox(Vector3(-0.004f, 0.002f, 0.010f), Vector3(0.004f, 0.004f, 0.052f), 0.3f);   // a second key across
+            keys.addBox(Vector3(-0.008f, 0.002f, 0.006f), Vector3(0.008f, 0.004f, 0.020f), 0.3f);
+            place(keys.take(), "metal_polished", "keys",
+                  Matrix::CreateRotationY(MathHelper::ToRadians(-30.0f)) * Matrix::CreateTranslation(cx + 0.06f, top, (chest.Min.Z + chest.Max.Z) * 0.5f + 0.05f), true);
+        }
+    }
     placeModel("GlassVaseFlowers", Vector3(L.halfWidth - 0.17f, 1.177f, -1.20f), 0.0f);
     placeModel("radio", Vector3(L.halfWidth - 0.17f, 1.177f, -0.85f), 195.0f);
     placeModel("small-pictures", Vector3(L.halfWidth - 0.006f, 1.35f, 2.05f), 180.0f, 0.0f, false);
