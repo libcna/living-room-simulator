@@ -741,6 +741,14 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   pendant; the day and street views unchanged. The veil was more than the room needs, so
   the default is 0.35 (the halo stays, the veil goes). The nine probes and the sectioned
   floor came after this round's binary.
+- 2026-09-14 audit round 27 (29 views, `screenshots/audit27/`, with the haze at 0.35, the
+  nine probes and the sectioned floor, the recording option): the largest moves are the
+  views of the television wall by day (`day-tv-close` 16 levels, `day-tv-to-sofa` and
+  `day-material` 11): the far probe row sees the windows small, so that wall and the stove's
+  surround sit dimmer under cloudy light, as the far end of a room does; the night views
+  moved 7-10 with the haze and the far row's lamp-lit probes. The frame times ran a third
+  high because the two clips recorded alongside. No regressions; the sectioned floor's
+  seams do not show in any view.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
