@@ -676,6 +676,13 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   within 0.3 levels of round 16. The clock reads on the -X wall in the bookshelf and
   entrance views; the motes are specks inside the beams at this size; nothing regressed.
   The stove's fire and the candle came after this round's binary and go to round 18.
+- 2026-09-14 audit round 18 (29 views, `screenshots/audit18/`, with the stove's fire, the
+  candle and the street facades' recesses): the night views carry the fire in the stove's
+  arch (the sofa view shows the embers and a flame, the entrance view its glow at the frame's
+  edge) and the candle's flame on the low cabinet, the night exposure adapting by a tenth of
+  a stop; the street views show the windows in their recesses with sills and downpipes.
+  The day interiors are unchanged. No regressions. The street furniture came after this
+  round's binary.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
