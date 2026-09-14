@@ -300,6 +300,14 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     surfaced("facade_distant", [&] { return TextureBaker::flat(size / 4, seed + 38u, 0.52f, 0.54f, 0.58f, 0.85f, 0.0f, 0.06f); }, 1.0f, 0.0f);
     surfaced("door_dark", [&] { return TextureBaker::paintedWood(size / 2, seed + 39u, 0.16f, 0.18f, 0.22f, 0.35f); }, 1.0f, 0.0f);
     surfaced("gutter_metal", [&] { return TextureBaker::flat(size / 4, seed + 176u, 0.30f, 0.31f, 0.32f, 0.45f, 0.0f, 0.04f); }, 1.0f, 0.0f);
+    // Parked cars: two paints (a metallic clear coat's gloss), tinted glass, chrome trim.
+    // The paints keep some roughness: a bonnet seen from above at a grazing angle
+    // mirrors the whole sky otherwise and reads as a white panel under cloud.
+    surfaced("car_paint_blue", [&] { return TextureBaker::flat(size / 4, seed + 180u, 0.09f, 0.13f, 0.30f, 0.40f, 0.5f, 0.02f); }, 1.0f, 0.5f);
+    surfaced("car_paint_silver", [&] { return TextureBaker::flat(size / 4, seed + 181u, 0.60f, 0.61f, 0.63f, 0.38f, 0.6f, 0.02f); }, 1.0f, 0.6f);
+    surfaced("car_paint_red", [&] { return TextureBaker::flat(size / 4, seed + 182u, 0.42f, 0.06f, 0.05f, 0.40f, 0.5f, 0.02f); }, 1.0f, 0.5f);
+    surfaced("car_glass", [&] { return TextureBaker::flat(size / 4, seed + 183u, 0.05f, 0.06f, 0.08f, 0.12f, 0.0f, 0.01f); }, 1.0f, 0.0f);
+    surfaced("car_chrome", [&] { return TextureBaker::flat(size / 4, seed + 184u, 0.75f, 0.76f, 0.78f, 0.22f, 0.9f, 0.02f); }, 1.0f, 0.9f);
 
     raindrops_ = own(TextureBaker::upload(device_, TextureBaker::raindrops(std::max(64, size / 2), seed + 40u), false));
     {

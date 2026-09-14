@@ -512,6 +512,80 @@ void RoomScene::buildExterior()
                 for (std::uint32_t i : data.indices) tyres.mesh().indices.push_back(base + i);
             }
         }
+        // Parked cars along the kerbs: a body and a cabin of tinted glass on
+        // four wheels, bumpers and lamps; the near one shows its roof over
+        // the hedge. A hatchback from boxes and quads reads as a car at the
+        // road's distance; the paint's gloss and the glass do the rest.
+        ChunkSet paintBlue, paintSilver, paintRed, glass, chrome;
+        const auto addCar = [&](float cx, float cz, float heading, ChunkSet& paint) {
+            // Local: x along the car (nose at +x), z across, y up; heading turns it about Y.
+            MeshBuilder body, cabin, trim, wheels, chromeParts;
+            const float L = 4.25f, W = 1.78f;
+            body.addBox(Vector3(-L * 0.5f, 0.32f, -W * 0.5f), Vector3(L * 0.5f, 0.78f, W * 0.5f), 1.0f, kAllFaces & ~kFaceNegY);
+            body.addBox(Vector3(-L * 0.5f + 0.15f, 0.78f, -W * 0.5f + 0.04f), Vector3(L * 0.5f - 0.25f, 0.92f, W * 0.5f - 0.04f), 1.0f, kAllFaces & ~kFaceNegY);   // the waistline
+            // The cabin: a trapezoid of glass over a painted roof.
+            const float hw = W * 0.5f - 0.06f, rw = W * 0.5f - 0.18f;
+            const Vector3 fb(0.95f, 0.92f, 0.0f), rb(-1.55f, 0.92f, 0.0f);      // front and rear at the waist
+            const Vector3 fr(0.30f, 1.42f, 0.0f), rr(-1.15f, 1.42f, 0.0f);      // front and rear of the roof
+            body.addQuad(Vector3(rr.X, rr.Y, -rw), Vector3(rr.X, rr.Y, rw), Vector3(fr.X, fr.Y, rw), Vector3(fr.X, fr.Y, -rw), 1.0f);   // roof
+            cabin.addQuad(Vector3(fb.X, fb.Y, -hw), Vector3(fb.X, fb.Y, hw), Vector3(fr.X, fr.Y, rw), Vector3(fr.X, fr.Y, -rw), 1.0f);   // windscreen
+            cabin.addQuad(Vector3(rb.X, rb.Y, hw), Vector3(rb.X, rb.Y, -hw), Vector3(rr.X, rr.Y, -rw), Vector3(rr.X, rr.Y, rw), 1.0f);   // rear glass
+            cabin.addQuad(Vector3(rb.X, rb.Y, hw), Vector3(rr.X, rr.Y, rw), Vector3(fr.X, fr.Y, rw), Vector3(fb.X, fb.Y, hw), 1.0f);     // +z side
+            cabin.addQuad(Vector3(fb.X, fb.Y, -hw), Vector3(fr.X, fr.Y, -rw), Vector3(rr.X, rr.Y, -rw), Vector3(rb.X, rb.Y, -hw), 1.0f); // -z side
+            // Bumpers, lamps, mirrors, a grille.
+            trim.addBox(Vector3(L * 0.5f - 0.02f, 0.36f, -W * 0.5f - 0.02f), Vector3(L * 0.5f + 0.08f, 0.56f, W * 0.5f + 0.02f), 0.5f, kAllFaces);
+            trim.addBox(Vector3(-L * 0.5f - 0.08f, 0.36f, -W * 0.5f - 0.02f), Vector3(-L * 0.5f + 0.02f, 0.56f, W * 0.5f + 0.02f), 0.5f, kAllFaces);
+            trim.addBox(Vector3(L * 0.5f - 0.02f, 0.58f, -0.35f), Vector3(L * 0.5f + 0.01f, 0.72f, 0.35f), 0.5f, kAllFaces);   // grille
+            for (float side : {-1.0f, 1.0f})
+            {
+                chromeParts.addBox(Vector3(L * 0.5f - 0.02f, 0.60f, side * (W * 0.5f - 0.36f) - 0.16f), Vector3(L * 0.5f + 0.015f, 0.74f, side * (W * 0.5f - 0.36f) + 0.16f), 0.5f, kAllFaces);   // headlamp
+                trim.addBox(Vector3(-L * 0.5f - 0.015f, 0.60f, side * (W * 0.5f - 0.30f) - 0.14f), Vector3(-L * 0.5f + 0.02f, 0.74f, side * (W * 0.5f - 0.30f) + 0.14f), 0.5f, kAllFaces);   // tail lamp
+                trim.addBox(Vector3(0.75f, 1.02f, side * (W * 0.5f + 0.02f) - 0.04f), Vector3(0.95f, 1.12f, side * (W * 0.5f + 0.16f)), 0.5f, kAllFaces);   // mirror
+                for (float ax : {-1.35f, 1.35f})
+                {
+                    MeshBuilder wheel;
+                    wheel.addCylinder(Vector3::Zero, 0.32f, 0.20f, 18, 0.5f, true);
+                    // Turned onto Z, a cylinder spans z0..z0+0.20: inside the arch on either side.
+                    wheel.transform(Matrix::CreateRotationX(MathHelper::PiOver2) * Matrix::CreateTranslation(ax, 0.32f, side > 0.0f ? W * 0.5f - 0.22f : -W * 0.5f + 0.02f));
+                    MeshData wd = wheel.take();
+                    MeshBuilder::computeTangents(wd);
+                    const std::uint32_t base = static_cast<std::uint32_t>(wheels.mesh().vertices.size());
+                    for (const auto& v : wd.vertices) wheels.mesh().vertices.push_back(v);
+                    for (std::uint32_t i : wd.indices) wheels.mesh().indices.push_back(base + i);
+                    MeshBuilder cap;
+                    cap.addCylinder(Vector3::Zero, 0.19f, 0.03f, 14, 0.5f, true);
+                    cap.transform(Matrix::CreateRotationX(MathHelper::PiOver2) * Matrix::CreateTranslation(ax, 0.32f, side > 0.0f ? W * 0.5f - 0.02f : -W * 0.5f - 0.01f));
+                    MeshData cd = cap.take();
+                    MeshBuilder::computeTangents(cd);
+                    const std::uint32_t cbase = static_cast<std::uint32_t>(chromeParts.mesh().vertices.size());
+                    for (const auto& v : cd.vertices) chromeParts.mesh().vertices.push_back(v);
+                    for (std::uint32_t i : cd.indices) chromeParts.mesh().indices.push_back(cbase + i);
+                }
+            }
+            const Matrix pose = Matrix::CreateRotationY(heading) * Matrix::CreateTranslation(cx, ground, cz);
+            const auto pour = [&](MeshBuilder& from, ChunkSet& set) {
+                from.transform(pose);
+                MeshData data = from.take();
+                MeshBuilder::computeTangents(data);
+                MeshBuilder& into = set.at(cx);
+                const std::uint32_t base = static_cast<std::uint32_t>(into.mesh().vertices.size());
+                for (const auto& v : data.vertices) into.mesh().vertices.push_back(v);
+                for (std::uint32_t i : data.indices) into.mesh().indices.push_back(base + i);
+            };
+            pour(body, paint);
+            pour(cabin, glass);
+            pour(trim, rubber);
+            pour(wheels, rubber);
+            pour(chromeParts, chrome);
+        };
+        addCar(-11.5f, farKerbZ + 1.15f, 0.0f, paintBlue);                   // across the road, nose along +x
+        addCar(15.0f, farKerbZ + 1.15f, MathHelper::Pi, paintSilver);       // across the road, nose along -x
+        addCar(5.2f, kerbZ - 1.15f, MathHelper::Pi, paintRed);              // at our kerb, its roof over the hedge
+        placeChunks(paintBlue, "car_paint_blue", "exterior_cars_blue", true);
+        placeChunks(paintSilver, "car_paint_silver", "exterior_cars_silver", true);
+        placeChunks(paintRed, "car_paint_red", "exterior_cars_red", true);
+        placeChunks(glass, "car_glass", "exterior_car_glass", true);
+        placeChunks(chrome, "car_chrome", "exterior_car_chrome", true);
         placeChunks(metal, "gutter_metal", "exterior_furniture_metal", true);
         placeChunks(wood, "door_dark", "exterior_furniture_wood", true);
         placeChunks(rubber, "clock_black", "exterior_furniture_rubber", true);

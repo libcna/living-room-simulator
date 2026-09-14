@@ -698,6 +698,13 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 
 ## 29. Completed work
 
+- 2026-09-14 M9 parked cars: three hatchbacks from boxes and quads (a body, a waistline, a
+  trapezoid of tinted glass over a painted roof, wheels and chrome caps, bumpers, lamps,
+  mirrors and a grille), two across the road and one at our kerb whose roof shows over the
+  hedge, in blue, silver and red metallic paints. The paints keep a roughness of 0.4: at
+  0.26 a bonnet seen from the room at a grazing angle mirrored the whole overcast sky and
+  read as a white panel on a red car; some of that sky still sits on the flat tops, as it
+  does on a real car.
 - 2026-09-14 M9 street furniture: a slatted bench on cast ends, a litter bin with its lid ring
   and hood, and a bicycle (a diamond frame of turned cylinders, torus rims with eight spokes,
   saddle, stem and bars) leaning on the terrace opposite. They went on the near pavement
