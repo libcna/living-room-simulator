@@ -126,6 +126,7 @@ bool RoomApplication::configure(int argc, char** argv)
                 "                            anisotropy (default 0.75) and march steps (default 24)\n"
                 "  --sunbeams-full           march the beams at full size (the default marches at half size and upsamples)\n"
                 "  --motes N[,PX]            dust motes drifting in the beams (default 400, 0 off) and their size in pixels at 540p (default 2)\n"
+                "  --no-steam                no steam over the cup on the coffee table\n"
                 "  --no-reflections          planar reflections off (mirror, television screen)\n"
                 "  --no-specular-classes     CNA's 8-bit prefiltered specular instead of the half-float roughness classes\n"
                 "  --reflection-scale S      reflection target size relative to the frame (default 0.5)\n"
@@ -250,6 +251,7 @@ bool RoomApplication::configure(int argc, char** argv)
         else if (arg == "--focus") settings_.dofFocusDistance = std::strtof(next("--focus"), nullptr);
         else if (arg == "--volumetric") settings_.volumetricFog = std::strtof(next("--volumetric"), nullptr);
         else if (arg == "--sunbeams-full") settings_.sunbeamHalfResolution = false;
+        else if (arg == "--no-steam") settings_.steam = false;
         else if (arg == "--motes")
         {
             const std::string v = next("--motes");

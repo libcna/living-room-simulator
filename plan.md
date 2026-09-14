@@ -820,6 +820,16 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   around it (0.65 to 1.15 here; `CNA_ROOM_DEBUG_TV` logs the mean each frame). With the
   lamps on the effect is a few levels on the mantel; with the lamps off (`--lamps off --tv
   on`) the set is the room's light and its colour and level change with the programme.
+- 2026-09-14 M9 steam over the cup: a plume of 24 soft billboards (`Steam`, a static
+  buffer animated in the vertex shader like the motes and the rain) born on the rim of the
+  cup-and-saucer on the coffee table (the placed model's bounds: its top, over its centre),
+  rising 22 cm over about 2.4 s while they sway, lean with the convection, grow from 1.6 to
+  8 cm and thin; the fragment shader cuts each puff into wisps with a three-octave noise that
+  drifts up through it. Lit as a white scattering medium by the irradiance at the cup (the
+  nearest probe's mean, E / pi in scene units, now kept per probe as `meanIrradiance`), so
+  the plume sits in the exposure by day and under the lamps alike. Drawn last among the
+  transparents with depth read and premultiplied alpha, skipped in reflection captures;
+  `--no-steam`.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

@@ -42,6 +42,7 @@ struct RenderSettings
     int sunbeamSteps = 24;
     bool sunbeamHalfResolution = true;   ///< march at half size and upsample (a quarter of the cost)
     int sunbeamMotes = 400;          ///< dust motes drifting in the beams (0 off)
+    bool steam = true;               ///< the plume over the cup on the coffee table
     float sunbeamMoteSize = 2.0f;    ///< a mote's diameter in pixels at a 540-line frame
     /// Depth of field as a thin lens on a 24 mm sensor: focal length (mm),
     /// f-number, the largest blur radius (screen fraction) and the focus

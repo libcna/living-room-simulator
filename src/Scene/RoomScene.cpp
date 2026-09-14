@@ -444,7 +444,19 @@ void RoomScene::buildFurniture()
     // Things on the coffee table (top at 0.419 m).
     placeModel("magazine", Vector3(-0.30f, 0.419f, 0.42f), 12.0f, 0.0f, false);
     placeModel("fruit-bowl", Vector3(0.22f, 0.419f, 0.40f), 0.0f);
-    placeModel("cup-and-saucer", Vector3(-0.05f, 0.419f, 0.30f), 40.0f);
+    {
+        const std::size_t cupFirst = renderer_.itemCount();
+        placeModel("cup-and-saucer", Vector3(-0.05f, 0.419f, 0.30f), 40.0f);
+        if (renderer_.itemCount() > cupFirst)
+        {
+            // A hot drink: steam born on the cup's rim (the model's top, over its centre).
+            BoundingBox cup = renderer_.item(cupFirst).worldBounds;
+            for (std::size_t i = cupFirst + 1; i < renderer_.itemCount(); ++i) cup = BoundingBox::CreateMerged(cup, renderer_.item(i).worldBounds);
+            const Vector3 centre = (cup.Min + cup.Max) * 0.5f;
+            renderer_.setSteam(Vector3(centre.X, cup.Max.Y - 0.004f, centre.Z), 0.032f);
+            CNA::Logger::Info("cna-room: steam over the cup at " + std::to_string(centre.X) + "," + std::to_string(cup.Max.Y) + "," + std::to_string(centre.Z));
+        }
+    }
     placeModel("candle-holders", Vector3(0.45f, 0.419f, 0.60f), 90.0f);
     placeModel("WaterBottle", Vector3(-0.42f, 0.419f, 0.62f), 0.0f);
     placeModel("Avocado", Vector3(0.12f, 0.419f, 0.58f), 35.0f);

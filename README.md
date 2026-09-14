@@ -86,7 +86,7 @@ strips), `--reflection-scale S`, the lens look `--grain G --aberration A --vigne
 zeroes all three), `--flare I[,T]` (lens flare ghosts, off by default), `--ev STOPS` (exposure compensation
 on top of the adapted exposure, ±3), `--sunbeams D[,G,N]` (the air's scattering per metre,
 default 0.12, its forward bias and the march's steps; 0 turns the beams off; the march runs at
-half size and `--sunbeams-full` marches every pixel), `--motes N[,PX]`
+half size and `--sunbeams-full` marches every pixel), `--no-steam`, `--motes N[,PX]`
 (dust motes in the beams, default 400 at 2.5 px), the lens itself `--dof F,MM`
 (f-number and focal length, default 4,35),
 `--focus D` (metres; the default focuses on the frame's centre) and `--no-dof`, `--white-balance S`
@@ -145,9 +145,9 @@ PageUp/PageDown or F2 give them back.
 - A television that plays a synthetic programme (landscape, studio, test card) on a render
   target bound as its emissive picture, whose light on the room takes the picture's mean
   colour and level each frame (read back from a 32x18 render of the same programme), a wall
-  clock whose hands follow the scene's time, and a
-  wood stove that burns on cool evenings (embers, flickering flames and their light), with a
-  candle lit alongside the lamps.
+  clock whose hands follow the scene's time, steam rising from the cup on the coffee table
+  (a small plume lit by the light at the cup), and a wood stove that burns on cool evenings
+  (embers, flickering flames and their light), with a candle lit alongside the lamps.
 - Weather that drifts between clear, cloudy, overcast, rain, storm (lightning), hail and snow:
   rain streaks, flakes and hailstones outside the windows, wet and glossy or snow-covered
   street surfaces (the wet road and pavements mirror the houses, lamps and sky through a

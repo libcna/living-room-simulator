@@ -6,6 +6,7 @@
 #include "CnaRoom/Render/TelevisionContent.hpp"
 #include "CnaRoom/Render/RenderSettings.hpp"
 #include "CnaRoom/Render/SkySystem.hpp"
+#include "CnaRoom/Render/Steam.hpp"
 #include "CnaRoom/Render/Sunbeams.hpp"
 
 #include "Microsoft/Xna/Framework/BoundingBox.hpp"
@@ -61,6 +62,7 @@ struct InteriorProbe
     std::vector<std::unique_ptr<Microsoft::Xna::Framework::Graphics::TextureCube>> prefilteredClasses;
     float scale = 1.0f;          ///< radiance per texel unit
     int prefilteredMips = 5;
+    Microsoft::Xna::Framework::Vector3 meanIrradiance{0.02f, 0.02f, 0.02f};   ///< E / pi in scene units: what it paints on white
 };
 
 /// Roughness classes the half-float specular cubes are prefiltered for.
@@ -197,6 +199,10 @@ public:
     void setLightning(float strength, const Microsoft::Xna::Framework::Vector3& direction);
     /// Rain/snow/hail drawn after the opaque pass (a copy is kept).
     void setPrecipitation(const Precipitation::Params& params);
+    /// Steam over a hot drink: the rim's centre and radius (drawn while RenderSettings::steam is on).
+    void setSteam(const Microsoft::Xna::Framework::Vector3& origin, float radius) { steamOrigin_ = origin; steamRadius_ = radius; steamSet_ = true; }
+    /// The nearest probe's mean irradiance (E / pi, scene units): the light on a white surface there.
+    [[nodiscard]] Microsoft::Xna::Framework::Vector3 irradianceAt(const Microsoft::Xna::Framework::Vector3& position) const;
     [[nodiscard]] const Precipitation* precipitation() const { return precipitation_.get(); }
     /// Recomputes world bounds after a world matrix changed.
     static void updateBounds(SceneItem& item);
@@ -325,6 +331,12 @@ private:
     Microsoft::Xna::Framework::Vector3 lightningDirection_{0.3f, -0.8f, 0.5f};
     std::unique_ptr<Precipitation> precipitation_;
     Precipitation::Params precipitationParams_;
+    std::unique_ptr<Steam> steam_;
+    Microsoft::Xna::Framework::Vector3 steamOrigin_;
+    float steamRadius_ = 0.035f;
+    bool steamSet_ = false;
+    bool loggedSteam_ = false;
+    void drawSteam(const Camera& camera, const RenderSettings& settings);
     std::unique_ptr<CNA::Graphics::AutoExposureEXT> autoExposure_;
     bool autoExposureEnabled_ = false;
     float measuredExposure_ = -1.0f;

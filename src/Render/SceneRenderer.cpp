@@ -201,6 +201,8 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
 
     precipitation_ = std::make_unique<Precipitation>(device_);
     if (!precipitation_->supported()) limitations_.emplace_back("no precipitation: " + precipitation_->reason());
+    steam_ = std::make_unique<Steam>(device_);
+    if (!steam_->supported()) limitations_.emplace_back("no steam: " + steam_->reason());
     television_ = std::make_unique<TelevisionContent>(device_);
     vignette_ = std::make_unique<Vignette>(device_);
     sunbeams_ = std::make_unique<Sunbeams>(device_);
@@ -604,6 +606,7 @@ void SceneRenderer::finishProbe(InteriorProbe& probe, int size, const std::vecto
         // The mean irradiance (E / pi, scene units) says what colour the
         // probe paints on a white surface: a neutral room stays near grey.
         const Vector3 m = lastIrradianceMean_ * probe.scale;
+        probe.meanIrradiance = m;
         const float lum = std::max(0.2126f * m.X + 0.7152f * m.Y + 0.0722f * m.Z, 1e-9f);
         CNA::Logger::Info("cna-room: probe at " + std::to_string(probe.position.X) + "," + std::to_string(probe.position.Y) + ","
                           + std::to_string(probe.position.Z) + " mean irradiance " + std::to_string(m.X) + "," + std::to_string(m.Y) + ","
@@ -2040,7 +2043,7 @@ void SceneRenderer::drawTransparent(const Camera& camera, const RenderSettings& 
     (void)settings;
     if (precipitation_ != nullptr && !capturing_)
         precipitation_->draw(precipitationParams_, camera.view(), camera.projection(), camera.position());
-    if (visibleTransparent_.empty()) return;
+    if (visibleTransparent_.empty()) { drawSteam(camera, settings); return; }
     // Sort back to front by the nearest point of the bounds to the camera.
     const Vector3 eye = camera.position();
     std::vector<std::pair<float, std::size_t>> order;
@@ -2074,8 +2077,50 @@ void SceneRenderer::drawTransparent(const Camera& camera, const RenderSettings& 
         ++stats_.drawCalls;
         stats_.triangles += static_cast<std::size_t>(item.mesh->triangleCount());
     }
+    drawSteam(camera, settings);
     device_.setDepthStencilStateProperty(DepthStencilState::Default);
     device_.setBlendStateProperty(BlendState::Opaque);
+}
+
+void SceneRenderer::drawSteam(const Camera& camera, const RenderSettings& settings)
+{
+    // The plume over the cup, last of the transparents (nothing of the room's
+    // glass stands between it and the views), lit by the light at the cup.
+    if (steam_ == nullptr || !steam_->supported() || !steamSet_ || !settings.steam || capturing_) return;
+    Steam::Params p;
+    p.origin = steamOrigin_;
+    p.radius = steamRadius_;
+    p.radiance = irradianceAt(steamOrigin_) * 1.2f;   // a white puff, scattering forward: a little over a white surface
+    p.strength = 1.0f;
+    static const bool debugSteam = std::getenv("CNA_ROOM_DEBUG_STEAM") != nullptr;
+    if (debugSteam) p.radiance = Vector3(2.0f, 0.0f, 2.0f);   // magenta, to see the puffs whatever the light
+    if (!loggedSteam_ && !probes_.empty())
+    {
+        loggedSteam_ = true;
+        CNA::Logger::Info("cna-room: steam radiance " + std::to_string(p.radiance.X) + "," + std::to_string(p.radiance.Y) + "," + std::to_string(p.radiance.Z)
+                          + " at " + std::to_string(steamOrigin_.X) + "," + std::to_string(steamOrigin_.Y) + "," + std::to_string(steamOrigin_.Z));
+    }
+    p.time = frameSeconds_;
+    p.viewProjection = camera.view() * camera.projection();
+    const Matrix& view = camera.view();
+    p.cameraRight = Vector3(view.M11, view.M21, view.M31);
+    p.cameraUp = Vector3(view.M12, view.M22, view.M32);
+    steam_->draw(p);
+    appliedMaterial_ = nullptr;
+    ++stats_.drawCalls;
+}
+
+Vector3 SceneRenderer::irradianceAt(const Vector3& position) const
+{
+    const InteriorProbe* nearest = nullptr;
+    float nearestDistance = 0.0f;
+    for (const auto& probe : probes_)
+    {
+        if (probe == nullptr) continue;
+        const float d = Vector3::DistanceSquared(probe->position, position);
+        if (nearest == nullptr || d < nearestDistance) { nearest = probe.get(); nearestDistance = d; }
+    }
+    return nearest != nullptr ? nearest->meanIrradiance : Vector3(0.02f, 0.02f, 0.02f);
 }
 
 }  // namespace CnaRoom
