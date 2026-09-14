@@ -698,6 +698,10 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 
 ## 29. Completed work
 
+- 2026-09-14 M9 lofted cars: the box bodies became hulls lofted through five cross-sections
+  (a sill that tucks in, the waist at its widest, a shoulder, a top sloping to the nose and
+  a little to the tail) with fanned nose and tail caps; the profile now reads as a hatchback
+  over the hedge rather than a crate.
 - 2026-09-14 M9 motes gated on the sun: the specks' glint now fades with the key light's
   luminance against the ambient's (none below 2.5 times the ambient, full at 7.5), so a
   cloud-dimmed sun lights the air but not the motes, which had read as snowflakes across a

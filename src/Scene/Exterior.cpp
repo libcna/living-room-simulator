@@ -521,8 +521,46 @@ void RoomScene::buildExterior()
             // Local: x along the car (nose at +x), z across, y up; heading turns it about Y.
             MeshBuilder body, cabin, trim, wheels, chromeParts;
             const float L = 4.25f, W = 1.78f;
-            body.addBox(Vector3(-L * 0.5f, 0.32f, -W * 0.5f), Vector3(L * 0.5f, 0.78f, W * 0.5f), 1.0f, kAllFaces & ~kFaceNegY);
-            body.addBox(Vector3(-L * 0.5f + 0.15f, 0.78f, -W * 0.5f + 0.04f), Vector3(L * 0.5f - 0.25f, 0.92f, W * 0.5f - 0.04f), 1.0f, kAllFaces & ~kFaceNegY);   // the waistline
+            // The hull: a loft through five cross-sections along the car (a
+            // sill that tucks in, the waist at its widest, a shoulder, a top
+            // that slopes down to the nose and a little to the tail), capped
+            // at both ends. Eight points per ring, counter-clockwise seen
+            // from the nose.
+            struct Station { float x, top, scale; };
+            const Station stations[] = {{-L * 0.5f, 0.82f, 0.92f}, {-1.55f, 0.92f, 1.0f}, {1.0f, 0.92f, 1.0f}, {1.65f, 0.84f, 0.98f}, {L * 0.5f, 0.72f, 0.90f}};
+            const auto ring = [&](const Station& st, int k) {
+                const float hw = W * 0.5f * st.scale;
+                switch (k)
+                {
+                    case 0: return Vector3(st.x, 0.30f, -hw * 0.84f);
+                    case 1: return Vector3(st.x, 0.30f, hw * 0.84f);
+                    case 2: return Vector3(st.x, 0.40f, hw * 0.99f);
+                    case 3: return Vector3(st.x, 0.72f, hw);
+                    case 4: return Vector3(st.x, st.top, hw * 0.90f);
+                    case 5: return Vector3(st.x, st.top, -hw * 0.90f);
+                    case 6: return Vector3(st.x, 0.72f, -hw);
+                    default: return Vector3(st.x, 0.40f, -hw * 0.99f);
+                }
+            };
+            for (int i = 0; i + 1 < static_cast<int>(sizeof(stations) / sizeof(stations[0])); ++i)
+                for (int k = 0; k < 8; ++k)
+                {
+                    const int k1 = (k + 1) % 8;
+                    if (k == 0) continue;   // the underside (p0 -> p1) stays open
+                    body.addQuad(ring(stations[i], k1), ring(stations[i], k), ring(stations[i + 1], k), ring(stations[i + 1], k1), 1.0f);
+                }
+            // The nose and tail: fans from the ring's centre.
+            for (int end = 0; end < 2; ++end)
+            {
+                const Station& st = stations[end == 0 ? 0 : 4];
+                const Vector3 centre(st.x, 0.58f, 0.0f);
+                for (int k = 0; k < 8; ++k)
+                {
+                    const int k1 = (k + 1) % 8;
+                    if (end == 0) body.addTriangleFace(centre, ring(st, k), ring(st, k1), 1.0f);
+                    else body.addTriangleFace(centre, ring(st, k1), ring(st, k), 1.0f);
+                }
+            }
             // The cabin: a trapezoid of glass over a painted roof.
             const float hw = W * 0.5f - 0.06f, rw = W * 0.5f - 0.18f;
             const Vector3 fb(0.95f, 0.92f, 0.0f), rb(-1.55f, 0.92f, 0.0f);      // front and rear at the waist
@@ -535,10 +573,10 @@ void RoomScene::buildExterior()
             // Bumpers, lamps, mirrors, a grille.
             trim.addBox(Vector3(L * 0.5f - 0.02f, 0.36f, -W * 0.5f - 0.02f), Vector3(L * 0.5f + 0.08f, 0.56f, W * 0.5f + 0.02f), 0.5f, kAllFaces);
             trim.addBox(Vector3(-L * 0.5f - 0.08f, 0.36f, -W * 0.5f - 0.02f), Vector3(-L * 0.5f + 0.02f, 0.56f, W * 0.5f + 0.02f), 0.5f, kAllFaces);
-            trim.addBox(Vector3(L * 0.5f - 0.02f, 0.58f, -0.35f), Vector3(L * 0.5f + 0.01f, 0.72f, 0.35f), 0.5f, kAllFaces);   // grille
+            trim.addBox(Vector3(L * 0.5f - 0.02f, 0.56f, -0.35f), Vector3(L * 0.5f + 0.01f, 0.68f, 0.35f), 0.5f, kAllFaces);   // grille
             for (float side : {-1.0f, 1.0f})
             {
-                chromeParts.addBox(Vector3(L * 0.5f - 0.02f, 0.60f, side * (W * 0.5f - 0.36f) - 0.16f), Vector3(L * 0.5f + 0.015f, 0.74f, side * (W * 0.5f - 0.36f) + 0.16f), 0.5f, kAllFaces);   // headlamp
+                chromeParts.addBox(Vector3(L * 0.5f - 0.02f, 0.56f, side * (W * 0.5f - 0.36f) - 0.16f), Vector3(L * 0.5f + 0.015f, 0.68f, side * (W * 0.5f - 0.36f) + 0.16f), 0.5f, kAllFaces);   // headlamp
                 trim.addBox(Vector3(-L * 0.5f - 0.015f, 0.60f, side * (W * 0.5f - 0.30f) - 0.14f), Vector3(-L * 0.5f + 0.02f, 0.74f, side * (W * 0.5f - 0.30f) + 0.14f), 0.5f, kAllFaces);   // tail lamp
                 trim.addBox(Vector3(0.75f, 1.02f, side * (W * 0.5f + 0.02f) - 0.04f), Vector3(0.95f, 1.12f, side * (W * 0.5f + 0.16f)), 0.5f, kAllFaces);   // mirror
                 for (float ax : {-1.35f, 1.35f})
