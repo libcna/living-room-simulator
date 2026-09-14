@@ -21,9 +21,9 @@ glTF furniture assets. There is no gameplay; the point is the picture.
 |---|---|---|
 | ![Night](docs/screenshots/m9-entrance-night.png) | ![Sun](docs/screenshots/m9-sun-window.png) | ![Street](docs/screenshots/m9-reflections-street-night.png) |
 
-| Rain at night: droplets on the panes, the wet street beyond | Out on the pavement: the lit windows in the puddles |
-|---|---|
-| ![Wet street](docs/screenshots/m9-wet-street-night.png) | ![Road](docs/screenshots/m9-road-night-rain.png) |
+| Rain at night: droplets on the panes, the wet street beyond | Out on the pavement: the lit windows in the puddles | A cool evening: the stove lit, the candle burning |
+|---|---|---|
+| ![Wet street](docs/screenshots/m9-wet-street-night.png) | ![Road](docs/screenshots/m9-road-night-rain.png) | ![Stove](docs/screenshots/m9-stove-night.png) |
 
 ## Dependencies
 
