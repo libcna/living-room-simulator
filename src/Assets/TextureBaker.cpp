@@ -308,6 +308,104 @@ SurfaceImages TextureBaker::newsprint(int size, std::uint32_t seed)
     return out;
 }
 
+namespace {
+
+/// A black RGBA image whose alpha is the mask `f(u, v)` in 0..1.
+template <typename F>
+Image decalMask(int size, F&& mask)
+{
+    Image out(size, size);
+    for (int y = 0; y < size; ++y)
+        for (int x = 0; x < size; ++x)
+        {
+            const float u = (static_cast<float>(x) + 0.5f) / static_cast<float>(size), v = (static_cast<float>(y) + 0.5f) / static_cast<float>(size);
+            out.set(x, y, 0.0f, 0.0f, 0.0f, clamp01(mask(u, v)));
+        }
+    return out;
+}
+
+}  // namespace
+
+Image TextureBaker::decalRing(int size, std::uint32_t seed)
+{
+    // The ring a wet cup leaves: a thin band at the saucer's radius, broken
+    // here and there, its edge ragged, a faint tide mark inside it.
+    return decalMask(size, [&](float u, float v) {
+        const float dx = u - 0.5f, dy = v - 0.5f;
+        const float r = std::sqrt(dx * dx + dy * dy);
+        const float angle = std::atan2(dy, dx);
+        const float wobble = 0.012f * (Noise::fbm(std::cos(angle) * 0.5f + 0.5f, std::sin(angle) * 0.5f + 0.5f, 3, 3, 0.5f, seed) - 0.5f);
+        const float band = 1.0f - clamp01(std::fabs(r - (0.36f + wobble)) / 0.022f);
+        const float breaks = Noise::fbm(u * 2.0f, v * 2.0f, 6, 3, 0.5f, seed + 1u);
+        const float ring = band * band * clamp01((breaks - 0.30f) * 4.0f);
+        const float inner = (r < 0.34f ? 1.0f : 0.0f) * 0.10f * clamp01((Noise::fbm(u, v, 4, 3, 0.5f, seed + 2u) - 0.45f) * 5.0f);
+        return std::max(ring, inner);
+    });
+}
+
+Image TextureBaker::decalScuffs(int size, std::uint32_t seed)
+{
+    // Scuffs by a door: short dark streaks in a few directions, a couple of
+    // heel dots, each streak fading along its length.
+    std::uint32_t state = seed * 2654435761u + 99u;
+    const auto next = [&] { state ^= state << 13; state ^= state >> 17; state ^= state << 5; return static_cast<float>(state & 0xFFFFFFu) / 16777216.0f; };
+    struct Streak { float x, y, dx, dy, length, width, strength; };
+    std::vector<Streak> streaks;
+    for (int i = 0; i < 16; ++i)
+    {
+        const float angle = next() * 6.2831853f;
+        streaks.push_back({0.15f + 0.7f * next(), 0.15f + 0.7f * next(), std::cos(angle), std::sin(angle), 0.10f + 0.28f * next(), 0.006f + 0.014f * next(), 0.4f + 0.6f * next()});
+    }
+    return decalMask(size, [&](float u, float v) {
+        float a = 0.0f;
+        for (const Streak& s : streaks)
+        {
+            const float px = u - s.x, py = v - s.y;
+            const float along = px * s.dx + py * s.dy, across = std::fabs(-px * s.dy + py * s.dx);
+            if (along < 0.0f || along > s.length || across > s.width) continue;
+            const float fade = 1.0f - along / s.length;
+            const float edge = 1.0f - across / s.width;
+            a = std::max(a, s.strength * fade * edge * (0.5f + 0.5f * Noise::fbm(u * 8.0f, v * 8.0f, 4, 2, 0.5f, seed + 3u)));
+        }
+        const float dots = Noise::fbm(u * 3.0f, v * 3.0f, 8, 2, 0.5f, seed + 4u);
+        return std::max(a, clamp01((dots - 0.62f) * 6.0f) * 0.5f);
+    });
+}
+
+Image TextureBaker::decalWear(int size, std::uint32_t seed)
+{
+    // A worn path: a soft ellipse of grime, patchy, denser along its middle.
+    return decalMask(size, [&](float u, float v) {
+        const float dx = (u - 0.5f) * 2.0f, dy = (v - 0.5f) * 2.0f;
+        const float r = std::sqrt(dx * dx + dy * dy * 2.2f);
+        const float soft = 1.0f - clamp01((r - 0.25f) / 0.75f);
+        const float patch = 0.55f + 0.45f * Noise::fbm(u * 2.0f, v * 2.0f, 5, 3, 0.55f, seed);
+        return soft * soft * patch;
+    });
+}
+
+Image TextureBaker::decalMarks(int size, std::uint32_t seed)
+{
+    // Hand marks round a switch: overlapping soft smudges, grubbier toward the middle.
+    std::uint32_t state = seed * 2654435761u + 7u;
+    const auto next = [&] { state ^= state << 13; state ^= state >> 17; state ^= state << 5; return static_cast<float>(state & 0xFFFFFFu) / 16777216.0f; };
+    struct Smudge { float x, y, rx, ry, strength; };
+    std::vector<Smudge> smudges;
+    for (int i = 0; i < 9; ++i)
+        smudges.push_back({0.3f + 0.4f * next(), 0.25f + 0.5f * next(), 0.06f + 0.10f * next(), 0.05f + 0.08f * next(), 0.3f + 0.7f * next()});
+    return decalMask(size, [&](float u, float v) {
+        float a = 0.0f;
+        for (const Smudge& s : smudges)
+        {
+            const float dx = (u - s.x) / s.rx, dy = (v - s.y) / s.ry;
+            const float d = std::sqrt(dx * dx + dy * dy);
+            a += s.strength * (1.0f - clamp01(d)) * (1.0f - clamp01(d));
+        }
+        const float grain = 0.6f + 0.4f * Noise::fbm(u * 6.0f, v * 6.0f, 4, 3, 0.5f, seed + 1u);
+        return clamp01(a) * grain;
+    });
+}
+
 SurfaceImages TextureBaker::knit(int size, std::uint32_t seed, float r, float g, float b)
 {
     SurfaceImages out;

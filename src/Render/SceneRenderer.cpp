@@ -10,6 +10,7 @@
 #include "CnaRoom/Render/Material.hpp"
 #include "CnaRoom/Render/Sunbeams.hpp"
 #include "CnaRoom/Render/ContactShadows.hpp"
+#include "CNA/Graphics/DecalPass.hpp"
 #include "CnaRoom/Render/Vignette.hpp"
 
 #include "CNA/Graphics/AutoExposureEXT.hpp"
@@ -212,6 +213,20 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
     if (!sunbeams_->supported()) limitations_.emplace_back("sunbeams off: " + sunbeams_->reason());
     contact_ = std::make_unique<ContactShadows>(device_);
     if (!contact_->supported()) limitations_.emplace_back("contact shadows off: " + contact_->reason());
+    try
+    {
+        decalPass_ = std::make_unique<CNA::Graphics::DecalPass>(device_);
+        if (!decalPass_->isSupported())
+        {
+            limitations_.emplace_back("decals off: the decal pass is not supported on this renderer");
+            decalPass_.reset();
+        }
+    }
+    catch (const std::exception& e)
+    {
+        limitations_.emplace_back(std::string("decals off: ") + e.what());
+        decalPass_.reset();
+    }
     if (!vignette_->supported()) limitations_.emplace_back("vignette off: " + vignette_->reason());
     for (auto& reflection : reflections_)
         reflection->resize(std::max(16, static_cast<int>(static_cast<float>(width) * settings.reflectionScale)),
@@ -1173,6 +1188,7 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     openStage(GpuStage::Opaque);
     drawOpaque(camera, settings);
     closeStage(GpuStage::Opaque);
+    drawDecals(camera, settings);
     if (contact_ != nullptr) contact_->apply();
     const float afterOpaque = milliseconds(watch);
     stats_.contactMs = afterContact - afterMarch;
@@ -1402,7 +1418,8 @@ void SceneRenderer::drawPrepass(const Camera& camera, const RenderSettings& sett
 {
     prepassDrawn_ = false;
     if (prepass_ == nullptr || pipeline_ == nullptr
-        || !(settings.ssao || settings.ssr || settings.depthOfField || settings.sunbeams > 0.0f || settings.lampHaze > 0.0f || settings.contactShadows > 0.0f))
+        || !(settings.ssao || settings.ssr || settings.depthOfField || settings.sunbeams > 0.0f || settings.lampHaze > 0.0f || settings.contactShadows > 0.0f
+             || (settings.decals && decalPass_ != nullptr && !decals_.empty())))
         return;
     ShaderEffect* prepassEffect = prepass_->getPrepassEffect();
     if (prepassEffect == nullptr || !prepassEffect->IsEffectValid()) return;
@@ -1907,6 +1924,32 @@ bool SceneRenderer::sunbeamInputs(const Camera& camera, const RenderSettings& se
         }
     }
     return true;
+}
+
+void SceneRenderer::addDecal(Texture2D* texture, const Matrix& world, float opacity, const Vector3& tint)
+{
+    if (texture == nullptr) return;
+    decals_.push_back(Decal{texture, world, std::clamp(opacity, 0.0f, 1.0f), tint});
+}
+
+void SceneRenderer::drawDecals(const Camera& camera, const RenderSettings& settings)
+{
+    // Wear and stains: each decal a fullscreen projection through the prepass
+    // depth onto the lit scene, alpha over, black by default so it only
+    // darkens (a fixed colour would glow in the dark and go black in the sun).
+    if (!settings.decals || decalPass_ == nullptr || prepass_ == nullptr || decals_.empty()) return;
+    if (prepass_->getDepthTexture() == nullptr) return;
+    decalPass_->setPrepassInputs(prepass_->getDepthTexture(), prepass_->getNormalTexture());
+    decalPass_->setCamera(camera.view(), camera.projection(), settings.prepassFarPlane);
+    for (const Decal& decal : decals_)
+    {
+        decalPass_->setOpacity(decal.opacity);
+        decalPass_->setTint(decal.tint);
+        decalPass_->draw(decal.texture, decal.world, width_, height_);
+    }
+    device_.setBlendStateProperty(BlendState::Opaque);
+    device_.setDepthStencilStateProperty(DepthStencilState::Default);
+    device_.setRasterizerStateProperty(RasterizerState::CullCounterClockwise);
 }
 
 void SceneRenderer::marchContactShadows(const Camera& camera, const RenderSettings& settings)

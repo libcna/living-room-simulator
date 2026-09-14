@@ -223,6 +223,9 @@ PageUp/PageDown or F2 give them back.
   room drift in a storm.
 - More of a lived-in room: slippers kicked off by the sofa, a folded newspaper (a baked
   front page) on the armchair, a leather bag leaning on the wall by the door.
+- Wear and stains as decals (CNAEXT `DecalPass`, projected through the prepass depth after
+  the opaque pass, black masks that only darken): a coffee ring on the table, scuffs and a
+  worn path on the boards by the door, hand marks on the wall (`--no-decals`).
 - The windows as light sources by day: a wide spot per window carries the sky's diffuse light
   into the room with distance fall-off, refreshed from the sky each frame, on top of the
   probes' ambient.

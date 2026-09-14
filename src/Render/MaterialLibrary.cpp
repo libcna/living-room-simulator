@@ -343,6 +343,12 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     raindropFrames_.clear();
     for (int frame = 0; frame < 8; ++frame)
         raindropFrames_.push_back(own(TextureBaker::upload(device_, TextureBaker::raindrops(std::max(64, size / 2), seed + 40u, static_cast<float>(frame) / 8.0f), false)));
+    // Decal masks: wear and stains projected onto the room after it is lit.
+    decals_.clear();
+    decals_["ring"] = own(TextureBaker::upload(device_, TextureBaker::decalRing(std::max(64, size / 4), seed + 50u), false));
+    decals_["scuffs"] = own(TextureBaker::upload(device_, TextureBaker::decalScuffs(std::max(64, size / 4), seed + 51u), false));
+    decals_["wear"] = own(TextureBaker::upload(device_, TextureBaker::decalWear(std::max(64, size / 8), seed + 52u), false));
+    decals_["marks"] = own(TextureBaker::upload(device_, TextureBaker::decalMarks(std::max(64, size / 8), seed + 53u), false));
     {
         const Surface s = uploadSurface(SurfaceImagesRef{cachedBake("snow", seed, size, [&] { return TextureBaker::snow(size / 2, seed + 41u); })});
         snow_.albedo = s.albedo;

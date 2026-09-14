@@ -1086,6 +1086,23 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   (0.015, 0.03). What remains under the furniture in a sunlit corner view is within what the
   SSAO already draws (`corner`, 15:30 clear: 2.0 levels mean difference, most of it the
   rims). Default 0; the machinery stays for a renderer whose prepass edges behave.
+- 2026-09-14 M9 wear and stains as decals: a room that is lived in is also a little worn, and
+  the surfaces were spotless. CNAEXT's `DecalPass` projects a texture through the prepass
+  depth onto whatever is there, inside a unit box scaled and placed (its local +Z the
+  projection axis, the prepass normals rejecting glancing pixels); it draws over the bound
+  target with a sprite batch, so it runs right after the opaque pass into the pipeline's
+  scene target with nothing rebound. The decals are black with the mark in their alpha,
+  applied at low opacity, so they only darken: a fixed colour would go black in the sun
+  and glow in the dark on an HDR target. Four masks from `TextureBaker` (`decalRing`,
+  `decalScuffs`, `decalWear`, `decalMarks`, with baker tests): the ring a wet cup left on
+  the coffee table past the saucer (0.65), scuffs on the boards inside the door (0.35), a
+  worn path from the door toward the seating (a soft patchy ellipse 2.9 x 0.95 m at
+  0.14), hand marks on the wall by the door at switch height (0.18). `--no-decals` turns
+  them off. Each decal is a fullscreen pass, 5-10 ms apiece at 720p on llvmpipe. In the
+  renders they read as they should: the ring plain from above the table, the path a
+  slightly dirtier run of boards between the door and the sofa, the scuffs a smudge by the
+  threshold, the marks a grey smoke on the plaster; nothing smears onto the walls or the
+  furniture, since the boxes are 5-6 cm deep.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

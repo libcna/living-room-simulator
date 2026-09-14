@@ -43,6 +43,12 @@ public:
     [[nodiscard]] static SurfaceImages signboard(int size, std::uint32_t seed);
     /// A newspaper's front page: masthead, a photograph, headlines and columns of text lines.
     [[nodiscard]] static SurfaceImages newsprint(int size, std::uint32_t seed);
+    /// Decal masks, black with the mark in alpha: a coffee-cup ring, floor scuffs,
+    /// a worn traffic path, hand marks on a wall.
+    [[nodiscard]] static Image decalRing(int size, std::uint32_t seed);
+    [[nodiscard]] static Image decalScuffs(int size, std::uint32_t seed);
+    [[nodiscard]] static Image decalWear(int size, std::uint32_t seed);
+    [[nodiscard]] static Image decalMarks(int size, std::uint32_t seed);
     /// A chunky rib knit: beaded ribs a centimetre apart, for throws and jumpers.
     [[nodiscard]] static SurfaceImages knit(int size, std::uint32_t seed, float r, float g, float b);
     [[nodiscard]] static SurfaceImages paintedWood(int size, std::uint32_t seed, float r, float g,

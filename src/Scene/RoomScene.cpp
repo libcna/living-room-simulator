@@ -23,6 +23,7 @@
 using namespace Microsoft::Xna::Framework;
 using CnaRoom::Geometry::MeshBuilder;
 using CnaRoom::Geometry::MeshData;
+using Microsoft::Xna::Framework::Graphics::Texture2D;
 
 namespace CnaRoom {
 
@@ -110,6 +111,7 @@ void RoomScene::build()
     buildWindows();
     buildDoor();
     buildHallway();
+    buildWear();
     buildTrim();
     buildRadiator();
     buildFixtures();
@@ -395,6 +397,31 @@ void RoomScene::buildHallway()
     }
 }
 
+void RoomScene::buildWear()
+{
+    // Wear and stains as decals: scuffs on the boards inside the door, a
+    // worn path from the door toward the seating, hand marks on the wall by
+    // the door where the hand goes for the switch. Each is a unit box placed
+    // over the surface (local +Z projects down into it), black at low opacity.
+    const RoomLayout& L = layout_;
+    const Matrix onFloor = Matrix::CreateRotationX(MathHelper::PiOver2);   // local +Z down onto the floor
+    if (Texture2D* scuffs = materials_.decal("scuffs"))
+        renderer_.addDecal(scuffs, Matrix::CreateScale(0.85f, 0.65f, 0.06f) * onFloor * Matrix::CreateRotationY(MathHelper::ToRadians(20.0f))
+                                       * Matrix::CreateTranslation(L.halfWidth - 0.55f, 0.0f, L.doorCentreZ + 0.05f), 0.35f);
+    if (Texture2D* wear = materials_.decal("wear"))
+    {
+        const Vector3 from(L.halfWidth - 0.45f, 0.0f, L.doorCentreZ), to(0.95f, 0.0f, 0.10f);
+        const Vector3 d = to - from;
+        const float yaw = std::atan2(-d.Z, d.X);   // local +X along the path
+        renderer_.addDecal(wear, Matrix::CreateScale(d.Length() + 0.6f, 0.95f, 0.06f) * onFloor * Matrix::CreateRotationY(yaw)
+                                     * Matrix::CreateTranslation((from + to) * 0.5f), 0.14f);
+    }
+    if (Texture2D* marks = materials_.decal("marks"))
+        renderer_.addDecal(marks, Matrix::CreateScale(0.24f, 0.28f, 0.05f) * Matrix::CreateRotationY(-MathHelper::PiOver2)
+                                      * Matrix::CreateTranslation(L.halfWidth, 1.08f, L.doorCentreZ - L.doorWidth * 0.5f - L.doorFrameWidth - 0.15f), 0.18f);
+    CNA::Logger::Info("cna-room: " + std::to_string(renderer_.decalCount()) + " wear decals");
+}
+
 void RoomScene::buildTrim()
 {
     const RoomLayout& L = layout_;
@@ -678,6 +705,10 @@ void RoomScene::buildFurniture()
             for (std::size_t i = cupFirst + 1; i < renderer_.itemCount(); ++i) cup = BoundingBox::CreateMerged(cup, renderer_.item(i).worldBounds);
             const Vector3 centre = (cup.Min + cup.Max) * 0.5f;
             renderer_.setSteam(Vector3(centre.X, cup.Max.Y - 0.004f, centre.Z), 0.032f);
+            // The ring an earlier cup left on the table top, just past the saucer.
+            if (Texture2D* ring = materials_.decal("ring"))
+                renderer_.addDecal(ring, Matrix::CreateScale(0.11f, 0.11f, 0.04f) * Matrix::CreateRotationX(MathHelper::PiOver2)
+                                             * Matrix::CreateTranslation(centre.X + 0.13f, 0.419f, centre.Z - 0.09f), 0.65f);
             CNA::Logger::Info("cna-room: steam over the cup at " + std::to_string(centre.X) + "," + std::to_string(cup.Max.Y) + "," + std::to_string(centre.Z));
         }
     }

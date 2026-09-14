@@ -95,6 +95,7 @@ private:
     void buildWindows();
     void buildDoor();
     void buildHallway();   ///< the space beyond the door, seen through it ajar
+    void buildWear();
     void buildTrim();
     void buildRadiator();
     void buildFixtures();

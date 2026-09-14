@@ -156,6 +156,30 @@ void testSurfaces()
         check(meanChannel(page.orm, 1) > 0.85f, "newsprint is matte");
     }
 
+    // The decal masks: black images whose alpha carries the mark. The ring's
+    // alpha peaks in a band round the middle radius and is clear at the
+    // centre; the worn path is densest in the middle and clear at the corners.
+    {
+        const CnaRoom::Assets::Image ring = TextureBaker::decalRing(size, 3u);
+        const CnaRoom::Assets::Image wear = TextureBaker::decalWear(size, 4u);
+        const auto alphaAt = [](const CnaRoom::Assets::Image& image, float u, float v) {
+            const int x = static_cast<int>(u * static_cast<float>(image.width)), y = static_cast<int>(v * static_cast<float>(image.height));
+            return static_cast<float>(image.rgba[image.at(x, y) + 3]) / 255.0f;
+        };
+        float band = 0.0f, centre = 0.0f;
+        for (int k = 0; k < 72; ++k)
+        {
+            const float angle = static_cast<float>(k) / 72.0f * 6.2831853f;
+            band = std::max(band, alphaAt(ring, 0.5f + 0.36f * std::cos(angle), 0.5f + 0.36f * std::sin(angle)));
+            centre = std::max(centre, alphaAt(ring, 0.5f + 0.15f * std::cos(angle), 0.5f + 0.15f * std::sin(angle)));
+        }
+        check(band > 0.6f, "the ring's band is inked somewhere round its circle, peak " + std::to_string(band));
+        check(centre < 0.15f, "inside the ring is nearly clear, peak " + std::to_string(centre));
+        check(meanChannel(ring, 0) < 0.02f, "the ring decal is black");
+        check(alphaAt(wear, 0.5f, 0.5f) > alphaAt(wear, 0.05f, 0.05f) + 0.3f, "the worn path is densest at its middle");
+        check(alphaAt(wear, 0.02f, 0.02f) < 0.05f, "the worn path's corners are clear");
+    }
+
     // The raindrop flipbook: a phase moves only the runners (most of the map
     // stays), and a whole loop comes back to the first frame.
     {

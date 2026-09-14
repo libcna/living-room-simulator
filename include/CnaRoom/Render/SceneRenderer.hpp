@@ -33,6 +33,7 @@ namespace Microsoft::Xna::Framework::Graphics {
 }
 
 namespace CNA::Graphics {
+    class DecalPass;
     class AutoExposureEXT;
     class CascadedShadowMap;
     class CubeShadowMap;
@@ -204,6 +205,12 @@ public:
     void setPrecipitation(const Precipitation::Params& params);
     /// Steam over a hot drink: the rim's centre and radius (drawn while RenderSettings::steam is on).
     void setSteam(const Microsoft::Xna::Framework::Vector3& origin, float radius) { steamOrigin_ = origin; steamRadius_ = radius; steamSet_ = true; }
+    /// A decal projected onto the lit room after the opaque pass: a unit box scaled and placed
+    /// (the texture on its local X/Y, projecting along local +Z); the texture's alpha is the mark.
+    void addDecal(Microsoft::Xna::Framework::Graphics::Texture2D* texture, const Microsoft::Xna::Framework::Matrix& world, float opacity,
+                  const Microsoft::Xna::Framework::Vector3& tint = Microsoft::Xna::Framework::Vector3(0.0f, 0.0f, 0.0f));
+    void clearDecals() { decals_.clear(); }
+    [[nodiscard]] std::size_t decalCount() const { return decals_.size(); }
     /// Smoke outside: one plume per chimney, lit by the sky (replaces the previous set).
     struct SmokePlume
     {
@@ -269,6 +276,7 @@ private:
     bool sunbeamInputs(const Camera& camera, const RenderSettings& settings, Sunbeams::Inputs& in);
     void marchSunbeams(const Camera& camera, const RenderSettings& settings);
     void marchContactShadows(const Camera& camera, const RenderSettings& settings);
+    void drawDecals(const Camera& camera, const RenderSettings& settings);
     void drawSunbeams(const Camera& camera, const RenderSettings& settings);
     void drawTransparent(const Camera& camera, const RenderSettings& settings);
     void applyLighting(const RenderSettings& settings);
@@ -371,6 +379,15 @@ private:
     std::unique_ptr<Vignette> vignette_;
     std::unique_ptr<Sunbeams> sunbeams_;
     std::unique_ptr<ContactShadows> contact_;
+    std::unique_ptr<CNA::Graphics::DecalPass> decalPass_;
+    struct Decal
+    {
+        Microsoft::Xna::Framework::Graphics::Texture2D* texture = nullptr;
+        Microsoft::Xna::Framework::Matrix world;
+        float opacity = 1.0f;
+        Microsoft::Xna::Framework::Vector3 tint;
+    };
+    std::vector<Decal> decals_;
     Microsoft::Xna::Framework::Vector3 sunbeamMin_, sunbeamMax_;
     bool sunbeamVolumeSet_ = false;
     Microsoft::Xna::Framework::Vector3 keyLightDirection_{0.0f, -1.0f, 0.0f};   ///< the cascades' light, as fitted this frame

@@ -129,6 +129,7 @@ bool RoomApplication::configure(int argc, char** argv)
                 "  --sunbeams-full           march the beams at full size (the default marches at half size and upsamples)\n"
                 "  --lamp-haze D             the pendant's light scattered by the room's air at night (default 0.35, 0 off)\n"
                 "  --contact-shadows D       screen-space contact shadows toward the sun, 0..1 (default 0, experimental)\n"
+                "  --no-decals               no wear and stains projected onto the room\n"
                 "  --motes N[,PX]            dust motes drifting in the beams (default 400, 0 off) and their size in pixels at 540p (default 2)\n"
                 "  --no-steam                no steam over the cup on the coffee table\n"
                 "  --no-reflections          planar reflections off (mirror, television screen)\n"
@@ -266,6 +267,7 @@ bool RoomApplication::configure(int argc, char** argv)
         else if (arg == "--lamp-haze") settings_.lampHaze = std::max(0.0f, std::strtof(next("--lamp-haze"), nullptr));
         else if (arg == "--contact-shadows") settings_.contactShadows = std::clamp(std::strtof(next("--contact-shadows"), nullptr), 0.0f, 1.0f);
         else if (arg == "--no-contact-shadows") settings_.contactShadows = 0.0f;
+        else if (arg == "--no-decals") settings_.decals = false;
         else if (arg == "--no-steam") settings_.steam = false;
         else if (arg == "--motes")
         {
