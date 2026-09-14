@@ -755,6 +755,13 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   they stood (the sixth frame of a storm or a breeze), the largest `storm-night-street`
   at 1.8 % of pixels past 40 levels. No regressions. Next round takes in the slippers,
   the newspaper and the bag.
+- 2026-09-14 audit round 29 (29 views, `screenshots/audit29/`, with the slippers, the newspaper,
+  the bag, the paced probe bake and the contact-shadow machinery off): every view within a
+  tenth of a level of round 28. The props are small at 960x540 from the audit's cameras (the
+  newspaper a few hundred pixels on the left armchair's seat in `day-entrance`, the slippers
+  and the bag hidden by the sofa and the door wall), so the diff is the honest measure that
+  nothing else moved: the paced bake steps one face a frame at the captures' pace, as
+  intended. No regressions.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
