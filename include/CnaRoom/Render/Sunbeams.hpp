@@ -16,6 +16,7 @@ namespace Microsoft::Xna::Framework::Graphics {
     class RenderTarget2D;
     class ShaderEffect;
     class Texture2D;
+    class TextureCube;
     class VertexBuffer;
 }
 
@@ -75,6 +76,16 @@ public:
         // scene target is bound (march()), and added over the scene with a
         // bilinear upsample (the beams are low frequency; the cost is a quarter).
         bool halfResolution = true;
+        // The lamp's haze: the shadowed lamp's light scattered by the same air,
+        // inverse-square with its cube shadow, a milder forward bias.
+        bool lampHaze = false;
+        Microsoft::Xna::Framework::Vector3 lampPosition;
+        Microsoft::Xna::Framework::Vector3 lampColour;   ///< colour times intensity (scene units)
+        float lampRange = 9.0f;
+        float lampBias = 0.006f;                         ///< as a fraction of the range, the cube's units
+        float lampDensity = 0.05f;
+        float lampAnisotropy = 0.4f;
+        Microsoft::Xna::Framework::Graphics::TextureCube* lampCube = nullptr;
     };
 
     explicit Sunbeams(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);

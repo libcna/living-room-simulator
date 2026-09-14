@@ -960,6 +960,18 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   moved minority) and a thin fading trail above each; the glass takes the frame at six a second
   while it rains, so the runners slide a 0.4 m tile in about 1.3 s. Stills are as they were
   (frame zero at second zero); in motion the rain runs down the panes.
+- 2026-09-14 M9 lamp haze: the beam march carries a second term for the shadowed lamp (the
+  pendant): at each step the lamp's light at the point (the effect's own 1 / (1 + d^2)),
+  its visibility from the lamp's cube shadow map (the light-to-point direction against the
+  stored distance over the range, the same compare as the receivers'), a Henyey-Greenstein
+  phase at g 0.4 against the light's travel, and an in-scatter coefficient of its own
+  (`--lamp-haze D`, default 0.6; the extinction stays the air's), so the night views gain a
+  soft halo about the globe and a faint lift under it. The pass now runs on the haze alone
+  when no key light is cast (the moon down), the cascade part dropped. The march runs at
+  half size as before. Two findings on the way: `--haze` already named the sky's haze, so
+  the option is `--lamp-haze`; and at the 0.05 first tried the term was invisible (the
+  lamp's radiant intensity is 0.005 in scene units, so the coefficient has to sit near one
+  to read next to walls at a few ten-thousandths).
 - 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
   simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a

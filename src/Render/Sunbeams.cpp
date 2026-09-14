@@ -18,6 +18,7 @@
 #include "Microsoft/Xna/Framework/Graphics/SurfaceFormat.hpp"
 #include "Microsoft/Xna/Framework/Graphics/ShaderEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
+#include "Microsoft/Xna/Framework/Graphics/TextureCube.hpp"
 #include "Microsoft/Xna/Framework/Graphics/VertexBuffer.hpp"
 #include "Microsoft/Xna/Framework/Graphics/VertexPositionColorTexture.hpp"
 
@@ -88,6 +89,15 @@ uniform int uSteps;
 uniform vec3 uRoomMin;
 uniform vec3 uRoomMax;
 uniform int uDebug;
+uniform int uLampOn;
+uniform vec3 uLampPosition;
+uniform vec3 uLampColour;
+uniform float uLampRange;
+uniform float uLampBias;
+uniform float uLampDensity;
+uniform float uLampG;
+uniform int uLampHasCube;
+uniform samplerCube uLampCube;
 out vec4 fragColor;
 
 // texelFetch throughout: a custom-effect draw keeps whatever sampler state
@@ -173,18 +183,37 @@ void main() {
     float cosT = -dot(uLightDirection, dir);
     float phase = (1.0 - g * g) / (4.0 * 3.14159265 * pow(1.0 + g * g - 2.0 * g * cosT, 1.5));
     float scatter = 0.0;
+    float lampScatter = 0.0;
     float transmittance = 1.0;
+    float gl2 = uLampG * uLampG;
     for (int i = 0; i < 64; ++i) {
         if (i >= uSteps) break;
         vec3 p = uCameraPosition + dir * t;
-        float lit = litAt(p, t * cosF);
+        float lit = uCascadeCount > 0 ? litAt(p, t * cosF) : 0.0;
         scatter += lit * transmittance * uDensity * stepLen;
+        if (uLampOn == 1) {
+            // The lamp: inverse-square (the effect's 1 / (1 + d^2)), its cube
+            // shadow looked up by the light-to-point direction, the phase
+            // against the light's travel from the lamp to this point.
+            vec3 toLamp = uLampPosition - p;
+            float d = max(length(toLamp), 1e-3);
+            vec3 travel = -toLamp / d;
+            float vis = 1.0;
+            if (uLampHasCube == 1) {
+                float here = clamp(d / uLampRange, 0.0, 1.0);
+                float occluder = texture(uLampCube, travel).r;
+                vis = (here - uLampBias <= occluder) ? 1.0 : 0.0;
+            }
+            float cosL = dot(travel, dir);
+            float lampPhase = (1.0 - gl2) / (4.0 * 3.14159265 * pow(1.0 + gl2 - 2.0 * uLampG * cosL, 1.5));
+            lampScatter += vis * lampPhase / (1.0 + d * d) * transmittance * uLampDensity * stepLen;
+        }
         transmittance *= exp(-uDensity * stepLen);
         t += stepLen;
     }
-    if (uDebug == 5) { fragColor = vec4(vec3(scatter * 2.0), 1.0); return; }
+    if (uDebug == 5) { fragColor = vec4(vec3(scatter * 2.0 + lampScatter * 200.0), 1.0); return; }
     if (uDebug == 6) { fragColor = vec4(len / 8.0, tIn / 8.0, tOut / 8.0, 1.0); return; }
-    fragColor = vec4(uLightColour * (phase * scatter), 1.0);
+    fragColor = vec4(uLightColour * (phase * scatter) + uLampColour * lampScatter, 1.0);
 }
 )";
 
@@ -450,10 +479,20 @@ void Sunbeams::marchQuad(const Inputs& in, bool opaque)
     effect_->SetUniformVec3("uRoomMin", in.roomMin.X, in.roomMin.Y, in.roomMin.Z);
     effect_->SetUniformVec3("uRoomMax", in.roomMax.X, in.roomMax.Y, in.roomMax.Z);
     effect_->SetUniformInt("uDebug", in.debug);
+    effect_->SetUniformInt("uLampOn", in.lampHaze ? 1 : 0);
+    effect_->SetUniformVec3("uLampPosition", in.lampPosition.X, in.lampPosition.Y, in.lampPosition.Z);
+    effect_->SetUniformVec3("uLampColour", in.lampColour.X, in.lampColour.Y, in.lampColour.Z);
+    effect_->SetUniformFloat("uLampRange", std::max(in.lampRange, 0.1f));
+    effect_->SetUniformFloat("uLampBias", in.lampBias);
+    effect_->SetUniformFloat("uLampDensity", std::max(in.lampDensity, 0.0f));
+    effect_->SetUniformFloat("uLampG", std::clamp(in.lampAnisotropy, -0.95f, 0.95f));
+    effect_->SetUniformInt("uLampHasCube", in.lampHaze && in.lampCube != nullptr ? 1 : 0);
+    effect_->SetUniformInt("uLampCube", 2);
     // Both through the device's slots and the effect's binding: the device
     // applies its slots at the draw, over whatever the effect bound.
     effect_->SetTexture(0, *in.depth);
-    effect_->SetTexture(1, *in.shadowAtlas);
+    if (in.shadowAtlas != nullptr) effect_->SetTexture(1, *in.shadowAtlas);
+    if (in.lampHaze && in.lampCube != nullptr) effect_->SetTexture(2, *in.lampCube);
     drawQuad();
 }
 
@@ -464,7 +503,8 @@ void Sunbeams::march(const Inputs& in, int width, int height)
     // draw() then marches at full size. Re-binding the pipeline's scene
     // target would discard it, so this runs before the pipeline opens.
     halfMarched_ = false;
-    if (!supported_ || in.depth == nullptr || in.shadowAtlas == nullptr || in.cascadeCount <= 0 || width <= 0 || height <= 0) return;
+    if (!supported_ || in.depth == nullptr || width <= 0 || height <= 0) return;
+    if ((in.shadowAtlas == nullptr || in.cascadeCount <= 0) && !in.lampHaze) return;
     if (!in.halfResolution || in.debug != 0 || copyEffect_ == nullptr || !ensureHalfTarget(width, height)) return;
     device_.SetRenderTarget(halfTarget_.get());
     device_.Clear(Color::Black);
@@ -477,7 +517,8 @@ void Sunbeams::march(const Inputs& in, int width, int height)
 
 void Sunbeams::draw(const Inputs& in, int width, int height)
 {
-    if (!supported_ || in.depth == nullptr || in.shadowAtlas == nullptr || in.cascadeCount <= 0 || width <= 0 || height <= 0) return;
+    if (!supported_ || in.depth == nullptr || width <= 0 || height <= 0) return;
+    if ((in.shadowAtlas == nullptr || in.cascadeCount <= 0) && !in.lampHaze) return;
     if (halfMarched_)
     {
         // The half-size march, bilinear, added over the scene.

@@ -1387,7 +1387,7 @@ void SceneRenderer::dumpAtlas(const char* path)
 void SceneRenderer::drawPrepass(const Camera& camera, const RenderSettings& settings)
 {
     prepassDrawn_ = false;
-    if (prepass_ == nullptr || pipeline_ == nullptr || !(settings.ssao || settings.ssr || settings.depthOfField || settings.sunbeams > 0.0f)) return;
+    if (prepass_ == nullptr || pipeline_ == nullptr || !(settings.ssao || settings.ssr || settings.depthOfField || settings.sunbeams > 0.0f || settings.lampHaze > 0.0f)) return;
     ShaderEffect* prepassEffect = prepass_->getPrepassEffect();
     if (prepassEffect == nullptr || !prepassEffect->IsEffectValid()) return;
 
@@ -1775,10 +1775,29 @@ bool SceneRenderer::sunbeamInputs(const Camera& camera, const RenderSettings& se
         }
     };
     if (sunbeams_ == nullptr || !sunbeams_->supported()) return false;
-    if (settings.sunbeams <= 0.0f) return false;
+    // The lamp's haze rides the same march: the shadowed lamp (the pendant),
+    // its cube map, whenever it is on.
+    in.lampHaze = settings.lampHaze > 0.0f && shadowedLamp_ >= 0 && shadowedLamp_ < static_cast<int>(lamps_.size()) && lampShadow_ != nullptr
+                  && lampShadow_->getShadowTexture() != nullptr && lamps_[static_cast<std::size_t>(shadowedLamp_)].on;
+    if (in.lampHaze)
+    {
+        const Lamp& lamp = lamps_[static_cast<std::size_t>(shadowedLamp_)];
+        in.lampPosition = lamp.position;
+        in.lampColour = lamp.colour * (lamp.intensity * lightScale_);
+        in.lampRange = lamp.range;
+        in.lampBias = 0.006f;
+        in.lampDensity = settings.lampHaze;
+        in.lampCube = lampShadow_->getShadowTexture();
+    }
+    const bool sunPart = settings.sunbeams > 0.0f && cascadesFitted_ && shadows_ != nullptr && shadows_->getShadowTexture() != nullptr;
+    if (!sunPart && !in.lampHaze) return false;
+    if (!loggedLampHaze_ && in.lampHaze)
+    {
+        loggedLampHaze_ = true;
+        CNA::Logger::Info("cna-room: lamp haze from '" + lamps_[static_cast<std::size_t>(shadowedLamp_)].name + "' intensity " + std::to_string(in.lampColour.Y)
+                          + " density " + std::to_string(in.lampDensity) + (in.lampCube != nullptr ? " with its cube shadow" : " without a cube"));
+    }
     if (!sunbeamVolumeSet_) { skip("no volume"); return false; }
-    if (!cascadesFitted_) { skip("cascades not fitted"); return false; }
-    if (shadows_ == nullptr || shadows_->getShadowTexture() == nullptr) { skip("no atlas"); return false; }
     if (!prepassDrawn_) { skip("no prepass"); return false; }
     in.inverseViewProjection = Matrix::Invert(camera.view() * camera.projection());
     in.cameraPosition = camera.position();
@@ -1786,18 +1805,18 @@ bool SceneRenderer::sunbeamInputs(const Camera& camera, const RenderSettings& se
     in.prepassFarPlane = settings.prepassFarPlane;
     in.depth = prepass_->getDepthTexture();
     in.depthPacked = prepass_->isDepthPacked();
-    in.shadowAtlas = shadows_->getShadowTexture();
-    in.cascadeCount = std::min(shadows_->getCascadeCount(), 4);
+    in.shadowAtlas = sunPart ? shadows_->getShadowTexture() : nullptr;
+    in.cascadeCount = sunPart ? std::min(shadows_->getCascadeCount(), 4) : 0;
     for (int i = 0; i < in.cascadeCount; ++i)
     {
         in.cascadeMatrices[static_cast<std::size_t>(i)] = shadows_->getCascadeMatrix(i);
         in.splitDistances[static_cast<std::size_t>(i)] = shadows_->getSplitDistance(i);
     }
-    const float size = static_cast<float>(std::max(shadows_->getCascadeSize(), 1));
-    in.shadowTexel = Vector2(1.0f / (size * static_cast<float>(in.cascadeCount)), 1.0f / size);
+    const float size = static_cast<float>(std::max(sunPart ? shadows_->getCascadeSize() : 1, 1));
+    in.shadowTexel = Vector2(1.0f / (size * static_cast<float>(std::max(in.cascadeCount, 1))), 1.0f / size);
     in.shadowBias = settings.shadowDepthBias;
     in.lightDirection = keyLightDirection_;
-    in.lightColour = keyLightColour_ * lightScale_;
+    in.lightColour = sunPart ? keyLightColour_ * lightScale_ : Vector3::Zero;
     in.density = settings.sunbeams;
     in.anisotropy = settings.sunbeamAnisotropy;
     in.steps = settings.sunbeamSteps;

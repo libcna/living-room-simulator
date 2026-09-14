@@ -347,6 +347,7 @@ private:
     bool steamSet_ = false;
     bool loggedSteam_ = false;
     bool loggedSmoke_ = false;
+    bool loggedLampHaze_ = false;
     std::vector<SmokePlume> smokePlumes_;
     bool loggedLampAssignment_ = false;
     void drawSteam(const Camera& camera, const RenderSettings& settings);
