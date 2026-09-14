@@ -727,6 +727,14 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   mid-landscape (`mod(t + 10, 70)`). The hall's light shows through the gap in
   `night-entrance` and `night-bookshelf`; the street views sit within a level. The signage,
   the facade extras and the passing clouds came after this round's binary.
+- 2026-09-14 audit round 25 (29 views, `screenshots/audit25/`, with the programme offset, the
+  shop's sign box and the bus stop, the facade extras, the passing clouds and the running
+  raindrops): the night interiors back within a level of round 23 (the set at its picture
+  again), `night-street` up 5.7 in the mean with the lit sign and the timetable case,
+  `dusk-street` 3.3 with the same, the cloudy day views two to three levels off round 24 as
+  the sun now sits in a gap at second zero (a 42 % cover) with its patches a little
+  brighter and its shadows a little sharper, the exposure answering. No regressions. The
+  lamp haze came after this round's binary.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
