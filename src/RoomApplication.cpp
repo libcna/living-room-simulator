@@ -14,6 +14,7 @@
 #include "Microsoft/Xna/Framework/GameWindow.hpp"
 #include "Microsoft/Xna/Framework/GraphicsDeviceManager.hpp"
 #include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
+#include "Microsoft/Xna/Framework/Graphics/GraphicsProfile.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Viewport.hpp"
 #include "Microsoft/Xna/Framework/Input/Keyboard.hpp"
@@ -342,6 +343,7 @@ void RoomApplication::Initialize()
     graphics_->setPreferredBackBufferWidthProperty(settings_.windowWidth);
     graphics_->setPreferredBackBufferHeightProperty(settings_.windowHeight);
     graphics_->setSynchronizeWithVerticalRetraceProperty(settings_.vsync);
+    graphics_->setGraphicsProfileProperty(Microsoft::Xna::Framework::Graphics::GraphicsProfile::HiDef);
     graphics_->ApplyChanges();
 
     getWindowProperty().setTitleProperty("cna-room -- a living room built with CNA");

@@ -801,13 +801,18 @@ void RoomScene::buildFurniture()
                 m->reflectionTint = Vector3(1.0f, 1.0f, 1.0f);
             }
         }
-        if (Material* m = materials_.edit("tv_content"))
-        {
-            m->reflectionPlane = tvWallReflection_;
-            m->reflectionF0 = 0.045f;
-            m->reflectionFresnel = true;
-            m->reflectionTint = Vector3(0.95f, 0.96f, 1.0f);
-        }
+        // No reflectionPlane on "tv_content": PlanarReflection::drawSurface() adds the mirrored
+        // room in unconditionally before the picture's own emissive term (reflection * uTint * f,
+        // Fresnel-weighted by reflectionF0), and the captured room routinely holds a lamp or window
+        // at a radiance high enough that even a bare-glass-low F0 (0.01) still outshines the
+        // picture's deliberately dim 0.017 emissive (a dark-room picture level) once tonemapped --
+        // confirmed by lowering reflectionF0 5x and separately raising the material's roughness
+        // with no visible change either way. This never showed up before the "tv" furniture model
+        // existed to actually populate assets/external/extracted/tv.glb: with no model, nothing
+        // sat behind this quad to be missing, and the room had never rendered "tv_content" against
+        // a real, occupied reflection plane. A real panel's anti-glare coating suppresses this kind
+        // of mirror-bright glare far more aggressively than any F0/roughness tweak here reproduced;
+        // dropping the reflection is the simple fix until that shader gains its own tone response.
     }
     placeModel("potted-plant-b", Vector3(1.80f, 0.0f, L.halfDepth - 0.45f), 0.0f);
     placeModel("DiffuseTransmissionPlant", Vector3(-2.60f, 0.0f, L.halfDepth - 0.50f), 0.0f);

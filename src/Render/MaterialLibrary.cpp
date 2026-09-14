@@ -394,11 +394,15 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
         add(std::move(screen));
     }
     {
-        // The picture: a black glossy pane whose emissive map is the television's render target.
+        // The picture: a black pane whose emissive map is the television's render target. A real
+        // panel's anti-glare coating scatters a reflection rather than mirroring it; at the 0.08 a
+        // bare-glass gloss implies, the room's own IBL specular -- lamps included -- reliably
+        // outshines the picture's deliberately dim 0.017 emissive (a dark-room picture level),
+        // washing the screen to a flat reflected glare no matter the scene's exposure.
         Material content;
         content.name = "tv_content";
         content.baseColour = Vector3(0.02f, 0.02f, 0.025f);
-        content.roughness = 0.08f;
+        content.roughness = 0.55f;
         content.metallic = 0.0f;
         content.castsShadow = false;
         add(std::move(content));

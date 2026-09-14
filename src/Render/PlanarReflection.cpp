@@ -168,7 +168,10 @@ void PlanarReflection::resize(int width, int height)
     if (!supported_) return;
     width_ = std::max(16, width);
     height_ = std::max(16, height);
-    const SurfaceFormat format = device_.SupportsSurfaceFormatAsRenderTargetEXT(SurfaceFormat::HalfVector4) ? SurfaceFormat::HalfVector4
+    // HdrBlendable, not HalfVector4: the target below is drawn into with an additive blend
+    // (light sources' contribution to the reflection), and HiDef permits render-target blending
+    // for HdrBlendable but not for HalfVector4, even though CNA backs both with the same storage.
+    const SurfaceFormat format = device_.SupportsSurfaceFormatAsRenderTargetEXT(SurfaceFormat::HdrBlendable) ? SurfaceFormat::HdrBlendable
                                                                                                              : SurfaceFormat::Color;
     target_ = std::make_unique<RenderTarget2D>(device_, width_, height_, false, format, DepthFormat::Depth24, 0,
                                                RenderTargetUsage::DiscardContents);
@@ -307,7 +310,12 @@ void PlanarReflection::drawSurface(const Material& material, const Matrix& world
     device_.setRasterizerStateProperty(material.doubleSided ? RasterizerState::CullNone
                                        : material.frontFaceCounterClockwise ? RasterizerState::CullClockwise
                                                                             : RasterizerState::CullCounterClockwise);
-    device_.getSamplerStatesProperty()[0] = SamplerState::LinearClamp;
+    // Slot 0 is uReflection: target_, an HDR-format (HdrBlendable/HalfVector4) render target.
+    // HiDef only permits point sampling of float/half formats -- see
+    // GraphicsProfileDrawStateFormatTest's FloatAndHalfTexturesRequirePurePointFiltering -- so
+    // this one slot stays PointClamp while the material's ordinary Color-format textures below
+    // keep their linear filtering.
+    device_.getSamplerStatesProperty()[0] = SamplerState::PointClamp;
     device_.getSamplerStatesProperty()[1] = SamplerState::LinearClamp;
     device_.getSamplerStatesProperty()[2] = SamplerState::LinearWrap;
     effect_->Apply();

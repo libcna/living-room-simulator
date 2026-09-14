@@ -15,6 +15,7 @@
 #include "Microsoft/Xna/Framework/Graphics/RenderTarget2D.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTargetUsage.hpp"
 #include "Microsoft/Xna/Framework/Graphics/DepthFormat.hpp"
+#include "Microsoft/Xna/Framework/Graphics/SamplerState.hpp"
 #include "Microsoft/Xna/Framework/Graphics/SurfaceFormat.hpp"
 #include "Microsoft/Xna/Framework/Graphics/ShaderEffect.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
@@ -47,6 +48,7 @@ using Microsoft::Xna::Framework::Graphics::RasterizerState;
 using Microsoft::Xna::Framework::Graphics::RenderTarget2D;
 using Microsoft::Xna::Framework::Graphics::RenderTargetUsage;
 using Microsoft::Xna::Framework::Graphics::DepthFormat;
+using Microsoft::Xna::Framework::Graphics::SamplerState;
 using Microsoft::Xna::Framework::Graphics::SurfaceFormat;
 using Microsoft::Xna::Framework::Graphics::Texture2D;
 using Microsoft::Xna::Framework::Graphics::ShaderEffect;
@@ -426,7 +428,10 @@ bool Sunbeams::ensureHalfTarget(int width, int height)
     if (halfTargetFailed_) return false;
     try
     {
-        const SurfaceFormat format = device_.SupportsSurfaceFormatAsRenderTargetEXT(SurfaceFormat::HalfVector4) ? SurfaceFormat::HalfVector4
+        // HdrBlendable, not HalfVector4: this target is drawn into with additive blending (the
+        // beams accumulate), and HiDef permits render-target blending for HdrBlendable but not
+        // for HalfVector4, even though CNA backs both with the same storage.
+        const SurfaceFormat format = device_.SupportsSurfaceFormatAsRenderTargetEXT(SurfaceFormat::HdrBlendable) ? SurfaceFormat::HdrBlendable
                                                                                                                   : SurfaceFormat::Color;
         halfTarget_ = std::make_unique<RenderTarget2D>(device_, w, h, false, format, DepthFormat::None, 0, RenderTargetUsage::DiscardContents);
         halfWidth_ = w;
@@ -521,11 +526,15 @@ void Sunbeams::draw(const Inputs& in, int width, int height)
     if ((in.shadowAtlas == nullptr || in.cascadeCount <= 0) && !in.lampHaze) return;
     if (halfMarched_)
     {
-        // The half-size march, bilinear, added over the scene.
+        // The half-size march, added over the scene. halfTarget_ is an HDR format
+        // (HdrBlendable/HalfVector4); HiDef only permits point sampling of float/half formats
+        // (GraphicsProfileDrawStateFormatTest's FloatAndHalfTexturesRequirePurePointFiltering),
+        // so the upsample is point rather than the bilinear this comment used to promise.
         halfMarched_ = false;
         device_.setBlendStateProperty(BlendState::Additive);
         device_.setDepthStencilStateProperty(DepthStencilState::None);
         device_.setRasterizerStateProperty(RasterizerState::CullNone);
+        device_.getSamplerStatesProperty()[0] = SamplerState::PointClamp;
         copyEffect_->Apply();
         copyEffect_->SetUniformInt("uBeams", 0);
         copyEffect_->SetTexture(0, static_cast<Texture2D&>(*halfTarget_));
