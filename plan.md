@@ -718,6 +718,15 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   drum sconces glow as rounded shades at night, the smoke stays above the street views'
   top edge under snow (its tail shows in `snow-day-street` only as a faint smudge). No
   regressions. The frame times sit where round 21 left them (the plumes are two draws).
+- 2026-09-14 audit round 24 (29 views, `screenshots/audit24/`, with the hall beyond the door
+  ajar, the night-drive programme and its fades, the smoke band in the simulation layer):
+  the night interiors moved four to five levels in the mean, and the cause was a defect,
+  not the hall: the programme now fades up from black at each start and the captures'
+  sixth frame sits a tenth of a second in, so every canonical night view showed the set at
+  a fifth of its picture. The schedule is offset ten seconds, so second zero lands
+  mid-landscape (`mod(t + 10, 70)`). The hall's light shows through the gap in
+  `night-entrance` and `night-bookshelf`; the street views sit within a level. The signage,
+  the facade extras and the passing clouds came after this round's binary.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant

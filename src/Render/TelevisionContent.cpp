@@ -146,7 +146,7 @@ void main() {
     float t = uTime;
     // Schedule: 30 s landscape, 15 s night drive, 20 s studio, 5 s test card,
     // each fading up from black over half a second.
-    float cycle = mod(t, 70.0);
+    float cycle = mod(t + 10.0, 70.0);   // a capture's first seconds land mid-landscape, not in a fade
     vec3 c;
     float start;
     if (cycle < 30.0) { c = landscape(uv, t); start = 0.0; }
