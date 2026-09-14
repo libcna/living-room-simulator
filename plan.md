@@ -671,6 +671,11 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   costs about 140 ms at 960x540 and 210 ms at 1280x720 by frame delta; neither the CPU
   stage nor the GPU timer attributes it (GL runs the draw asynchronously and the timer query
   returns the submission), so the frame log's "beams" numbers are not the cost.
+- 2026-09-14 audit round 17 (29 views, `screenshots/audit17/`, with the sheers no longer
+  casting, the dust motes, the wall clock and the beam pass reading by texel): every view is
+  within 0.3 levels of round 16. The clock reads on the -X wall in the bookshelf and
+  entrance views; the motes are specks inside the beams at this size; nothing regressed.
+  The stove's fire and the candle came after this round's binary and go to round 18.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
