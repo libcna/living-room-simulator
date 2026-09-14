@@ -231,7 +231,9 @@ this project.
 
 ## Tests
 
-`ctest --test-dir build` runs CPU-only checks on the solar clock, the weather state machine,
-the procedural texture bakers, the planar reflection matrices (reflected view, oblique near
-plane, tightened projection) and the cube-map products (sampler, irradiance, GGX prefilter) in
-`tests/`.
+`ctest --test-dir build` runs CPU-only checks on the solar clock, the weather state machine
+(including the diurnal temperature), the procedural texture bakers, the planar reflection
+matrices (reflected view, oblique near plane, tightened projection) and the cube-map products
+(sampler, irradiance, GGX prefilter) in `tests/`, plus a headless render smoke test
+(`tests/render-smoke.sh`: three frames at 320x180 under `xvfb-run`, the screenshot must not be
+black; skipped where `xvfb-run` is missing).
