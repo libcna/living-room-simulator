@@ -683,6 +683,11 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   a stop; the street views show the windows in their recesses with sills and downpipes.
   The day interiors are unchanged. No regressions. The street furniture came after this
   round's binary.
+- 2026-09-14 audit round 19 (29 views, `screenshots/audit19/`, with the street furniture and
+  the first parked cars): the street views carry the bench, the bin, the bicycle and the
+  cars (the red one's roof over the hedge, the blue one through the left window), every
+  other view within a level of round 18. No regressions. The lofted bodies, the shop front,
+  the snow on the props and the motes' gate came after this round's binary.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
