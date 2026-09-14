@@ -735,6 +735,12 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   the sun now sits in a gap at second zero (a 42 % cover) with its patches a little
   brighter and its shadows a little sharper, the exposure answering. No regressions. The
   lamp haze came after this round's binary.
+- 2026-09-14 audit round 26 (29 views, `screenshots/audit26/`, with the lamp haze at 0.6):
+  the five night interiors lifted five to eight levels in the mean, a halo about the globe
+  and a milky veil over the frame with it, plainest in `night-bookshelf` beneath the
+  pendant; the day and street views unchanged. The veil was more than the room needs, so
+  the default is 0.35 (the halo stays, the veil goes). The nine probes and the sectioned
+  floor came after this round's binary.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
@@ -973,7 +979,7 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   its visibility from the lamp's cube shadow map (the light-to-point direction against the
   stored distance over the range, the same compare as the receivers'), a Henyey-Greenstein
   phase at g 0.4 against the light's travel, and an in-scatter coefficient of its own
-  (`--lamp-haze D`, default 0.6; the extinction stays the air's), so the night views gain a
+  (`--lamp-haze D`, default 0.35; the extinction stays the air's), so the night views gain a
   soft halo about the globe and a faint lift under it. The pass now runs on the haze alone
   when no key light is cast (the moon down), the cascade part dropped. The march runs at
   half size as before. Two findings on the way: `--haze` already named the sky's haze, so

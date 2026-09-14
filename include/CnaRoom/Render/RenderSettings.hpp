@@ -41,7 +41,7 @@ struct RenderSettings
     float sunbeamAnisotropy = 0.75f; ///< Henyey-Greenstein g: forward-biased, brightest looking toward the window
     int sunbeamSteps = 24;
     bool sunbeamHalfResolution = true;   ///< march at half size and upsample (a quarter of the cost)
-    float lampHaze = 0.6f;               ///< the shadowed lamp's light scattered by the air at night (0 off)
+    float lampHaze = 0.35f;              ///< the shadowed lamp's light scattered by the air at night (0 off)
     int sunbeamMotes = 400;          ///< dust motes drifting in the beams (0 off)
     bool steam = true;               ///< the plume over the cup on the coffee table
     float sunbeamMoteSize = 2.0f;    ///< a mote's diameter in pixels at a 540-line frame

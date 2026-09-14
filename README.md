@@ -87,7 +87,7 @@ zeroes all three), `--flare I[,T]` (lens flare ghosts, off by default), `--ev ST
 on top of the adapted exposure, ±3), `--sunbeams D[,G,N]` (the air's scattering per metre,
 default 0.12, its forward bias and the march's steps; 0 turns the beams off; the march runs at
 half size and `--sunbeams-full` marches every pixel), `--lamp-haze D` (the pendant's light in
-the air at night, default 0.6), `--no-steam`, `--motes N[,PX]`
+the air at night, default 0.35), `--no-steam`, `--motes N[,PX]`
 (dust motes in the beams, default 400 at 2.5 px), the lens itself `--dof F,MM`
 (f-number and focal length, default 4,35),
 `--focus D` (metres; the default focuses on the frame's centre) and `--no-dof`, `--white-balance S`
