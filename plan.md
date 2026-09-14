@@ -887,6 +887,18 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   metal), placed from the chest's bounds. The knit's first bake came back in the old ochre
   after its recolour: the bake cache keys on name, seed and size, not on the baker's
   parameters, so `kCacheVersion` is 7 now (the rule: bump it whenever a bake changes).
+- 2026-09-14 M9 chimney smoke: the plume drawer (`Steam`) takes its rise, life, sizes and a
+  drift as parameters now, and a second population of 64 puffs serves the chimneys across
+  the street. `RoomScene::applyWeather` lights two hearths in three (their pots recorded by
+  the exterior builder, `chimneyTops_`) when the weather is cold, fully below 8 C and gone
+  above 14 (the band that lights our own stove), each plume born on a 0.3 m disc, rising
+  3.2 m over 7 s while the puffs grow from a third of a metre to 1.2 m at full opacity and
+  lean with the wind at half its speed (at the wind's own speed a 10 s plume streaked 40 m
+  and read as scattered wisps). Lit as grey soot: six tenths of the sky's ambient plus a
+  little sun, so the smoke sits a shade darker than an overcast sky and warms under a low
+  sun; a faint smudge in a still, as thin smoke is, plainest against the snow sky. The
+  chimneys sit at the top edge of the canonical street views, so the smoke shows in them
+  only as its leaning tail.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

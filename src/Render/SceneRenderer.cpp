@@ -203,6 +203,7 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
     if (!precipitation_->supported()) limitations_.emplace_back("no precipitation: " + precipitation_->reason());
     steam_ = std::make_unique<Steam>(device_);
     if (!steam_->supported()) limitations_.emplace_back("no steam: " + steam_->reason());
+    else smoke_ = std::make_unique<Steam>(device_, 64);
     television_ = std::make_unique<TelevisionContent>(device_);
     vignette_ = std::make_unique<Vignette>(device_);
     sunbeams_ = std::make_unique<Sunbeams>(device_);
@@ -2101,7 +2102,47 @@ void SceneRenderer::drawSteam(const Camera& camera, const RenderSettings& settin
 {
     // The plume over the cup, last of the transparents (nothing of the room's
     // glass stands between it and the views), lit by the light at the cup.
-    if (steam_ == nullptr || !steam_->supported() || !steamSet_ || !settings.steam || capturing_) return;
+    if (steam_ == nullptr || !steam_->supported() || !settings.steam || capturing_) return;
+    const Matrix& view = camera.view();
+    // The chimneys' smoke: grey soot lit by the sky, leaning with the wind,
+    // puffs a quarter of a metre growing to a metre over six seconds.
+    if (!smokePlumes_.empty() && smoke_ != nullptr && smoke_->supported())
+    {
+        const SkyLighting& lighting = sky_.lighting();
+        Steam::Params smoke;
+        smoke.radius = 0.30f;
+        smoke.rise = 3.2f;
+        smoke.life = 7.0f;
+        smoke.size0 = 0.35f;
+        smoke.size1 = 1.20f;
+        smoke.opacity = 1.0f;
+        smoke.radiance = lighting.ambientColour * 0.6f + lighting.sunColour * 0.15f * lighting.daylight;   // grey against the sky, warm under a low sun
+        static const bool debugSmoke = std::getenv("CNA_ROOM_DEBUG_STEAM") != nullptr;
+        if (debugSmoke) smoke.radiance = Vector3(2.0f, 0.0f, 2.0f);
+        if (!loggedSmoke_)
+        {
+            loggedSmoke_ = true;
+            const SmokePlume& first = smokePlumes_.front();
+            CNA::Logger::Info("cna-room: smoke plume 0 at " + std::to_string(first.origin.X) + "," + std::to_string(first.origin.Y) + "," + std::to_string(first.origin.Z)
+                              + " drift " + std::to_string(first.drift.X) + "," + std::to_string(first.drift.Z) + " radiance " + std::to_string(smoke.radiance.X) + ","
+                              + std::to_string(smoke.radiance.Y) + "," + std::to_string(smoke.radiance.Z));
+        }
+        smoke.time = frameSeconds_;
+        smoke.viewProjection = camera.view() * camera.projection();
+        smoke.cameraRight = Vector3(view.M11, view.M21, view.M31);
+        smoke.cameraUp = Vector3(view.M12, view.M22, view.M32);
+        for (const SmokePlume& plume : smokePlumes_)
+        {
+            if (plume.strength <= 0.01f) continue;
+            smoke.origin = plume.origin;
+            smoke.drift = plume.drift;
+            smoke.strength = plume.strength;
+            smoke_->draw(smoke);
+            ++stats_.drawCalls;
+        }
+        appliedMaterial_ = nullptr;
+    }
+    if (!steamSet_) return;
     Steam::Params p;
     p.origin = steamOrigin_;
     p.radius = steamRadius_;
@@ -2117,7 +2158,6 @@ void SceneRenderer::drawSteam(const Camera& camera, const RenderSettings& settin
     }
     p.time = frameSeconds_;
     p.viewProjection = camera.view() * camera.projection();
-    const Matrix& view = camera.view();
     p.cameraRight = Vector3(view.M11, view.M21, view.M31);
     p.cameraUp = Vector3(view.M12, view.M22, view.M32);
     steam_->draw(p);

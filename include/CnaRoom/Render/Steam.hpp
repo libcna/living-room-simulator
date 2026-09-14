@@ -31,10 +31,15 @@ class Steam
 public:
     struct Params
     {
-        Microsoft::Xna::Framework::Vector3 origin;      ///< the rim's centre (world)
-        float radius = 0.035f;                          ///< the rim's radius: where the puffs are born
-        Microsoft::Xna::Framework::Vector3 radiance;    ///< what a white puff scatters (scene units)
+        Microsoft::Xna::Framework::Vector3 origin;      ///< where the puffs are born (world): a rim, a chimney pot
+        float radius = 0.035f;                          ///< the birth disc's radius
+        float rise = 0.22f;                             ///< how high a puff climbs over its life (m)
+        float life = 2.4f;                              ///< seconds from birth to gone
+        float size0 = 0.016f, size1 = 0.08f;            ///< a puff's half size at birth and at the end (m)
+        Microsoft::Xna::Framework::Vector3 drift;       ///< the wind: metres per second the puffs are carried
+        Microsoft::Xna::Framework::Vector3 radiance;    ///< what a puff scatters (scene units)
         float strength = 1.0f;                          ///< 0..1 opacity scale (0 draws nothing)
+        float opacity = 0.8f;                           ///< a puff's peak alpha before the wisps cut it
         float time = 0.0f;
         Microsoft::Xna::Framework::Matrix viewProjection;
         Microsoft::Xna::Framework::Vector3 cameraRight;

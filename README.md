@@ -171,6 +171,8 @@ PageUp/PageDown or F2 give them back.
   their reflection up in that render (the screen through a Fresnel ramp under its picture, the
   mirror as silvered glass, the panes' Fresnel share of the lamp-lit room added over the street,
   bent by the rain droplets' normal map when the panes are wet).
+- Chimney smoke across the street on cold days, leaning with the wind, from the same plume
+  drawer as the cup's steam.
 - The windows as light sources by day: a wide spot per window carries the sky's diffuse light
   into the room with distance fall-off, refreshed from the sky each frame, on top of the
   probes' ambient.

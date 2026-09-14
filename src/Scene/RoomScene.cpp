@@ -1063,6 +1063,30 @@ void RoomScene::applyWeather(const WeatherState& weather, float seconds)
         glass->normalScale = drops;
         glass->uvScale = Vector2(3.5f, 3.5f);   // ~0.4 m tiles: drops of a centimetre or two
     }
+    // Chimney smoke across the street on cold days (the stoves lit as ours
+    // is), fully below 8 C and gone above 14, carried by the wind.
+    {
+        const float smoke = std::clamp((14.0f - weather.temperatureC) / 6.0f, 0.0f, 1.0f);
+        std::vector<SceneRenderer::SmokePlume> plumes;
+        if (smoke > 0.0f)
+        {
+            // Leaning with the wind at half its speed: the plume's young, dense part stays over the pot.
+            const Vector3 drift(std::sin(weather.windDirection) * weather.windSpeed * 0.45f, 0.0f, std::cos(weather.windDirection) * weather.windSpeed * 0.45f);
+            std::size_t index = 0;
+            for (const Vector3& top : chimneyTops_)
+            {
+                if (index++ % 3 == 2) continue;   // not every hearth is lit
+                plumes.push_back({top, drift, smoke});
+            }
+        }
+        if (plumes.size() != smokePlumeCount_)
+        {
+            smokePlumeCount_ = plumes.size();
+            CNA::Logger::Info("cna-room: chimney smoke: " + std::to_string(plumes.size()) + " plumes of " + std::to_string(chimneyTops_.size()) + " chimneys at "
+                              + std::to_string(weather.temperatureC) + " C, strength " + std::to_string(smoke));
+        }
+        renderer_.setSmokePlumes(std::move(plumes));
+    }
     // Curtains: a draught proportional to the wind rocks each panel about its rod.
     const float wind = std::clamp(weather.windSpeed / 12.0f, 0.0f, 1.0f);
     for (const Curtain& c : curtains_)

@@ -54,8 +54,13 @@ uniform vec3 uCameraRight;
 uniform vec3 uCameraUp;
 uniform vec3 uOrigin;
 uniform float uRadius;
+uniform float uRise;
+uniform float uLife;
+uniform vec2 uSize;       // half size at birth and at the end
+uniform vec3 uDrift;      // m/s
 uniform float uTime;
 uniform float uStrength;
+uniform float uOpacity;
 uniform int uCount;
 out vec2 vCorner;
 out float vAlpha;
@@ -64,20 +69,23 @@ out float vSeed;
 void main() {
     int puff = gl_VertexID / 4;
     if (puff >= uCount) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCorner = vec2(0.0); vAlpha = 0.0; vSeed = 0.0; return; }
-    float life = 2.4 * (0.8 + 0.4 * aColor.b);
+    float life = uLife * (0.8 + 0.4 * aColor.b);
     float age = fract(uTime / life + aPosition.y);
-    // Born on the rim, rising a little slower as it thins, swaying in the room's air.
-    float rise = 0.22 * (1.0 - pow(1.0 - age, 1.6));
+    // Born on the disc, rising a little slower as it thins, swaying in the
+    // air and carried by the wind; the sway scales with the plume.
+    float rise = uRise * (1.0 - pow(1.0 - age, 1.6));
     float swayPhase = aColor.g * 6.2831853;
-    vec2 sway = vec2(sin(uTime * 1.7 + swayPhase), cos(uTime * 1.3 + swayPhase * 0.7)) * 0.014 * age
-              + vec2(0.012, 0.006) * age * age;   // the convection's lean
-    vec3 p = uOrigin + vec3(aPosition.x * uRadius * 0.7 + sway.x, rise, aPosition.z * uRadius * 0.7 + sway.y);
-    float size = mix(0.016, 0.080, age) * (0.8 + 0.4 * aColor.r);
+    float swayScale = uRise / 0.22;
+    vec2 sway = (vec2(sin(uTime * 1.7 + swayPhase), cos(uTime * 1.3 + swayPhase * 0.7)) * 0.014 * age
+               + vec2(0.012, 0.006) * age * age) * swayScale;   // the convection's lean
+    vec3 carried = uDrift * age * life;
+    vec3 p = uOrigin + vec3(aPosition.x * uRadius * 0.7 + sway.x, rise, aPosition.z * uRadius * 0.7 + sway.y) + carried;
+    float size = mix(uSize.x, uSize.y, age) * (0.8 + 0.4 * aColor.r);
     p += (uCameraRight * aTexCoord.x + uCameraUp * aTexCoord.y) * size;
     gl_Position = uViewProjection * vec4(p, 1.0);
     vCorner = aTexCoord;
     vSeed = aColor.a;
-    vAlpha = uStrength * smoothstep(0.0, 0.10, age) * pow(1.0 - age, 1.7) * 0.8;
+    vAlpha = uStrength * uOpacity * smoothstep(0.0, 0.10, age) * pow(1.0 - age, 1.7);
 }
 )";
 
@@ -196,8 +204,13 @@ void Steam::draw(const Params& params)
     effect_->SetUniformVec3("uCameraUp", params.cameraUp.X, params.cameraUp.Y, params.cameraUp.Z);
     effect_->SetUniformVec3("uOrigin", params.origin.X, params.origin.Y, params.origin.Z);
     effect_->SetUniformFloat("uRadius", std::max(params.radius, 0.005f));
+    effect_->SetUniformFloat("uRise", std::max(params.rise, 0.01f));
+    effect_->SetUniformFloat("uLife", std::max(params.life, 0.1f));
+    effect_->SetUniformVec2("uSize", std::max(params.size0, 0.001f), std::max(params.size1, 0.001f));
+    effect_->SetUniformVec3("uDrift", params.drift.X, params.drift.Y, params.drift.Z);
     effect_->SetUniformFloat("uTime", params.time);
     effect_->SetUniformFloat("uStrength", std::clamp(params.strength, 0.0f, 1.0f));
+    effect_->SetUniformFloat("uOpacity", std::clamp(params.opacity, 0.0f, 1.0f));
     effect_->SetUniformInt("uCount", puffs_);
     effect_->SetUniformVec3("uRadiance", params.radiance.X, params.radiance.Y, params.radiance.Z);
     device_.SetVertexBuffer(vertices_.get());

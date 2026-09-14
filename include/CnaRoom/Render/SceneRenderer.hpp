@@ -202,6 +202,14 @@ public:
     void setPrecipitation(const Precipitation::Params& params);
     /// Steam over a hot drink: the rim's centre and radius (drawn while RenderSettings::steam is on).
     void setSteam(const Microsoft::Xna::Framework::Vector3& origin, float radius) { steamOrigin_ = origin; steamRadius_ = radius; steamSet_ = true; }
+    /// Smoke outside: one plume per chimney, lit by the sky (replaces the previous set).
+    struct SmokePlume
+    {
+        Microsoft::Xna::Framework::Vector3 origin;
+        Microsoft::Xna::Framework::Vector3 drift;   ///< m/s
+        float strength = 1.0f;
+    };
+    void setSmokePlumes(std::vector<SmokePlume> plumes) { smokePlumes_ = std::move(plumes); }
     /// The nearest probe's mean irradiance (E / pi, scene units): the light on a white surface there.
     [[nodiscard]] Microsoft::Xna::Framework::Vector3 irradianceAt(const Microsoft::Xna::Framework::Vector3& position) const;
     [[nodiscard]] const Precipitation* precipitation() const { return precipitation_.get(); }
@@ -333,10 +341,13 @@ private:
     std::unique_ptr<Precipitation> precipitation_;
     Precipitation::Params precipitationParams_;
     std::unique_ptr<Steam> steam_;
+    std::unique_ptr<Steam> smoke_;   ///< a denser population for the chimneys
     Microsoft::Xna::Framework::Vector3 steamOrigin_;
     float steamRadius_ = 0.035f;
     bool steamSet_ = false;
     bool loggedSteam_ = false;
+    bool loggedSmoke_ = false;
+    std::vector<SmokePlume> smokePlumes_;
     bool loggedLampAssignment_ = false;
     void drawSteam(const Camera& camera, const RenderSettings& settings);
     std::unique_ptr<CNA::Graphics::AutoExposureEXT> autoExposure_;

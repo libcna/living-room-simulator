@@ -185,6 +185,8 @@ private:
     Microsoft::Xna::Framework::Vector3 clockHourPivot_, clockMinutePivot_;
     RoomLayout layout_;
     std::vector<Microsoft::Xna::Framework::Vector3> streetLampPositions_;
+    std::vector<Microsoft::Xna::Framework::Vector3> chimneyTops_;   ///< the pots, for the smoke on cold days
+    std::size_t smokePlumeCount_ = 0;
     std::vector<std::unique_ptr<GpuMesh>> meshes_;
     std::vector<Viewpoint> viewpoints_;
 };

@@ -379,6 +379,7 @@ void RoomScene::buildExterior()
             // A chimney stack near the ridge.
             const float cx = b.x0 + 1.0f + dice.range(0.0f, std::max(0.5f, width - 2.0f));
             chimneys.at(bx).addBoxWorldUv(Vector3(cx - 0.45f, h + rise * 0.5f, ridgeZ - 0.4f), Vector3(cx + 0.45f, h + rise + 0.8f, ridgeZ + 0.4f), 1.0f, kAllFaces & ~kFaceNegY);
+            chimneyTops_.push_back(Vector3(cx, h + rise + 0.8f, ridgeZ));
         }
         else
         {
