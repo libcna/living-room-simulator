@@ -698,6 +698,10 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 
 ## 29. Completed work
 
+- 2026-09-14 M9 motes gated on the sun: the specks' glint now fades with the key light's
+  luminance against the ambient's (none below 2.5 times the ambient, full at 7.5), so a
+  cloud-dimmed sun lights the air but not the motes, which had read as snowflakes across a
+  cloudy room; their default size is 2 px at 540 lines. The README's hero image retaken.
 - 2026-09-14 M9 snow on the props: the cars, the bench, the bin, the gutters and the bicycle's
   tyres join the weather's material list (their tops take the snow, the paints go matte when
   wet), with an exterior black rubber and a painted bench wood of their own so the snow does

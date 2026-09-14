@@ -1779,6 +1779,16 @@ void SceneRenderer::drawSunbeams(const Camera& camera, const RenderSettings& set
     in.roomMax = sunbeamMax_;
     in.motes = settings.sunbeamMotes;
     in.moteSize = settings.sunbeamMoteSize;
+    // Motes show only in real sunbeams: their glint fades with the key light's
+    // strength against the ambient (a cloud-dimmed sun lights the air but not
+    // the specks, which read as snowflakes otherwise).
+    {
+        const SkyLighting& lighting = sky_.lighting();
+        const auto luminance = [](const Vector3& v) { return 0.2126f * v.X + 0.7152f * v.Y + 0.0722f * v.Z; };
+        const float ratio = luminance(keyLightColour_) / std::max(luminance(lighting.ambientColour), 1e-4f);
+        in.moteBrightness = std::clamp((ratio - 2.5f) / 5.0f, 0.0f, 1.0f);
+        if (in.moteBrightness <= 0.0f) in.motes = 0;
+    }
     in.time = frameSeconds_;
     in.viewProjection = camera.view() * camera.projection();
     const Matrix& view = camera.view();

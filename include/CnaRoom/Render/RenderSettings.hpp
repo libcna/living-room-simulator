@@ -41,7 +41,7 @@ struct RenderSettings
     float sunbeamAnisotropy = 0.75f; ///< Henyey-Greenstein g: forward-biased, brightest looking toward the window
     int sunbeamSteps = 24;
     int sunbeamMotes = 400;          ///< dust motes drifting in the beams (0 off)
-    float sunbeamMoteSize = 2.5f;    ///< a mote's diameter in pixels at a 540-line frame
+    float sunbeamMoteSize = 2.0f;    ///< a mote's diameter in pixels at a 540-line frame
     /// Depth of field as a thin lens on a 24 mm sensor: focal length (mm),
     /// f-number, the largest blur radius (screen fraction) and the focus
     /// distance (metres; 0 focuses on whatever is at the frame's centre).

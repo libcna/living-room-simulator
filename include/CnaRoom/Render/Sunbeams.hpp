@@ -63,7 +63,7 @@ public:
         // Dust motes: specks drifting in the room's air, drawn where the key
         // light reaches them (the same atlas compare), camera-facing.
         int motes = 400;              ///< how many of the buffer's motes to draw (0 off)
-        float moteSize = 2.5f;        ///< a speck's diameter in pixels at a 540-line frame (a point of glare, whatever its distance)
+        float moteSize = 2.0f;        ///< a speck's diameter in pixels at a 540-line frame (a point of glare, whatever its distance)
         int viewportWidth = 0, viewportHeight = 0;   ///< filled by draw()
         float moteBrightness = 1.0f;
         float time = 0.0f;            ///< scene seconds for the drift

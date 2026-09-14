@@ -124,7 +124,7 @@ bool RoomApplication::configure(int argc, char** argv)
                 "  --volumetric D            the pipeline's volumetric fog density (experimental, default 0)\n"
                 "  --sunbeams D[,G,N]        sunlight scattered by the room's air: density per metre (default 0.12, 0 off),\n"
                 "                            anisotropy (default 0.75) and march steps (default 24)\n"
-                "  --motes N[,PX]            dust motes drifting in the beams (default 400, 0 off) and their size in pixels at 540p (default 2.5)\n"
+                "  --motes N[,PX]            dust motes drifting in the beams (default 400, 0 off) and their size in pixels at 540p (default 2)\n"
                 "  --no-reflections          planar reflections off (mirror, television screen)\n"
                 "  --no-specular-classes     CNA's 8-bit prefiltered specular instead of the half-float roughness classes\n"
                 "  --reflection-scale S      reflection target size relative to the frame (default 0.5)\n"
