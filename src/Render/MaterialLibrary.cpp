@@ -308,6 +308,10 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     surfaced("car_paint_red", [&] { return TextureBaker::flat(size / 4, seed + 182u, 0.42f, 0.06f, 0.05f, 0.40f, 0.5f, 0.02f); }, 1.0f, 0.5f);
     surfaced("car_glass", [&] { return TextureBaker::flat(size / 4, seed + 183u, 0.05f, 0.06f, 0.08f, 0.12f, 0.0f, 0.01f); }, 1.0f, 0.0f);
     surfaced("car_chrome", [&] { return TextureBaker::flat(size / 4, seed + 184u, 0.75f, 0.76f, 0.78f, 0.22f, 0.9f, 0.02f); }, 1.0f, 0.9f);
+    // Exterior black rubber and painted bench wood of their own, so the weather can
+    // snow them over without touching the wall clock's case or the terrace's doors.
+    surfaced("rubber_black", [&] { return TextureBaker::flat(size / 4, seed + 185u, 0.03f, 0.03f, 0.035f, 0.62f, 0.0f, 0.03f); }, 1.0f, 0.0f);
+    surfaced("bench_wood", [&] { return TextureBaker::paintedWood(size / 2, seed + 186u, 0.17f, 0.22f, 0.19f, 0.5f); }, 1.0f, 0.0f);
 
     raindrops_ = own(TextureBaker::upload(device_, TextureBaker::raindrops(std::max(64, size / 2), seed + 40u), false));
     {

@@ -698,6 +698,10 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 
 ## 29. Completed work
 
+- 2026-09-14 M9 snow on the props: the cars, the bench, the bin, the gutters and the bicycle's
+  tyres join the weather's material list (their tops take the snow, the paints go matte when
+  wet), with an exterior black rubber and a painted bench wood of their own so the snow does
+  not reach the wall clock's case or the terrace's doors, which had shared those materials.
 - 2026-09-14 M9 parked cars: three hatchbacks from boxes and quads (a body, a waistline, a
   trapezoid of tinted glass over a painted roof, wheels and chrome caps, bumpers, lamps,
   mirrors and a grille), two across the road and one at our kerb whose roof shows over the

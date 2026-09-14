@@ -587,8 +587,8 @@ void RoomScene::buildExterior()
         placeChunks(glass, "car_glass", "exterior_car_glass", true);
         placeChunks(chrome, "car_chrome", "exterior_car_chrome", true);
         placeChunks(metal, "gutter_metal", "exterior_furniture_metal", true);
-        placeChunks(wood, "door_dark", "exterior_furniture_wood", true);
-        placeChunks(rubber, "clock_black", "exterior_furniture_rubber", true);
+        placeChunks(wood, "bench_wood", "exterior_furniture_wood", true);
+        placeChunks(rubber, "rubber_black", "exterior_furniture_rubber", true);
         placeChunks(stone, "concrete", "exterior_furniture_stone", true);
     }
     // Distant blocks behind the terrace and a taller skyline further out.

@@ -837,6 +837,15 @@ void RoomScene::applyWeather(const WeatherState& weather, float seconds)
         track("facade_render_3", 0.85f, 0.7f, 0.05f);
         track("facade_render_4", 0.85f, 0.7f, 0.05f);
         track("metal_paint_dark", 0.8f, 0.3f, 0.3f);
+        // The street's furniture and the parked cars: their tops take the snow.
+        track("car_paint_blue", 0.9f, 0.5f, 0.85f);
+        track("car_paint_silver", 0.9f, 0.5f, 0.85f);
+        track("car_paint_red", 0.9f, 0.5f, 0.85f);
+        track("car_glass", 0.95f, 0.8f, 0.75f);
+        track("car_chrome", 0.95f, 0.8f, 0.3f);
+        track("rubber_black", 0.9f, 0.7f, 0.35f);
+        track("bench_wood", 0.75f, 0.45f, 0.85f);
+        track("gutter_metal", 0.85f, 0.5f, 0.45f);
     }
     const float wet = std::clamp(weather.wetness, 0.0f, 1.0f);
     const float snow = std::clamp(weather.snowCover, 0.0f, 1.0f);
