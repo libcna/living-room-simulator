@@ -190,7 +190,7 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
         timer = std::make_unique<GpuTimer>(device_);
         if (!timer->isSupported())
         {
-            CNA::Logger::Info("cna-room: GPU timing unavailable -- " + timer->getUnsupportedReason());
+            CNA::Logger::Info("living-room-simulator: GPU timing unavailable -- " + timer->getUnsupportedReason());
             for (auto& other : gpuStage_) other.reset();
             break;
         }
@@ -251,7 +251,7 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
 
     applySettings(settings);
 
-    for (const std::string& limitation : limitations_) CNA::Logger::Warn("cna-room: " + limitation);
+    for (const std::string& limitation : limitations_) CNA::Logger::Warn("living-room-simulator: " + limitation);
 }
 
 void SceneRenderer::applySettings(const RenderSettings& settings)
@@ -631,7 +631,7 @@ void SceneRenderer::finishProbe(InteriorProbe& probe, int size, const std::vecto
         const Vector3 m = lastIrradianceMean_ * probe.scale;
         probe.meanIrradiance = m;
         const float lum = std::max(0.2126f * m.X + 0.7152f * m.Y + 0.0722f * m.Z, 1e-9f);
-        CNA::Logger::Info("cna-room: probe at " + std::to_string(probe.position.X) + "," + std::to_string(probe.position.Y) + ","
+        CNA::Logger::Info("living-room-simulator: probe at " + std::to_string(probe.position.X) + "," + std::to_string(probe.position.Y) + ","
                           + std::to_string(probe.position.Z) + " mean irradiance " + std::to_string(m.X) + "," + std::to_string(m.Y) + ","
                           + std::to_string(m.Z) + " (chroma " + std::to_string(m.X / lum) + "," + std::to_string(m.Y / lum) + ","
                           + std::to_string(m.Z / lum) + "), peak " + std::to_string(peak));
@@ -659,7 +659,7 @@ void SceneRenderer::finishProbe(InteriorProbe& probe, int size, const std::vecto
         if (!loggedSpecularClasses_)
         {
             loggedSpecularClasses_ = true;
-            CNA::Logger::Info("cna-room: probe specular classes (" + std::to_string(kSpecularClasses.size()) + " x 32 px, 32 samples) in "
+            CNA::Logger::Info("living-room-simulator: probe specular classes (" + std::to_string(kSpecularClasses.size()) + " x 32 px, 32 samples) in "
                               + std::to_string(static_cast<double>(classWatch.getElapsedTicksProperty()) / 10000.0) + " ms"
                               + (complete ? "" : " -- upload failed, CNA's 8-bit chain used"));
         }
@@ -709,12 +709,12 @@ void SceneRenderer::dumpProbe(const InteriorProbe& /*probe*/, int size, const st
             Texture2D image = Texture2D::CreateFromPixels(device_, 6 * n, n, lastIrradianceStrip_);
             image.SaveAsPng(stem + "-irr.png");
         }
-        CNA::Logger::Info("cna-room: probe dump " + stem + "-{env,irr}.png (exposure " + std::to_string(exposure) + ")");
+        CNA::Logger::Info("living-room-simulator: probe dump " + stem + "-{env,irr}.png (exposure " + std::to_string(exposure) + ")");
         ++probeDumpCount_;
     }
     catch (const std::exception& error)
     {
-        CNA::Logger::Warn(std::string("cna-room: probe dump failed: ") + error.what());
+        CNA::Logger::Warn(std::string("living-room-simulator: probe dump failed: ") + error.what());
     }
 }
 
@@ -765,7 +765,7 @@ void SceneRenderer::detectCaptureFormat()
     }
     if (!captureHdr_ && limitations_.empty())
         limitations_.emplace_back("8-bit probe capture: half-float readback gave wrong values");
-    CNA::Logger::Info(std::string("cna-room: probe capture ") + (captureHdr_ ? "half-float" : "8-bit sRGB, radiance clipped at 2.0"));
+    CNA::Logger::Info(std::string("living-room-simulator: probe capture ") + (captureHdr_ ? "half-float" : "8-bit sRGB, radiance clipped at 2.0"));
 }
 
 void SceneRenderer::detectProbeMapping(RenderTarget2D& target, int size, const RenderSettings& settings)
@@ -808,7 +808,7 @@ void SceneRenderer::detectProbeMapping(RenderTarget2D& target, int size, const R
                 bestMirror = probeMirrorX_;
                 bestFlip = probeFlipY_;
             }
-            CNA::Logger::Info("cna-room: probe mapping mirrorX=" + std::to_string(probeMirrorX_) + " flipY="
+            CNA::Logger::Info("living-room-simulator: probe mapping mirrorX=" + std::to_string(probeMirrorX_) + " flipY="
                               + std::to_string(probeFlipY_) + " error " + std::to_string(error));
         }
     probeMirrorX_ = bestMirror;
@@ -886,9 +886,9 @@ bool SceneRenderer::stepProbeBake(int faces)
         if (probeBakeCount_ <= 3)
         {
             for (const auto& probe : probes_)
-                CNA::Logger::Info("cna-room: probe at " + std::to_string(probe->position.X) + "," + std::to_string(probe->position.Y)
+                CNA::Logger::Info("living-room-simulator: probe at " + std::to_string(probe->position.X) + "," + std::to_string(probe->position.Y)
                                   + "," + std::to_string(probe->position.Z) + " peak radiance " + std::to_string(probe->scale));
-            CNA::Logger::Info("cna-room: baked " + std::to_string(probes_.size()) + " interior probes at "
+            CNA::Logger::Info("living-room-simulator: baked " + std::to_string(probes_.size()) + " interior probes at "
                               + std::to_string(probeBakeSize_) + " px, " + std::to_string(probeBakeStepsDone_) + " faces, in "
                               + std::to_string(probeBakeSeconds_) + " s");
         }
@@ -955,7 +955,7 @@ void SceneRenderer::assignLamps()
         {
             if (item.exterior) continue;
             const std::string lamp = item.lamp >= 0 ? lamps_[static_cast<std::size_t>(item.lamp)].name : "none";
-            CNA::Logger::Info("cna-room: lamp for '" + item.name + "' at " + std::to_string(item.worldSphere.Center.X) + "," + std::to_string(item.worldSphere.Center.Y) + ","
+            CNA::Logger::Info("living-room-simulator: lamp for '" + item.name + "' at " + std::to_string(item.worldSphere.Center.X) + "," + std::to_string(item.worldSphere.Center.Y) + ","
                               + std::to_string(item.worldSphere.Center.Z) + " r " + std::to_string(item.worldSphere.Radius) + ": " + lamp);
         }
     }
@@ -1240,7 +1240,7 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     if (!loggedSceneFormat_)
     {
         loggedSceneFormat_ = true;
-        CNA::Logger::Info("cna-room: scene target format " + std::to_string(static_cast<int>(pipeline_->getSceneTargetFormat()))
+        CNA::Logger::Info("living-room-simulator: scene target format " + std::to_string(static_cast<int>(pipeline_->getSceneTargetFormat()))
                           + " (HalfVector4 = " + std::to_string(static_cast<int>(SurfaceFormat::HalfVector4)) + ", Color = "
                           + std::to_string(static_cast<int>(SurfaceFormat::Color)) + ")");
     }
@@ -1271,7 +1271,7 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
         if (any && !loggedPassTimings_ && ++timedFrames_ == 4)
         {
             loggedPassTimings_ = true;
-            CNA::Logger::Info("cna-room: post passes (GPU ms): " + breakdown);
+            CNA::Logger::Info("living-room-simulator: post passes (GPU ms): " + breakdown);
         }
         if (any) stats_.gpuPostMs = post;
     }
@@ -1310,7 +1310,7 @@ void SceneRenderer::drawShadows(const Camera& camera, const RenderSettings& sett
         std::string splits;
         for (int i = 0; i < shadows_->getCascadeCount(); ++i)
             splits += std::to_string(shadows_->getSplitDistance(i)) + " ";
-        CNA::Logger::Info("cna-room: shadow cascades " + std::to_string(shadows_->getCascadeCount()) + " at "
+        CNA::Logger::Info("living-room-simulator: shadow cascades " + std::to_string(shadows_->getCascadeCount()) + " at "
                           + std::to_string(shadows_->getCascadeSize()) + " px, splits " + splits);
     }
 
@@ -1377,7 +1377,7 @@ void SceneRenderer::drawShadows(const Camera& camera, const RenderSettings& sett
         }
         shadows_->end();
         if (!loggedCascadeCasters_)
-            CNA::Logger::Info("cna-room: cascade " + std::to_string(cascade) + ": " + std::to_string(drawn) + " casters drawn, "
+            CNA::Logger::Info("living-room-simulator: cascade " + std::to_string(cascade) + ": " + std::to_string(drawn) + " casters drawn, "
                               + std::to_string(culledBox) + " outside the light-space box, " + std::to_string(culledSmall)
                               + " below " + std::to_string(minimumRadius) + " m (slice far " + std::to_string(sliceFar) + " m, radius "
                               + std::to_string(radius) + " m)");
@@ -1407,11 +1407,11 @@ void SceneRenderer::dumpAtlas(const char* path)
         }
         Texture2D png = Texture2D::CreateFromPixels(device_, atlasW, atlasH, grey);
         png.SaveAsPng(path);
-        CNA::Logger::Info(std::string("cna-room: shadow atlas written to ") + path + " (" + std::to_string(atlasW) + "x" + std::to_string(atlasH) + ")");
+        CNA::Logger::Info(std::string("living-room-simulator: shadow atlas written to ") + path + " (" + std::to_string(atlasW) + "x" + std::to_string(atlasH) + ")");
     }
     catch (const std::exception& failure)
     {
-        CNA::Logger::Info(std::string("cna-room: shadow atlas dump failed: ") + failure.what());
+        CNA::Logger::Info(std::string("living-room-simulator: shadow atlas dump failed: ") + failure.what());
     }
 }
 
@@ -1502,7 +1502,7 @@ void SceneRenderer::readFocus(const RenderSettings& settings)
             }
             catch (const std::exception& failure)
             {
-                CNA::Logger::Warn(std::string("cna-room: autofocus cannot read the prepass depth: ") + failure.what());
+                CNA::Logger::Warn(std::string("living-room-simulator: autofocus cannot read the prepass depth: ") + failure.what());
                 focusReadable_ = false;
                 ok = false;
             }
@@ -1554,7 +1554,7 @@ void SceneRenderer::dumpDepth(const Camera& camera, const RenderSettings& settin
             if (!item.material->writesDepth) continue;
             const float near = Vector3::Distance(camera.position(), item.worldSphere.Center) - item.worldSphere.Radius;
             if (near < 1.0f)
-                CNA::Logger::Info("cna-room: depth dump -- near item '" + item.name + "' (" + item.material->name + ") sphere radius "
+                CNA::Logger::Info("living-room-simulator: depth dump -- near item '" + item.name + "' (" + item.material->name + ") sphere radius "
                                   + std::to_string(item.worldSphere.Radius) + " within " + std::to_string(std::max(near, 0.0f)) + " m, box "
                                   + std::to_string(item.worldBounds.Min.X) + "," + std::to_string(item.worldBounds.Min.Y) + "," + std::to_string(item.worldBounds.Min.Z) + " .. "
                                   + std::to_string(item.worldBounds.Max.X) + "," + std::to_string(item.worldBounds.Max.Y) + "," + std::to_string(item.worldBounds.Max.Z));
@@ -1593,12 +1593,12 @@ void SceneRenderer::dumpDepth(const Camera& camera, const RenderSettings& settin
                         rgba[(static_cast<std::size_t>(y) * static_cast<std::size_t>(w) + static_cast<std::size_t>(x)) * 4u] = 255;
             Texture2D image = Texture2D::CreateFromPixels(device_, w, h, rgba);
             image.SaveAsPng(depthDumpPath_);
-            CNA::Logger::Info("cna-room: prepass depth written to " + depthDumpPath_ + " (centre "
+            CNA::Logger::Info("living-room-simulator: prepass depth written to " + depthDumpPath_ + " (centre "
                               + std::to_string(metres[(static_cast<std::size_t>(h / 2)) * static_cast<std::size_t>(w) + static_cast<std::size_t>(w / 2)]) + " m)");
         }
         catch (const std::exception& failure)
         {
-            CNA::Logger::Warn(std::string("cna-room: depth dump failed: ") + failure.what());
+            CNA::Logger::Warn(std::string("living-room-simulator: depth dump failed: ") + failure.what());
         }
         depthDumpPath_.clear();
     }
@@ -1805,7 +1805,7 @@ bool SceneRenderer::sunbeamInputs(const Camera& camera, const RenderSettings& se
         if (!loggedSunbeamSkip_)
         {
             loggedSunbeamSkip_ = true;
-            CNA::Logger::Info(std::string("cna-room: sunbeams skipped this frame: ") + why);
+            CNA::Logger::Info(std::string("living-room-simulator: sunbeams skipped this frame: ") + why);
         }
     };
     if (sunbeams_ == nullptr || !sunbeams_->supported()) return false;
@@ -1828,7 +1828,7 @@ bool SceneRenderer::sunbeamInputs(const Camera& camera, const RenderSettings& se
     if (!loggedLampHaze_ && in.lampHaze)
     {
         loggedLampHaze_ = true;
-        CNA::Logger::Info("cna-room: lamp haze from '" + lamps_[static_cast<std::size_t>(shadowedLamp_)].name + "' intensity " + std::to_string(in.lampColour.Y)
+        CNA::Logger::Info("living-room-simulator: lamp haze from '" + lamps_[static_cast<std::size_t>(shadowedLamp_)].name + "' intensity " + std::to_string(in.lampColour.Y)
                           + " density " + std::to_string(in.lampDensity) + (in.lampCube != nullptr ? " with its cube shadow" : " without a cube"));
     }
     if (!sunbeamVolumeSet_) { skip("no volume"); return false; }
@@ -1913,14 +1913,14 @@ bool SceneRenderer::sunbeamInputs(const Camera& camera, const RenderSettings& se
                     const int tx = std::clamp(static_cast<int>(ux * static_cast<float>(atlasW)), 0, atlasW - 1);
                     const int ty = atlasH - 1 - std::clamp(static_cast<int>(uy * static_cast<float>(atlasH)), 0, atlasH - 1);
                     const float stored = atlas[static_cast<std::size_t>(ty) * static_cast<std::size_t>(atlasW) + static_cast<std::size_t>(tx)];
-                    CNA::Logger::Info("cna-room: sunbeams point (" + std::to_string(w.X) + "," + std::to_string(w.Y) + "," + std::to_string(w.Z) + ") view " + std::to_string(viewDepth)
+                    CNA::Logger::Info("living-room-simulator: sunbeams point (" + std::to_string(w.X) + "," + std::to_string(w.Y) + "," + std::to_string(w.Z) + ") view " + std::to_string(viewDepth)
                                       + " cascade " + std::to_string(index) + " uv " + std::to_string(ux) + "," + std::to_string(uy) + " z " + std::to_string(uz) + " stored "
                                       + std::to_string(stored) + (uz - in.shadowBias <= stored ? " LIT" : " shadowed"));
                 }
             }
             catch (const std::exception& failure)
             {
-                CNA::Logger::Info(std::string("cna-room: sunbeams point probe failed: ") + failure.what());
+                CNA::Logger::Info(std::string("living-room-simulator: sunbeams point probe failed: ") + failure.what());
             }
         }
     }
@@ -2031,7 +2031,7 @@ void SceneRenderer::drawOpaque(const Camera& camera, const RenderSettings& setti
                 const Vector3 onSurface(c.X, item.worldBounds.Max.Y, c.Z);
                 const Vector4 r = Vector4::Transform(Vector4(onSurface.X, onSurface.Y, onSurface.Z, 1.0f), reflection->view() * reflection->projection());
                 const Vector4 m = Vector4::Transform(Vector4(onSurface.X, onSurface.Y, onSurface.Z, 1.0f), view * projection);
-                CNA::Logger::Info("cna-room: reflection overlay on '" + item.name + "' (" + item.material->name + ") centre "
+                CNA::Logger::Info("living-room-simulator: reflection overlay on '" + item.name + "' (" + item.material->name + ") centre "
                                   + std::to_string(onSurface.X) + "," + std::to_string(onSurface.Y) + "," + std::to_string(onSurface.Z)
                                   + " -> capture ndc " + std::to_string(r.X / r.W) + "," + std::to_string(r.Y / r.W) + " w " + std::to_string(r.W)
                                   + " | main ndc " + std::to_string(m.X / m.W) + "," + std::to_string(m.Y / m.W) + " w " + std::to_string(m.W));
@@ -2057,13 +2057,13 @@ void SceneRenderer::drawReflections(const Camera& camera, const RenderSettings& 
             || !reflection.prepare(reflectionPlanes_[p], camera))
         {
             if (std::getenv("CNA_ROOM_DEBUG_REFLECTIONS") != nullptr)
-                CNA::Logger::Info("cna-room: reflection '" + reflectionPlanes_[p].name + "' skipped (enabled "
+                CNA::Logger::Info("living-room-simulator: reflection '" + reflectionPlanes_[p].name + "' skipped (enabled "
                                   + std::to_string(reflectionPlanes_[p].enabled) + ", exposure " + std::to_string(settings.exposure) + ")");
             reflection.invalidate();
             continue;
         }
         if (std::getenv("CNA_ROOM_DEBUG_REFLECTIONS") != nullptr)
-            CNA::Logger::Info("cna-room: reflection '" + reflectionPlanes_[p].name + "' captured");
+            CNA::Logger::Info("living-room-simulator: reflection '" + reflectionPlanes_[p].name + "' captured");
         const bool exteriorOnly = reflectionPlanes_[p].exteriorOnly;
         const float skipBelow = reflectionPlanes_[p].skipBelow;
         const Matrix& view = reflection.view();
@@ -2149,7 +2149,7 @@ void SceneRenderer::dumpReflection(PlanarReflection& reflection, std::size_t pla
     }
     catch (const std::exception& error)
     {
-        CNA::Logger::Warn(std::string("cna-room: reflection dump failed: ") + error.what());
+        CNA::Logger::Warn(std::string("living-room-simulator: reflection dump failed: ") + error.what());
     }
 }
 
@@ -2231,7 +2231,7 @@ void SceneRenderer::drawSteam(const Camera& camera, const RenderSettings& settin
         {
             loggedSmoke_ = true;
             const SmokePlume& first = smokePlumes_.front();
-            CNA::Logger::Info("cna-room: smoke plume 0 at " + std::to_string(first.origin.X) + "," + std::to_string(first.origin.Y) + "," + std::to_string(first.origin.Z)
+            CNA::Logger::Info("living-room-simulator: smoke plume 0 at " + std::to_string(first.origin.X) + "," + std::to_string(first.origin.Y) + "," + std::to_string(first.origin.Z)
                               + " drift " + std::to_string(first.drift.X) + "," + std::to_string(first.drift.Z) + " radiance " + std::to_string(smoke.radiance.X) + ","
                               + std::to_string(smoke.radiance.Y) + "," + std::to_string(smoke.radiance.Z));
         }
@@ -2261,7 +2261,7 @@ void SceneRenderer::drawSteam(const Camera& camera, const RenderSettings& settin
     if (!loggedSteam_ && !probes_.empty())
     {
         loggedSteam_ = true;
-        CNA::Logger::Info("cna-room: steam radiance " + std::to_string(p.radiance.X) + "," + std::to_string(p.radiance.Y) + "," + std::to_string(p.radiance.Z)
+        CNA::Logger::Info("living-room-simulator: steam radiance " + std::to_string(p.radiance.X) + "," + std::to_string(p.radiance.Y) + "," + std::to_string(p.radiance.Z)
                           + " at " + std::to_string(steamOrigin_.X) + "," + std::to_string(steamOrigin_.Y) + "," + std::to_string(steamOrigin_.Z));
     }
     p.time = frameSeconds_;

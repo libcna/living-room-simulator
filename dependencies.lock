@@ -1,4 +1,4 @@
-# Pinned upstream revisions cna-room was last built and verified against.
+# Pinned upstream revisions living-room-simulator was last built and verified against.
 # scripts/fetch-dependencies.sh --pin checks these out; without --pin the
 # branch heads are used. Recorded so a build failure can be attributed.
 # branch=next

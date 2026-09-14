@@ -140,7 +140,7 @@ SurfaceImages MaterialLibrary::cachedBake(const std::string& name, std::uint32_t
     }
     catch (const std::exception& failure)
     {
-        CNA::Logger::Warn("cna-room: texture cache read failed for " + name + ": " + failure.what());
+        CNA::Logger::Warn("living-room-simulator: texture cache read failed for " + name + ": " + failure.what());
     }
     SurfaceImages images = bake();
     try
@@ -154,7 +154,7 @@ SurfaceImages MaterialLibrary::cachedBake(const std::string& name, std::uint32_t
     }
     catch (const std::exception& failure)
     {
-        CNA::Logger::Warn("cna-room: texture cache write failed for " + name + ": " + failure.what());
+        CNA::Logger::Warn("living-room-simulator: texture cache write failed for " + name + ": " + failure.what());
     }
     return images;
 }
@@ -416,7 +416,7 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
         add(std::move(sky));
     }
 
-    CNA::Logger::Info("cna-room: material library -- " + std::to_string(materials_.size())
+    CNA::Logger::Info("living-room-simulator: material library -- " + std::to_string(materials_.size())
                       + " materials, " + std::to_string(textures_.size()) + " textures, ~"
                       + std::to_string(textureBytes_ / (1024u * 1024u)) + " MB");
 }

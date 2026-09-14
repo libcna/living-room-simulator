@@ -1,7 +1,7 @@
 # Third-party assets
 
 Every asset that did not originate in this repository is listed here with its licence. The code
-of cna-room is MIT (see `LICENSE`); none of that licence extends to the assets below, which keep
+of living-room-simulator is MIT (see `LICENSE`); none of that licence extends to the assets below, which keep
 their own. Files are fetched by `scripts/fetch-assets.sh` from `assets/external/manifest.json`
 and are not committed; the manifest records the URL, SHA-256 and licence of every file.
 

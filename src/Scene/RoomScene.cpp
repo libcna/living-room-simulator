@@ -121,8 +121,8 @@ void RoomScene::build()
     buildLamps();
     buildViewpoints();
     for (const std::string& failure : models_.failures())
-        CNA::Logger::Warn("cna-room: model -- " + failure);
-    CNA::Logger::Info("cna-room: room built -- " + std::to_string(meshes_.size()) + " procedural meshes, "
+        CNA::Logger::Warn("living-room-simulator: model -- " + failure);
+    CNA::Logger::Info("living-room-simulator: room built -- " + std::to_string(meshes_.size()) + " procedural meshes, "
                       + std::to_string(geometryBytes() / 1024) + " KB of geometry, " + std::to_string(placedModels_)
                       + " imported placements");
 }
@@ -419,7 +419,7 @@ void RoomScene::buildWear()
     if (Texture2D* marks = materials_.decal("marks"))
         renderer_.addDecal(marks, Matrix::CreateScale(0.24f, 0.28f, 0.05f) * Matrix::CreateRotationY(-MathHelper::PiOver2)
                                       * Matrix::CreateTranslation(L.halfWidth, 1.08f, L.doorCentreZ - L.doorWidth * 0.5f - L.doorFrameWidth - 0.15f), 0.18f);
-    CNA::Logger::Info("cna-room: " + std::to_string(renderer_.decalCount()) + " wear decals");
+    CNA::Logger::Info("living-room-simulator: " + std::to_string(renderer_.decalCount()) + " wear decals");
 }
 
 void RoomScene::buildTrim()
@@ -619,7 +619,7 @@ void RoomScene::buildFurniture()
             };
             slipper("slipper left", 0.70f, front + 0.19f, 6.0f);
             slipper("slipper right", 0.86f, front + 0.16f, -24.0f);
-            CNA::Logger::Info("cna-room: sofa front z " + std::to_string(front) + ", slippers at z " + std::to_string(front + 0.16f));
+            CNA::Logger::Info("living-room-simulator: sofa front z " + std::to_string(front) + ", slippers at z " + std::to_string(front + 0.16f));
         }
     }
     placeModel("coffee-table", Vector3(0.0f, 0.0f, 0.45f), 0.0f, 0.0f, true, lacquer);
@@ -657,7 +657,7 @@ void RoomScene::buildFurniture()
             Vector3 forward(seatCentre.X - chairCentre.X, 0.0f, seatCentre.Z - chairCentre.Z);
             if (forward.Length() < 0.02f) forward = Vector3(-1.0f, 0.0f, 0.0f);
             forward.Normalize();
-            CNA::Logger::Info("cna-room: armchair seat top " + std::to_string(seatTop) + " at " + std::to_string(seatCentre.X) + ", " + std::to_string(seatCentre.Z)
+            CNA::Logger::Info("living-room-simulator: armchair seat top " + std::to_string(seatTop) + " at " + std::to_string(seatCentre.X) + ", " + std::to_string(seatCentre.Z)
                               + " forward " + std::to_string(forward.X) + ", " + std::to_string(forward.Z) + (seat != nullptr ? "" : " (no seat part found)"));
             // Local -Z is the masthead's edge; RotY(yaw) sends it to -forward.
             const float yaw = std::atan2(forward.X, forward.Z) + MathHelper::ToRadians(9.0f);
@@ -709,7 +709,7 @@ void RoomScene::buildFurniture()
             if (Texture2D* ring = materials_.decal("ring"))
                 renderer_.addDecal(ring, Matrix::CreateScale(0.11f, 0.11f, 0.04f) * Matrix::CreateRotationX(MathHelper::PiOver2)
                                              * Matrix::CreateTranslation(centre.X + 0.13f, 0.419f, centre.Z - 0.09f), 0.65f);
-            CNA::Logger::Info("cna-room: steam over the cup at " + std::to_string(centre.X) + "," + std::to_string(cup.Max.Y) + "," + std::to_string(centre.Z));
+            CNA::Logger::Info("living-room-simulator: steam over the cup at " + std::to_string(centre.X) + "," + std::to_string(cup.Max.Y) + "," + std::to_string(centre.Z));
         }
     }
     placeModel("candle-holders", Vector3(0.45f, 0.419f, 0.60f), 90.0f);
@@ -849,7 +849,7 @@ void RoomScene::buildFurniture()
             for (std::size_t i = chestFirst + 1; i < renderer_.itemCount(); ++i) chest = BoundingBox::CreateMerged(chest, renderer_.item(i).worldBounds);
             const float top = chest.Max.Y + 0.001f;
             const float cx = (chest.Min.X + chest.Max.X) * 0.5f, cz = chest.Min.Z + 0.17f;   // the end past the vase
-            CNA::Logger::Info("cna-room: chest top " + std::to_string(top) + " x " + std::to_string(chest.Min.X) + ".." + std::to_string(chest.Max.X) + " z "
+            CNA::Logger::Info("living-room-simulator: chest top " + std::to_string(top) + " x " + std::to_string(chest.Min.X) + ".." + std::to_string(chest.Max.X) + " z "
                               + std::to_string(chest.Min.Z) + ".." + std::to_string(chest.Max.Z));
             MeshBuilder post;
             post.addBox(Vector3(-0.055f, 0.0f, -0.11f), Vector3(0.055f, 0.003f, 0.11f), 0.3f);
@@ -1180,7 +1180,7 @@ void RoomScene::buildLamps()
     glows_.insert(glows_.end(), extraGlows_.begin(), extraGlows_.end());
     for (const Glow& glow : glows_)
         if (materials_.find(glow.material) == nullptr)
-            CNA::Logger::Warn("cna-room: glow material '" + glow.material + "' not found");
+            CNA::Logger::Warn("living-room-simulator: glow material '" + glow.material + "' not found");
     setLampsOn(false);
     setStreetLightsOn(false);
     setTelevisionOn(false);
@@ -1305,7 +1305,7 @@ void RoomScene::applyWeather(const WeatherState& weather, float seconds)
         if (plumes.size() != smokePlumeCount_)
         {
             smokePlumeCount_ = plumes.size();
-            CNA::Logger::Info("cna-room: chimney smoke: " + std::to_string(plumes.size()) + " plumes of " + std::to_string(chimneyTops_.size()) + " chimneys at "
+            CNA::Logger::Info("living-room-simulator: chimney smoke: " + std::to_string(plumes.size()) + " plumes of " + std::to_string(chimneyTops_.size()) + " chimneys at "
                               + std::to_string(weather.temperatureC) + " C, strength " + std::to_string(smoke));
         }
         renderer_.setSmokePlumes(std::move(plumes));
@@ -1431,7 +1431,7 @@ void RoomScene::updateWindowLights()
     if (!loggedWindowLights_)
     {
         loggedWindowLights_ = true;
-        CNA::Logger::Info("cna-room: window lights " + std::to_string(intensity) + " (sky " + std::to_string(sky.X) + "," + std::to_string(sky.Y) + "," + std::to_string(sky.Z) + ")");
+        CNA::Logger::Info("living-room-simulator: window lights " + std::to_string(intensity) + " (sky " + std::to_string(sky.X) + "," + std::to_string(sky.Y) + "," + std::to_string(sky.Z) + ")");
     }
 }
 
@@ -1461,7 +1461,7 @@ void RoomScene::updateTelevisionGlow()
         if (!loggedTelevisionGlow_ || std::getenv("CNA_ROOM_DEBUG_TV") != nullptr)
         {
             loggedTelevisionGlow_ = true;
-            CNA::Logger::Info("cna-room: television picture mean " + std::to_string(mean.X) + " " + std::to_string(mean.Y) + " " + std::to_string(mean.Z)
+            CNA::Logger::Info("living-room-simulator: television picture mean " + std::to_string(mean.X) + " " + std::to_string(mean.Y) + " " + std::to_string(mean.Z)
                               + " luminance " + std::to_string(lum) + " level " + std::to_string(level));
         }
     }

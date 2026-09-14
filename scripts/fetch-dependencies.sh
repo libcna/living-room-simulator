@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Clones the sibling checkouts cna-room builds against, next to this repository:
+# Clones the sibling checkouts living-room-simulator builds against, next to this repository:
 #
 #   ../cna            (branch next)
 #   ../sharp-runtime  (branch next)

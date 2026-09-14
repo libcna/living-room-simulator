@@ -150,7 +150,7 @@ bool ContactShadows::ensureMask(int width, int height)
     }
     catch (const std::exception& e)
     {
-        CNA::Logger::Warn(std::string("cna-room: the contact shadow mask could not be created: ") + e.what());
+        CNA::Logger::Warn(std::string("living-room-simulator: the contact shadow mask could not be created: ") + e.what());
         maskFailed_ = true;
         return false;
     }
@@ -198,7 +198,7 @@ void ContactShadows::march(const Inputs& in, int width, int height)
     device_.setDepthStencilStateProperty(DepthStencilState::Default);
     if (!pass_->getFallbackReason().empty())
     {
-        if (!loggedFallback_) CNA::Logger::Warn("cna-room: contact shadows copied through: " + pass_->getFallbackReason());
+        if (!loggedFallback_) CNA::Logger::Warn("living-room-simulator: contact shadows copied through: " + pass_->getFallbackReason());
         loggedFallback_ = true;
         return;
     }

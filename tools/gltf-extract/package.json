@@ -1,5 +1,5 @@
 {
-  "name": "cna-room-gltf-extract",
+  "name": "living-room-simulator-gltf-extract",
   "version": "0.1.0",
   "private": true,
   "description": "Prepares third-party glTF scenes for CNA: Draco decode, WebP to PNG, subtree extraction, recentring",

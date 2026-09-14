@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 the cna-room contributors
+Copyright (c) 2026 the living-room-simulator contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This licence covers the source code of cna-room only. Third-party 3D models,
+This licence covers the source code of living-room-simulator only. Third-party 3D models,
 textures and other assets keep their own licences, recorded per asset in
 THIRD_PARTY_ASSETS.md.

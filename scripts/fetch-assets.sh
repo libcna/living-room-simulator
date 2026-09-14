@@ -22,7 +22,7 @@ for row in "${rows[@]}"; do
     elif [[ -f "$dest" ]]; then
         skipped=$((skipped + 1)); continue
     fi
-    if ! curl -fsSL --retry 3 --retry-delay 2 -A "cna-room-fetch/1.0" -o "$dest.partial" "$url"; then
+    if ! curl -fsSL --retry 3 --retry-delay 2 -A "living-room-simulator-fetch/1.0" -o "$dest.partial" "$url"; then
         printf '  %-28s FETCH FAILED (%s)\n' "$name" "$url" >&2
         rm -f "$dest.partial"; failed=$((failed + 1)); continue
     fi

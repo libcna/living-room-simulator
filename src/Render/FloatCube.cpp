@@ -133,13 +133,13 @@ void FloatCubeUploader::selfTest()
         if (!device_.SupportsCapability(CNA::GraphicsCapability::CustomEffects) || !device_.ExecutesShaderEffectSourceEXT())
         {
             reason_ = "the renderer does not execute shader-effect source";
-            CNA::Logger::Warn("cna-room: float cube upload unavailable: " + reason_);
+            CNA::Logger::Warn("living-room-simulator: float cube upload unavailable: " + reason_);
             return;
         }
         if (!device_.SupportsSurfaceFormatAsRenderTargetEXT(SurfaceFormat::HalfVector4))
         {
             reason_ = "HalfVector4 is not a render target format here";
-            CNA::Logger::Warn("cna-room: float cube upload unavailable: " + reason_);
+            CNA::Logger::Warn("living-room-simulator: float cube upload unavailable: " + reason_);
             return;
         }
         decode_ = std::make_unique<ShaderEffect>(device_, kVertexSource, kDecodeSource);
@@ -147,7 +147,7 @@ void FloatCubeUploader::selfTest()
         if (!decode_->IsEffectValid() || !probe_->IsEffectValid())
         {
             reason_ = "float cube shaders did not compile: " + decode_->GetCompileErrorEXT() + probe_->GetCompileErrorEXT();
-            CNA::Logger::Warn("cna-room: float cube upload unavailable: " + reason_);
+            CNA::Logger::Warn("living-room-simulator: float cube upload unavailable: " + reason_);
             return;
         }
         const std::array<VertexPositionColorTexture, 4> vertices = {
@@ -187,7 +187,7 @@ void FloatCubeUploader::selfTest()
             {
                 flipV_ = flip;
                 supported_ = true;
-                CNA::Logger::Info("cna-room: half-float cube upload verified (flipV " + std::to_string(flip ? 1 : 0)
+                CNA::Logger::Info("living-room-simulator: half-float cube upload verified (flipV " + std::to_string(flip ? 1 : 0)
                                   + ", worst relative error " + std::to_string(worst) + ")");
                 device_.SetRenderTarget(nullptr);
                 return;
@@ -202,7 +202,7 @@ void FloatCubeUploader::selfTest()
         reason_ = std::string("half-float cube path threw: ") + error.what();
         try { device_.SetRenderTarget(nullptr); } catch (...) {}
     }
-    CNA::Logger::Warn("cna-room: float cube upload unavailable: " + reason_);
+    CNA::Logger::Warn("living-room-simulator: float cube upload unavailable: " + reason_);
 }
 
 bool FloatCubeUploader::uploadInto(RenderTargetCube& cube, const std::vector<Vector3>& faces, int size, bool flipV)
@@ -296,7 +296,7 @@ bool FloatCubeUploader::verify(RenderTargetCube& cube, const std::vector<Vector3
                 const Vector4 v = pixels[static_cast<std::size_t>(i)].ToVector4();
                 seen += "(" + std::to_string(v.X) + "," + std::to_string(v.Y) + "," + std::to_string(v.Z) + ") ";
             }
-            CNA::Logger::Info("cna-room: float cube self-test +X sampled row 0: " + seen + "expected ("
+            CNA::Logger::Info("living-room-simulator: float cube self-test +X sampled row 0: " + seen + "expected ("
                               + std::to_string(faces[0].X) + "," + std::to_string(faces[0].Y) + "," + std::to_string(faces[0].Z) + ") ...");
         }
         for (int y = 0; y < kTestSize; ++y)
@@ -332,7 +332,7 @@ std::unique_ptr<RenderTargetCube> FloatCubeUploader::upload(const std::vector<Ve
     }
     catch (const std::exception& error)
     {
-        CNA::Logger::Warn(std::string("cna-room: float cube upload failed: ") + error.what());
+        CNA::Logger::Warn(std::string("living-room-simulator: float cube upload failed: ") + error.what());
         try { device_.SetRenderTarget(nullptr); } catch (...) {}
         return nullptr;
     }

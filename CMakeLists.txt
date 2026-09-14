@@ -1,5 +1,5 @@
 # =============================================================================
-# cna-room -- a realistic, explorable 3D living room rendered with CNA.
+# living-room-simulator -- a realistic, explorable 3D living room rendered with CNA.
 # =============================================================================
 cmake_minimum_required(VERSION 3.23)
 
@@ -29,14 +29,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CNA_ROOM_RENDERER "OPENGLES3" CACHE STRING
     "CNA graphics renderer to build against (OPENGLES3 or OPENGL33 -- both are EasyGL)")
 
-option(CNA_ROOM_BUILD_TESTS "Build cna-room's unit tests" ON)
+option(CNA_ROOM_BUILD_TESTS "Build living-room-simulator's unit tests" ON)
 
 include(CnaRoomWarnings)
 include(CnaRoomDependencies)
 
-message(STATUS "cna-room: ${PROJECT_VERSION}, renderer ${CNA_ROOM_RENDERER}, "
+message(STATUS "living-room-simulator: ${PROJECT_VERSION}, renderer ${CNA_ROOM_RENDERER}, "
                "${CMAKE_BUILD_TYPE}, ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "cna-room: CNA at ${CNA_ROOT_DIR}")
+message(STATUS "living-room-simulator: CNA at ${CNA_ROOT_DIR}")
 
 add_subdirectory("${CNA_ROOT_DIR}" cna EXCLUDE_FROM_ALL)
 
@@ -59,10 +59,10 @@ target_compile_definitions(cna_room_core PUBLIC
     CNA_ROOM_RENDERER_NAME="${CNA_ROOM_RENDERER}"
     CNA_ROOM_DEFAULT_ASSET_DIR="${CNA_ROOM_ASSET_DIR}")
 
-add_executable(cna-room src/Main.cpp)
-target_link_libraries(cna-room PRIVATE CnaRoom::Core CnaRoom::Warnings)
+add_executable(living-room-simulator src/Main.cpp)
+target_link_libraries(living-room-simulator PRIVATE CnaRoom::Core CnaRoom::Warnings)
 if(TARGET SDL3::SDL3main)
-    target_link_libraries(cna-room PRIVATE SDL3::SDL3main)
+    target_link_libraries(living-room-simulator PRIVATE SDL3::SDL3main)
 endif()
 
 if(CNA_ROOM_BUILD_TESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt")

@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Locating and configuring the upstream checkouts cna-room builds against.
+# Locating and configuring the upstream checkouts living-room-simulator builds against.
 # ---------------------------------------------------------------------------
 # CNA installs and exports no CMake package, so the framework is consumed with
 # add_subdirectory() from a sibling checkout. CNA in turn resolves
@@ -22,7 +22,7 @@ function(cna_room_require_checkout root name clone_url branch)
         return()
     endif()
     message(FATAL_ERROR
-        "cna-room: ${name} not found at '${root}'.\n"
+        "living-room-simulator: ${name} not found at '${root}'.\n"
         "It is a separate repository, not part of this project. Fetch every\n"
         "dependency at once with\n"
         "    scripts/fetch-dependencies.sh\n"
@@ -72,7 +72,7 @@ if(NOT DEFINED CNA_SDL_PREBUILT_ROOT)
 endif()
 
 # --- sharp-runtime component selection ---------------------------------------
-# CNA declares the closure it needs itself; cna-room additionally uses
+# CNA declares the closure it needs itself; living-room-simulator additionally uses
 # System.Text.Json (scene/settings files), which has to be enabled *before*
 # sharp-runtime is added or its target will not exist.
 include("${CNA_ROOT_DIR}/cmake/SharpRuntimeConsumption.cmake" OPTIONAL)
@@ -80,5 +80,5 @@ if(DEFINED CNA_SHARP_RUNTIME_DEFAULT_COMPONENTS)
     set(_room_components ${CNA_SHARP_RUNTIME_DEFAULT_COMPONENTS} Text.Json Numerics)
     list(REMOVE_DUPLICATES _room_components)
     set(SHARP_RUNTIME_COMPONENTS "${_room_components}" CACHE STRING
-        "Sharp Runtime components required by CNA and cna-room" FORCE)
+        "Sharp Runtime components required by CNA and living-room-simulator" FORCE)
 endif()

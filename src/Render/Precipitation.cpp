@@ -131,7 +131,7 @@ Precipitation::Precipitation(GraphicsDevice& device, int particles) : device_(de
     if (!effect_->IsEffectValid())
     {
         reason_ = "the precipitation shader did not compile: " + effect_->GetCompileErrorEXT();
-        CNA::Logger::Error("cna-room: " + reason_);
+        CNA::Logger::Error("living-room-simulator: " + reason_);
         effect_.reset();
         return;
     }

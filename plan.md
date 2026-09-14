@@ -1,4 +1,4 @@
-# cna-room — engineering plan
+# living-room-simulator — engineering plan
 
 A realistic, explorable 3D living room built on CNA (`next`), sharp-runtime (`next`) and the
 EasyGL renderer. This file is the living plan for the whole project: it is updated every
@@ -20,7 +20,7 @@ Whenever work resumes:
 
 1. read this section, then `NEXT.md` (the short continuation queue);
 2. check `git status` / `git log` and the *Completed work* and *Measured results* sections below;
-3. build (`cmake --build build --target cna-room`), run the canonical screenshot set
+3. build (`cmake --build build --target living-room-simulator`), run the canonical screenshot set
    (`scripts/capture-views.sh`), and look at the images before choosing a task;
 4. pick the highest-value item: the largest realism defect first, then the largest technical
    weakness, then underused CNA functionality;

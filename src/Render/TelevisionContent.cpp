@@ -179,7 +179,7 @@ TelevisionContent::TelevisionContent(GraphicsDevice& device, int width, int heig
     if (!effect_->IsEffectValid())
     {
         reason_ = "the television shader did not compile: " + effect_->GetCompileErrorEXT();
-        CNA::Logger::Error("cna-room: " + reason_);
+        CNA::Logger::Error("living-room-simulator: " + reason_);
         effect_.reset();
         return;
     }
@@ -243,7 +243,7 @@ void TelevisionContent::readMean()
     {
         meanFailed_ = true;
         meanValid_ = false;
-        CNA::Logger::Warn(std::string("cna-room: the television's mean readback failed, its glow stays fixed: ") + error.what());
+        CNA::Logger::Warn(std::string("living-room-simulator: the television's mean readback failed, its glow stays fixed: ") + error.what());
     }
 }
 

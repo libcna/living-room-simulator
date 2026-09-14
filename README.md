@@ -1,4 +1,4 @@
-# cna-room
+# living-room-simulator
 
 **Status:** closed on 2026-09-14 with all nine milestones delivered and 29 audit rounds logged;
 `plan.md` §32 is the closing summary, `NEXT.md` the optional backlog, `CNA_FINDINGS.md` the 37
@@ -41,12 +41,12 @@ sun's patches crossing the wall, the lamps back on at dusk.
 
 ## Dependencies
 
-cna-room consumes CNA as a sibling checkout with `add_subdirectory()`; CNA in turn expects its
+living-room-simulator consumes CNA as a sibling checkout with `add_subdirectory()`; CNA in turn expects its
 own dependencies beside it:
 
 ```
 <parent>/
-  cna-room/        this repository
+  living-room-simulator/        this repository
   cna/             https://github.com/libcna/cna            branch next
   sharp-runtime/   https://github.com/libcna/sharp-runtime  branch next
   easy-gl/         https://github.com/libcna/easy-gl        branch develop
@@ -69,7 +69,7 @@ apt-get install build-essential cmake ninja-build git \
 
 ```
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target cna-room
+cmake --build build --target living-room-simulator
 ```
 
 `-DCNA_ROOM_RENDERER=OPENGL33` selects the desktop GL 3.3 identity of the same EasyGL renderer.
@@ -77,11 +77,11 @@ cmake --build build --target cna-room
 ## Running
 
 ```
-./build/bin/cna-room                       # windowed, 1280x720
-./build/bin/cna-room --width 1920 --height 1080
-./build/bin/cna-room --frames 3 --screenshot shot.png   # headless validation
-./build/bin/cna-room --view entrance --sun -10,205 --exposure 60 --lamps on --tv on   # evening
-./build/bin/cna-room --help                # every option
+./build/bin/living-room-simulator                       # windowed, 1280x720
+./build/bin/living-room-simulator --width 1920 --height 1080
+./build/bin/living-room-simulator --frames 3 --screenshot shot.png   # headless validation
+./build/bin/living-room-simulator --view entrance --sun -10,205 --exposure 60 --lamps on --tv on   # evening
+./build/bin/living-room-simulator --help                # every option
 ```
 
 The clock runs by default (one game day in 24 real minutes, starting 14:30); `--time 22:00`
@@ -117,7 +117,7 @@ Without a display (CI, containers) run it under Xvfb with Mesa's software raster
 
 ```
 SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" \
-    ./build/bin/cna-room --frames 3 --screenshot shot.png
+    ./build/bin/living-room-simulator --frames 3 --screenshot shot.png
 ```
 
 `--record DIR[,EVERY]` writes every EVERYth frame to `DIR/frame-NNNN.png` in deterministic

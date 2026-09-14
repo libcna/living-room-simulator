@@ -77,7 +77,7 @@ ExposureMeter::ExposureMeter(GraphicsDevice& device) : device_(device)
     catch (const std::exception& error)
     {
         reason_ = std::string("compute meter unavailable: ") + error.what();
-        CNA::Logger::Warn("cna-room: " + reason_);
+        CNA::Logger::Warn("living-room-simulator: " + reason_);
         reducer_.reset();
         cells_.reset();
     }
@@ -100,7 +100,7 @@ ExposureMeter::Reading ExposureMeter::measure(RenderTarget2D& scene)
     }
     catch (const std::exception& error)
     {
-        CNA::Logger::Warn(std::string("cna-room: exposure measurement failed: ") + error.what());
+        CNA::Logger::Warn(std::string("living-room-simulator: exposure measurement failed: ") + error.what());
         supported_ = false;
         return reading;
     }

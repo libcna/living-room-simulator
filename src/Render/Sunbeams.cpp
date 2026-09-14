@@ -371,14 +371,14 @@ Sunbeams::Sunbeams(GraphicsDevice& device) : device_(device)
         copyEffect_ = std::make_unique<ShaderEffect>(device_, kVertexSource, kCopyFragmentSource);
         if (!copyEffect_->IsEffectValid())
         {
-            CNA::Logger::Warn("cna-room: the sunbeam upsample shader did not compile: " + copyEffect_->GetCompileErrorEXT());
+            CNA::Logger::Warn("living-room-simulator: the sunbeam upsample shader did not compile: " + copyEffect_->GetCompileErrorEXT());
             copyEffect_.reset();
         }
         // The motes' buffers: a fixed population, drawn in part.
         moteEffect_ = std::make_unique<ShaderEffect>(device_, kMoteVertexSource, kMoteFragmentSource);
         if (!moteEffect_->IsEffectValid())
         {
-            CNA::Logger::Warn("cna-room: the dust-mote shader did not compile: " + moteEffect_->GetCompileErrorEXT());
+            CNA::Logger::Warn("living-room-simulator: the dust-mote shader did not compile: " + moteEffect_->GetCompileErrorEXT());
             moteEffect_.reset();
         }
         else
@@ -415,7 +415,7 @@ Sunbeams::Sunbeams(GraphicsDevice& device) : device_(device)
     catch (const std::exception& error)
     {
         reason_ = std::string("sunbeam setup threw: ") + error.what();
-        CNA::Logger::Warn("cna-room: " + reason_);
+        CNA::Logger::Warn("living-room-simulator: " + reason_);
     }
 }
 
@@ -441,7 +441,7 @@ bool Sunbeams::ensureHalfTarget(int width, int height)
     catch (const std::exception& error)
     {
         halfTargetFailed_ = true;
-        CNA::Logger::Warn(std::string("cna-room: the sunbeam half target failed, marching at full size: ") + error.what());
+        CNA::Logger::Warn(std::string("living-room-simulator: the sunbeam half target failed, marching at full size: ") + error.what());
         return false;
     }
 }

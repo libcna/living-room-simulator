@@ -19,7 +19,7 @@ run() {
         "$@"
     fi
 }
-run "$root/build/bin/cna-room" --width 480 --height 270 --texture-size 256 --frames "$frames" --record "$work,5" "$@" > "$work/record.log" 2>&1 \
+run "$root/build/bin/living-room-simulator" --width 480 --height 270 --texture-size 256 --frames "$frames" --record "$work,5" "$@" > "$work/record.log" 2>&1 \
     || { echo "recording failed (see $work/record.log)" >&2; cat "$work/record.log" | tail -5 >&2; exit 1; }
 python3 - "$work" "$out" <<'PY'
 import glob, sys

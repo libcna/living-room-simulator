@@ -354,7 +354,7 @@ void SkySystem::build()
         const float t = transmittance(sun.Y, 2.5f).Y;
         const float sunlitWhite = kSunPower * t / MathHelper::Pi;
         modelScale_ = zenith.Y > 1e-6f ? 0.30f * sunlitWhite / zenith.Y : 1.0f;
-        CNA::Logger::Info("cna-room: sky model zenith " + std::to_string(zenith.Y) + " at a 60 degree sun; scale "
+        CNA::Logger::Info("living-room-simulator: sky model zenith " + std::to_string(zenith.Y) + " at a 60 degree sun; scale "
                           + std::to_string(modelScale_));
     }
     if (!device_.SupportsCapability(CNA::GraphicsCapability::CustomEffects)
@@ -362,7 +362,7 @@ void SkySystem::build()
     {
         supported_ = false;
         reason_ = "the renderer does not execute shader-effect source, so the sky cannot be drawn";
-        CNA::Logger::Warn("cna-room: " + reason_);
+        CNA::Logger::Warn("living-room-simulator: " + reason_);
         return;
     }
     const std::string source = std::string("#version 300 es\nprecision highp float;\n")
@@ -372,7 +372,7 @@ void SkySystem::build()
     if (!supported_)
     {
         reason_ = "the sky shader did not compile: " + effect_->GetCompileErrorEXT();
-        CNA::Logger::Error("cna-room: " + reason_);
+        CNA::Logger::Error("living-room-simulator: " + reason_);
         effect_.reset();
         return;
     }
@@ -585,7 +585,7 @@ void SkySystem::bakeEnvironment()
         prefiltered_.reset();
         brdfLut_.reset();
         if (bakeCount_ == 0)
-            CNA::Logger::Info("cna-room: renderer has no image based lighting; ambient is a flat term");
+            CNA::Logger::Info("living-room-simulator: renderer has no image based lighting; ambient is a flat term");
         ++bakeCount_;
         return;
     }
@@ -632,13 +632,13 @@ void SkySystem::bakeEnvironment()
             const Color& c = lut[static_cast<std::size_t>(r) * 64u + static_cast<std::size_t>(nv)];
             return std::to_string(c.getRProperty() / 255.0f) + "/" + std::to_string(c.getGProperty() / 255.0f);
         };
-        CNA::Logger::Info("cna-room: brdf lut (scale/bias) at N.V 1 r 0: " + at(63, 0) + "; N.V 1 r 0.1: " + at(63, 6)
+        CNA::Logger::Info("living-room-simulator: brdf lut (scale/bias) at N.V 1 r 0: " + at(63, 0) + "; N.V 1 r 0.1: " + at(63, 6)
                           + "; N.V 0.5 r 0.5: " + at(32, 32) + "; N.V 0.1 r 0.9: " + at(6, 57) + "; N.V 0.5 r 0: " + at(32, 0));
     }
     ++bakeCount_;
     lastBakeMs_ = static_cast<float>(static_cast<double>(bakeWatch.getElapsedTicksProperty()) / 10000.0);
     if (bakeCount_ <= 2)
-        CNA::Logger::Info("cna-room: sky bake " + std::to_string(bakeCount_) + " (" + std::to_string(lastBakeMs_) + " ms) -- sun ("
+        CNA::Logger::Info("living-room-simulator: sky bake " + std::to_string(bakeCount_) + " (" + std::to_string(lastBakeMs_) + " ms) -- sun ("
                           + std::to_string(lighting_.sunColour.X) + ", " + std::to_string(lighting_.sunColour.Y) + ", "
                           + std::to_string(lighting_.sunColour.Z) + ") ambient (" + std::to_string(lighting_.ambientColour.X)
                           + ", " + std::to_string(lighting_.ambientColour.Y) + ", " + std::to_string(lighting_.ambientColour.Z)
@@ -653,7 +653,7 @@ void SkySystem::bakeEnvironment()
         flat = normalised(flat, Vector3::Backward);
         const Vector3 horizonSun(flat.X * 0.995f, 0.1f, flat.Z * 0.995f);
         const Vector3 horizonAway(-flat.X * 0.995f, 0.1f, -flat.Z * 0.995f);
-        CNA::Logger::Info("cna-room: sky samples -- zenith " + show(radiance(Vector3::Up)) + " sunward horizon "
+        CNA::Logger::Info("living-room-simulator: sky samples -- zenith " + show(radiance(Vector3::Up)) + " sunward horizon "
                           + show(radiance(horizonSun)) + " opposite horizon " + show(radiance(horizonAway)));
     }
 }

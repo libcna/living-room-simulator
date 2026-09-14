@@ -146,7 +146,7 @@ Steam::Steam(GraphicsDevice& device, int puffs) : device_(device)
         if (!effect_->IsEffectValid())
         {
             reason_ = "the steam shader did not compile: " + effect_->GetCompileErrorEXT();
-            CNA::Logger::Warn("cna-room: " + reason_);
+            CNA::Logger::Warn("living-room-simulator: " + reason_);
             effect_.reset();
             return;
         }
@@ -185,7 +185,7 @@ Steam::Steam(GraphicsDevice& device, int puffs) : device_(device)
     catch (const std::exception& error)
     {
         reason_ = std::string("steam setup threw: ") + error.what();
-        CNA::Logger::Warn("cna-room: " + reason_);
+        CNA::Logger::Warn("living-room-simulator: " + reason_);
         effect_.reset();
     }
 }

@@ -4,7 +4,7 @@
 # software GL (Mesa llvmpipe); skipped (exit 77 -> ctest SKIP) without them.
 set -euo pipefail
 bin="${1:?binary}"
-out="${2:-${TMPDIR:-/tmp}/cna-room-smoke.png}"
+out="${2:-${TMPDIR:-/tmp}/living-room-simulator-smoke.png}"
 command -v xvfb-run >/dev/null 2>&1 || { echo "no xvfb-run"; exit 77; }
 command -v python3 >/dev/null 2>&1 || { echo "no python3"; exit 77; }
 rm -f "$out"

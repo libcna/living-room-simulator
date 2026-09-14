@@ -18,5 +18,5 @@ add_test(NAME cubes COMMAND cna_room_cube_tests)
 
 # A headless render: the binary starts, draws three frames at 320x180 and writes
 # a screenshot that is not black. Skipped where xvfb-run is missing.
-add_test(NAME render-smoke COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/render-smoke.sh" "$<TARGET_FILE:cna-room>" "${CMAKE_BINARY_DIR}/render-smoke.png")
+add_test(NAME render-smoke COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/render-smoke.sh" "$<TARGET_FILE:living-room-simulator>" "${CMAKE_BINARY_DIR}/render-smoke.png")
 set_tests_properties(render-smoke PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 600)

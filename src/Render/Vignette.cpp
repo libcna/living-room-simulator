@@ -98,7 +98,7 @@ Vignette::Vignette(GraphicsDevice& device) : device_(device)
     catch (const std::exception& error)
     {
         reason_ = std::string("vignette setup threw: ") + error.what();
-        CNA::Logger::Warn("cna-room: " + reason_);
+        CNA::Logger::Warn("living-room-simulator: " + reason_);
     }
 }
 

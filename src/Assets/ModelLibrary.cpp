@@ -317,7 +317,7 @@ Texture2D* ModelLibrary::remip(Texture2D* source, bool srgb)
     }
     catch (const std::exception& failure)
     {
-        CNA::Logger::Warn(std::string("cna-room: could not rebuild mip chain: ") + failure.what());
+        CNA::Logger::Warn(std::string("living-room-simulator: could not rebuild mip chain: ") + failure.what());
         result = source;
     }
     if (pendingSignature_ != 0 && signatures_[pendingSignature_] == nullptr) signatures_[pendingSignature_] = result;
@@ -367,7 +367,7 @@ const ImportedModel* ModelLibrary::load(const std::string& name, const std::stri
         if (compiled)
         {
             // A stale or incompatible .cnb must not take the model down with it.
-            CNA::Logger::Warn("cna-room: model " + name + " -- .cnb load failed (" + failure.what() + "), importing the glTF");
+            CNA::Logger::Warn("living-room-simulator: model " + name + " -- .cnb load failed (" + failure.what() + "), importing the glTF");
             try
             {
                 result->model = std::make_unique<Model>(content_.Load<Model>(path));
@@ -468,7 +468,7 @@ const ImportedModel* ModelLibrary::load(const std::string& name, const std::stri
                                         : std::to_string(t->getWidthProperty()) + "x" + std::to_string(t->getHeightProperty())
                                               + "/" + std::to_string(t->getLevelCountProperty());
                 };
-                CNA::Logger::Info("cna-room:   part " + std::to_string(index) + " albedo " + describe(material.albedo)
+                CNA::Logger::Info("living-room-simulator:   part " + std::to_string(index) + " albedo " + describe(material.albedo)
                                   + " normal " + describe(material.normal) + " orm " + describe(material.orm)
                                   + " occl " + describe(material.occlusion) + " base " + fmt(material.baseColour.X) + ","
                                   + fmt(material.baseColour.Y) + "," + fmt(material.baseColour.Z) + " metal "
@@ -506,9 +506,9 @@ const ImportedModel* ModelLibrary::load(const std::string& name, const std::stri
     result->textureCount = remipped_.size();
     const Vector3 size = result->size();
     if (repairedTangents > 0)
-        CNA::Logger::Info("cna-room: model " + name + " -- repaired " + std::to_string(repairedTangents) + " degenerate tangents");
+        CNA::Logger::Info("living-room-simulator: model " + name + " -- repaired " + std::to_string(repairedTangents) + " degenerate tangents");
     const double prepareMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - prepareStart).count();
-    CNA::Logger::Info("cna-room: model " + name + " -- " + std::to_string(result->parts.size()) + " parts, "
+    CNA::Logger::Info("living-room-simulator: model " + name + " -- " + std::to_string(result->parts.size()) + " parts, "
                       + std::to_string(result->triangles) + " triangles, " + fmt(size.X) + " x " + fmt(size.Y)
                       + " x " + fmt(size.Z) + " m, min y " + fmt(lo.Y) + (compiled ? " [cnb" : " [gltf") + " load "
                       + std::to_string(loadMs) + " ms, prepare " + std::to_string(prepareMs) + " ms, "

@@ -150,7 +150,7 @@ PlanarReflection::PlanarReflection(GraphicsDevice& device, int width, int height
     if (!effect_->IsEffectValid())
     {
         reason_ = "the reflection shader did not compile: " + effect_->GetCompileErrorEXT();
-        CNA::Logger::Error("cna-room: " + reason_);
+        CNA::Logger::Error("living-room-simulator: " + reason_);
         effect_.reset();
         return;
     }
@@ -269,7 +269,7 @@ bool PlanarReflection::prepare(const ReflectionPlane& plane, const Camera& camer
     {
         loggedOblique_ = true;
         const Vector3 pointOnPlane = p.Normal * (-p.D);
-        CNA::Logger::Info("cna-room: planar reflection oblique projection: plane point -> "
+        CNA::Logger::Info("living-room-simulator: planar reflection oblique projection: plane point -> "
                           + std::to_string(ReflectionMath::ndcDepth(pointOnPlane, view_, projection)) + ", room side 0.5 m -> "
                           + std::to_string(ReflectionMath::ndcDepth(pointOnPlane + p.Normal * 0.5f, view_, projection)) + ", behind 0.05 m -> "
                           + std::to_string(ReflectionMath::ndcDepth(pointOnPlane - p.Normal * 0.05f, view_, projection)) + " (mirrored eye "
@@ -277,7 +277,7 @@ bool PlanarReflection::prepare(const ReflectionPlane& plane, const Camera& camer
     }
     projection_ = projection;
     if (std::getenv("CNA_ROOM_DEBUG_REFLECTIONS") != nullptr)
-        CNA::Logger::Info("cna-room: reflection '" + plane.name + "' projection M11 " + std::to_string(projection_.M11) + " M22 "
+        CNA::Logger::Info("living-room-simulator: reflection '" + plane.name + "' projection M11 " + std::to_string(projection_.M11) + " M22 "
                           + std::to_string(projection_.M22) + " M31 " + std::to_string(projection_.M31) + " M32 " + std::to_string(projection_.M32)
                           + " (camera M11 " + std::to_string(camera.projection().M11) + " M22 " + std::to_string(camera.projection().M22) + ")");
     viewProjection_ = view_ * projection_;
