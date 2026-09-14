@@ -218,7 +218,7 @@ this project.
 - Developed and validated on Mesa llvmpipe (no GPU in the development environment): all
   performance figures in `plan.md` are software-rasteriser numbers; a frame at 1280×720 takes
   around a second there and would take a few milliseconds on a GPU.
-- CNA bugs and limitations met on the way are catalogued in `CNA_FINDINGS.md` (R-1 … R-33):
+- CNA bugs and limitations met on the way are catalogued in `CNA_FINDINGS.md` (R-1 … R-35):
   among them one punctual light per draw, 8-bit IBL cubes, no back-face normal flip, no
   alpha-tested shadow casters.
 - The exposure is guided by an analytic schedule and a log-average measurement; a view that
