@@ -691,6 +691,12 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 
 ## 29. Completed work
 
+- 2026-09-14 M9 street furniture: a slatted bench on cast ends, a litter bin with its lid ring
+  and hood, and a bicycle (a diamond frame of turned cylinders, torus rims with eight spokes,
+  saddle, stem and bars) leaning on the terrace opposite. They went on the near pavement
+  first and vanished: the hedge hides that pavement from every window, so what the room can
+  see of the street is the road and the far side. A `tube(a, b, r)` helper turns a Y-cylinder
+  onto a segment with `Matrix::CreateFromAxisAngle`.
 - 2026-09-14 M9 facade detail: every street building's front is now a 0.2 m skin in pieces
   around its openings (piers, spandrels, lintels per bay and storey; the door bay open to
   its lintel) over a body that stops a reveal's depth behind, so the windows and doors sit in

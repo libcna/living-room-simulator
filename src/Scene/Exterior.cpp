@@ -396,6 +396,127 @@ void RoomScene::buildExterior()
         }
         front.addBoxWorldUv(Vector3(cursor, yBottom, zFront), Vector3(x1, yTop, wallFace), 2.0f, kFaceNegZ);
     }
+    // Street furniture where the room can see it, across the road (the hedge
+    // hides the near pavement from inside): a bench and a litter bin on the
+    // far pavement, a bicycle leaning on the terrace opposite. Tubes are
+    // cylinders built along Y and turned onto their segment.
+    {
+        ChunkSet metal, wood, rubber, stone;
+        const auto tube = [&](MeshBuilder& into, const Vector3& a, const Vector3& b, float radius, int segments) {
+            Vector3 d = b - a;
+            const float length = d.Length();
+            if (length < 1e-4f) return;
+            d.Normalize();
+            MeshBuilder t;
+            t.addCylinder(Vector3::Zero, radius, length, segments, 0.3f, true);
+            Vector3 axis = Vector3::Cross(Vector3::Up, d);
+            Matrix rotation = Matrix::getIdentityProperty();
+            if (axis.LengthSquared() > 1e-8f)
+            {
+                axis.Normalize();
+                rotation = Matrix::CreateFromAxisAngle(axis, std::acos(std::clamp(Vector3::Dot(Vector3::Up, d), -1.0f, 1.0f)));
+            }
+            else if (d.Y < 0.0f)
+                rotation = Matrix::CreateRotationX(MathHelper::Pi);
+            t.transform(rotation * Matrix::CreateTranslation(a));
+            MeshData data = t.take();
+            MeshBuilder::computeTangents(data);
+            const std::uint32_t base = static_cast<std::uint32_t>(into.mesh().vertices.size());
+            for (const auto& v : data.vertices) into.mesh().vertices.push_back(v);
+            for (std::uint32_t i : data.indices) into.mesh().indices.push_back(base + i);
+        };
+        // The bench: two cast ends, five slats for the seat and three for the
+        // back, which is on the house side (-Z) so it faces the road.
+        {
+            const float bx = -4.5f, bz = farKerbZ - 1.4f;
+            MeshBuilder& ends = stone.at(bx);
+            for (float sx : {bx - 0.8f, bx + 0.8f})
+            {
+                ends.addBoxWorldUv(Vector3(sx - 0.04f, ground, bz - 0.25f), Vector3(sx + 0.04f, ground + 0.44f, bz + 0.25f), 0.5f, kAllFaces & ~kFaceNegY);
+                ends.addBoxWorldUv(Vector3(sx - 0.04f, ground + 0.44f, bz - 0.25f), Vector3(sx + 0.04f, ground + 0.92f, bz - 0.17f), 0.5f, kAllFaces);
+            }
+            MeshBuilder& slats = wood.at(bx);
+            for (int i = 0; i < 5; ++i)
+            {
+                const float z0 = bz - 0.17f + static_cast<float>(i) * 0.10f;
+                slats.addBoxWorldUv(Vector3(bx - 0.85f, ground + 0.44f, z0), Vector3(bx + 0.85f, ground + 0.48f, z0 + 0.08f), 0.5f, kAllFaces);
+            }
+            for (int i = 0; i < 3; ++i)
+            {
+                const float y0 = ground + 0.56f + static_cast<float>(i) * 0.12f;
+                slats.addBoxWorldUv(Vector3(bx - 0.85f, y0, bz - 0.23f), Vector3(bx + 0.85f, y0 + 0.08f, bz - 0.19f), 0.5f, kAllFaces);
+            }
+        }
+        // The litter bin at the far kerb: a drum with a lid ring and a slot hood.
+        {
+            const float bx = 8.2f, bz = farKerbZ - 0.55f;
+            MeshBuilder& drum = metal.at(bx);
+            drum.addCylinder(Vector3(bx, ground, bz), 0.21f, 0.85f, 18, 0.5f, true);
+            drum.addCylinder(Vector3(bx, ground + 0.85f, bz), 0.23f, 0.05f, 18, 0.5f, true);
+            drum.addCylinder(Vector3(bx, ground + 0.90f, bz), 0.16f, 0.12f, 14, 0.5f, true);
+        }
+        // The bicycle: leaning on the terrace opposite, wheels along the street.
+        {
+            const float bx = 6.3f, bz = farPavementZ + 0.30f;
+            const float lean = MathHelper::ToRadians(-11.0f);   // toward the wall (-Z)
+            MeshBuilder& frame = metal.at(bx);
+            MeshBuilder& tyres = rubber.at(bx);
+            MeshBuilder bike, wheels;
+            const float R = 0.34f;
+            const Vector3 rear(-0.52f, R, 0.0f), front(0.52f, R, 0.0f), bb(-0.02f, 0.30f, 0.0f);
+            const Vector3 seat(-0.20f, 0.92f, 0.0f), head(0.36f, 0.86f, 0.0f), headBottom(0.44f, 0.62f, 0.0f);
+            tube(bike, bb, seat, 0.016f, 8);          // seat tube
+            tube(bike, bb, headBottom, 0.016f, 8);    // down tube
+            tube(bike, seat, head, 0.016f, 8);        // top tube
+            tube(bike, bb, rear, 0.010f, 6);          // chain stay
+            tube(bike, seat, rear, 0.010f, 6);        // seat stay
+            tube(bike, head, front, 0.012f, 6);       // fork
+            tube(bike, seat, seat + Vector3(0.0f, 0.10f, 0.0f), 0.012f, 6);   // seat post
+            tube(bike, head, head + Vector3(0.0f, 0.08f, 0.0f), 0.014f, 6);   // stem
+            tube(bike, head + Vector3(0.0f, 0.08f, -0.24f), head + Vector3(0.0f, 0.08f, 0.24f), 0.011f, 6);   // handlebar
+            bike.addBox(Vector3(-0.30f, 1.00f, -0.05f), Vector3(-0.08f, 1.05f, 0.05f), 0.3f);   // saddle
+            for (const Vector3& hub : {rear, front})
+            {
+                bike.addCylinder(hub + Vector3(0.0f, 0.0f, -0.03f), 0.03f, 0.06f, 8, 0.3f, true);
+                for (int k = 0; k < 8; ++k)
+                {
+                    const float a = static_cast<float>(k) / 8.0f * MathHelper::TwoPi;
+                    tube(bike, hub, hub + Vector3(std::cos(a) * (R - 0.02f), std::sin(a) * (R - 0.02f), 0.0f), 0.003f, 4);
+                }
+                MeshBuilder ring;   // the torus lies in XZ around Y; turned upright
+                ring.addTorus(Vector3::Zero, R, 0.018f, 28, 8, 0.3f);
+                ring.transform(Matrix::CreateRotationX(MathHelper::PiOver2) * Matrix::CreateTranslation(hub));
+                MeshData data = ring.take();
+                MeshBuilder::computeTangents(data);
+                const std::uint32_t base = static_cast<std::uint32_t>(wheels.mesh().vertices.size());
+                for (const auto& v : data.vertices) wheels.mesh().vertices.push_back(v);
+                for (std::uint32_t i : data.indices) wheels.mesh().indices.push_back(base + i);
+            }
+            // The hub cylinders were built along Y; they read as axle caps either way.
+            const Matrix pose = Matrix::CreateRotationX(-lean) * Matrix::CreateTranslation(bx, ground, bz);
+            bike.transform(pose);
+            wheels.transform(pose);
+            for (MeshBuilder* src : {&bike})
+            {
+                MeshData data = src->take();
+                MeshBuilder::computeTangents(data);
+                const std::uint32_t base = static_cast<std::uint32_t>(frame.mesh().vertices.size());
+                for (const auto& v : data.vertices) frame.mesh().vertices.push_back(v);
+                for (std::uint32_t i : data.indices) frame.mesh().indices.push_back(base + i);
+            }
+            {
+                MeshData data = wheels.take();
+                MeshBuilder::computeTangents(data);
+                const std::uint32_t base = static_cast<std::uint32_t>(tyres.mesh().vertices.size());
+                for (const auto& v : data.vertices) tyres.mesh().vertices.push_back(v);
+                for (std::uint32_t i : data.indices) tyres.mesh().indices.push_back(base + i);
+            }
+        }
+        placeChunks(metal, "gutter_metal", "exterior_furniture_metal", true);
+        placeChunks(wood, "door_dark", "exterior_furniture_wood", true);
+        placeChunks(rubber, "clock_black", "exterior_furniture_rubber", true);
+        placeChunks(stone, "concrete", "exterior_furniture_stone", true);
+    }
     // Distant blocks behind the terrace and a taller skyline further out.
     {
         MeshBuilder skyline;

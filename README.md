@@ -173,8 +173,9 @@ PageUp/PageDown or F2 give them back.
 - A procedural street outside: terraced houses with recessed windows and doors (reveals, sills,
   plinths, gutters and downpipes) whose windows show curtains, lampshades and television glow
   behind their glass (lit at night in warm, dim and cool kinds), neighbours, trees whose
-  crowns shade as one volume, clipped hedges with a leafy fringe, street lights, a distant
-  skyline; window panes that reflect the room and transmit the street.
+  crowns shade as one volume, clipped hedges with a leafy fringe, street lights, a bench, a
+  litter bin and a bicycle leaning on the house opposite, a distant skyline; window panes that
+  reflect the room and transmit the street.
 - Procedural PBR surfaces (plaster, oak, carpet, weave, paint, concrete, brick, asphalt, grass,
   paving, roof tiles, bark, masked foliage)
   with normal maps and linear-light mip chains; imported glTF materials with per-slot UV
