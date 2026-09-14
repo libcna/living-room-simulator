@@ -29,6 +29,5 @@ content-source/
 perf.data*
 assets/external/extracted/
 tools/gltf-extract/node_modules/
-tools/gltf-extract/package-lock.json
 assets/cache/
 assets/cnb/

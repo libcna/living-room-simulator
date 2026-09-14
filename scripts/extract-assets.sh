@@ -9,7 +9,7 @@ downloads="$root/assets/external/downloads"
 out="$root/assets/external/extracted"
 tool="$root/tools/gltf-extract"
 mkdir -p "$out"
-[[ -d "$tool/node_modules" ]] || (cd "$tool" && npm install --no-audit --no-fund)
+[[ -d "$tool/node_modules" ]] || (cd "$tool" && npm ci --no-audit --no-fund)   # the lock file pins the tool's dependencies
 
 python3 - "$root/assets/external/extract-recipes.json" <<'PY' | while IFS=$'\t' read -r name source select; do
 import json, sys

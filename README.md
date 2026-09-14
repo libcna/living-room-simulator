@@ -261,7 +261,7 @@ per asset in `THIRD_PARTY_ASSETS.md`; they are fetched rather than committed:
 
 ```
 scripts/fetch-assets.sh      # downloads assets/external/downloads/ and verifies SHA-256
-scripts/extract-assets.sh    # Node 18+: extracts per-object GLBs into assets/external/extracted/
+scripts/extract-assets.sh    # Node 18+: extracts per-object GLBs into assets/external/extracted/ (npm ci from the tool's lock file)
 scripts/compile-assets.sh    # optional: CNA .cnb per model into assets/cnb/ (loaded in place of the glTF import)
 ```
 
