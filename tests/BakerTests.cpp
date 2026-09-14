@@ -143,6 +143,19 @@ void testSurfaces()
     }
     check(meanChannel(knit.normal, 2) < 0.97f, "the knit has relief in its normals");
 
+    // The newsprint: a grey-white page, its masthead band dark, its margin
+    // clean, and the text columns a mid grey between the two.
+    {
+        const SurfaceImages page = TextureBaker::newsprint(size, 11u);
+        const float masthead = meanChannelRows(page.albedo, 0, 0.04f, 0.10f);
+        const float margin = meanChannelRows(page.albedo, 0, 0.975f, 1.0f);
+        const float text = meanChannelRows(page.albedo, 0, 0.60f, 0.90f);
+        check(masthead < 0.55f, "the masthead band is inked, " + std::to_string(masthead));
+        check(margin > 0.65f, "the page's bottom margin is clean, " + std::to_string(margin));
+        check(text < margin - 0.05f && text > masthead, "the text columns read grey between the two, " + std::to_string(text));
+        check(meanChannel(page.orm, 1) > 0.85f, "newsprint is matte");
+    }
+
     // The raindrop flipbook: a phase moves only the runners (most of the map
     // stays), and a whole loop comes back to the first frame.
     {

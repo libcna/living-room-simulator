@@ -186,6 +186,128 @@ SurfaceImages TextureBaker::signboard(int size, std::uint32_t seed)
     return out;
 }
 
+SurfaceImages TextureBaker::newsprint(int size, std::uint32_t seed)
+{
+    // A folded paper's front page, once across the texture (v = 0 the top):
+    // a masthead of letter blocks over a rule, a photograph (a grey field)
+    // over the right-hand columns, a bold headline over the left, and four
+    // columns of text lines with word gaps, paragraph ends and the odd
+    // crosshead, so it reads as print at arm's length and as grey from the door.
+    SurfaceImages out;
+    out.albedo = Image(size, size);
+    out.orm = Image(size, size);
+    Field height(size, size, 0.5f);
+    out.tileMetres = 1.0f;
+    std::uint32_t state = seed * 2654435761u + 777u;
+    const auto next = [&] { state ^= state << 13; state ^= state >> 17; state ^= state << 5; return static_cast<float>(state & 0xFFFFFFu) / 16777216.0f; };
+    const auto hash = [](std::uint32_t a, std::uint32_t b, std::uint32_t c) {
+        std::uint32_t h = a * 374761393u + b * 668265263u + c * 2246822519u + 0x9E3779B9u;
+        h ^= h >> 13; h *= 1274126177u; h ^= h >> 16;
+        return static_cast<float>(h & 0xFFFFFFu) / 16777216.0f;
+    };
+    constexpr int kCols = 4;
+    const float margin = 0.045f, gutter = 0.022f;
+    const float colW = (1.0f - 2.0f * margin - (kCols - 1) * gutter) / kCols;
+    const auto colU0 = [&](int c) { return margin + static_cast<float>(c) * (colW + gutter); };
+    // The masthead: letter blocks of random width with gaps and notches.
+    struct Letter { float u0, u1; int notch; };
+    std::vector<Letter> masthead;
+    for (float u = 0.20f; u < 0.78f;)
+    {
+        const float w = 0.045f + 0.04f * next();
+        if (u + w > 0.80f) break;
+        masthead.push_back({u, u + w, static_cast<int>(next() * 3.0f)});
+        u += w + 0.012f;
+    }
+    // Text lines per column: (v0, v1, u0, u1, bold).
+    struct Line { float v0, v1, u0, u1; bool bold; };
+    std::vector<Line> lines;
+    const float photoU0 = colU0(2), photoU1 = colU0(3) + colW, photoV0 = 0.145f, photoV1 = 0.40f;
+    for (int c = 0; c < kCols; ++c)
+    {
+        const float u0 = colU0(c), u1 = u0 + colW;
+        float v = c < 2 ? 0.145f : photoV1 + 0.025f;
+        if (c < 2)
+        {
+            // The headline: two thick lines across the first two columns.
+            if (c == 0)
+                for (int k = 0; k < 2; ++k)
+                    lines.push_back({v + k * 0.034f, v + k * 0.034f + 0.022f, u0, colU0(1) + colW * (k == 0 ? 1.0f : 0.62f), true});
+            v += 0.085f;
+        }
+        int paragraph = 5 + static_cast<int>(next() * 6.0f);
+        int sinceHead = 10 + static_cast<int>(next() * 12.0f);
+        while (v + 0.012f < 0.965f)
+        {
+            if (--sinceHead == 0)
+            {
+                lines.push_back({v + 0.004f, v + 0.016f, u0, u0 + colW * (0.5f + 0.45f * next()), true});
+                v += 0.026f;
+                sinceHead = 14 + static_cast<int>(next() * 16.0f);
+                paragraph = 5 + static_cast<int>(next() * 6.0f);
+                continue;
+            }
+            const bool last = --paragraph == 0;
+            lines.push_back({v, v + 0.0065f, u0, last ? u0 + colW * (0.3f + 0.6f * next()) : u1, false});
+            v += last ? 0.020f : 0.0135f;
+            if (last) paragraph = 5 + static_cast<int>(next() * 6.0f);
+        }
+    }
+    for (int y = 0; y < size; ++y)
+        for (int x = 0; x < size; ++x)
+        {
+            const float px = (static_cast<float>(x) + 0.5f) / static_cast<float>(size), py = (static_cast<float>(y) + 0.5f) / static_cast<float>(size);
+            float ink = 0.0f;   // 0 paper, 1 solid black
+            float photo = -1.0f;
+            if (py > 0.035f && py < 0.105f)
+                for (const Letter& l : masthead)
+                {
+                    if (px < l.u0 || px > l.u1) continue;
+                    const float lu = (px - l.u0) / (l.u1 - l.u0), lv = (py - 0.035f) / 0.07f;
+                    if (l.notch == 1 && lu > 0.3f && lu < 0.7f && lv > 0.35f && lv < 0.65f) continue;
+                    if (l.notch == 2 && lv > 0.45f && lv < 0.55f && lu > 0.15f && lu < 0.85f) continue;
+                    ink = 1.0f;
+                }
+            if (py > 0.118f && py < 0.124f && px > margin && px < 1.0f - margin) ink = 1.0f;   // the rule under the masthead
+            if (px >= photoU0 && px <= photoU1 && py >= photoV0 && py <= photoV1)
+            {
+                const float fu = (px - photoU0) / (photoU1 - photoU0), fv = (py - photoV0) / (photoV1 - photoV0);
+                const float n = Noise::fbm(fu * 2.0f, fv * 2.0f, 4, 4, 0.55f, seed + 9u);
+                const float sky = 0.62f - 0.25f * fv;   // lighter at the top, a dark foreground
+                photo = clamp01(sky + 0.35f * (n - 0.5f) - 0.18f * clamp01((fv - 0.55f) * 3.0f));
+                const bool border = fu < 0.012f || fu > 0.988f || fv < 0.012f || fv > 0.988f;
+                if (border) ink = 1.0f;
+            }
+            if (ink < 1.0f && photo < 0.0f)
+                for (const Line& l : lines)
+                {
+                    if (py < l.v0 || py > l.v1 || px < l.u0 || px > l.u1) continue;
+                    if (l.bold) { ink = 0.95f; break; }
+                    // Words: cells 3 % of the page wide, each inked over 0.55..0.9 of its width.
+                    const float cell = (px - l.u0) / 0.03f;
+                    const auto cellIndex = static_cast<std::uint32_t>(cell);
+                    const float word = 0.55f + 0.35f * hash(cellIndex, static_cast<std::uint32_t>(l.v0 * 1000.0f), seed);
+                    if (cell - static_cast<float>(cellIndex) < word) ink = 0.72f;   // small type reads grey, not black
+                    break;
+                }
+            const float grain = Noise::fbm(px, py, 14, 3, 0.5f, seed + 3u);
+            const float shade = 0.94f + 0.10f * (grain - 0.5f);
+            float r = 0.76f * shade, g = 0.74f * shade, b = 0.68f * shade;
+            if (photo >= 0.0f)
+            {
+                r = 0.10f + photo * 0.62f * shade;
+                g = 0.10f + photo * 0.61f * shade;
+                b = 0.10f + photo * 0.58f * shade;
+            }
+            const float t = ink;
+            out.albedo.set(x, y, clamp01(r * (1.0f - t) + 0.11f * t), clamp01(g * (1.0f - t) + 0.11f * t), clamp01(b * (1.0f - t) + 0.12f * t));
+            height.ref(x, y) = 0.5f + 0.04f * (grain - 0.5f);
+            packOrm(out.orm, x, y, 1.0f, 0.92f - 0.10f * t, 0.0f);
+        }
+    out.normal = normalMapFromHeight(height, 0.4f);
+    return out;
+}
+
 SurfaceImages TextureBaker::knit(int size, std::uint32_t seed, float r, float g, float b)
 {
     SurfaceImages out;

@@ -570,9 +570,81 @@ void RoomScene::buildFurniture()
                 }
             place(throwCloth.take(), "throw_knit", "throw", Matrix::getIdentityProperty(), true);
         }
+        // A pair of slippers kicked off in front of the sofa's right end: a
+        // rubber sole, a felt footbed and a rounded felt vamp over the toes.
+        if (renderer_.itemCount() > sofaFirst)
+        {
+            BoundingBox sofa = renderer_.item(sofaFirst).worldBounds;
+            for (std::size_t i = sofaFirst + 1; i < renderer_.itemCount(); ++i) sofa = BoundingBox::CreateMerged(sofa, renderer_.item(i).worldBounds);
+            const float front = sofa.Max.Z;   // the sofa faces +Z
+            const auto slipper = [&](const std::string& name, float x, float z, float yawDegrees) {
+                const Matrix world = Matrix::CreateRotationY(MathHelper::ToRadians(yawDegrees)) * Matrix::CreateTranslation(x, 0.0f, z);
+                MeshBuilder sole;
+                sole.addBox(Vector3(-0.05f, 0.0f, -0.13f), Vector3(0.05f, 0.012f, 0.13f), 0.2f);
+                place(sole.take(), "rubber_black", name + " sole", world, true);
+                MeshBuilder felt;
+                felt.addBox(Vector3(-0.048f, 0.012f, -0.128f), Vector3(0.048f, 0.024f, 0.10f), 0.2f);   // the footbed
+                MeshBuilder vamp;   // a squashed sphere over the toes, its bottom in the sole
+                vamp.addSphere(Vector3(0.0f, 0.0f, 0.0f), 1.0f, 18, 10, 0.2f);
+                vamp.transform(Matrix::CreateScale(0.054f, 0.034f, 0.095f) * Matrix::CreateTranslation(0.0f, 0.034f, 0.04f));
+                felt.mesh().append(vamp.mesh());
+                place(felt.take(), "slipper_felt", name + " felt", world, true);
+            };
+            slipper("slipper left", 0.70f, front + 0.19f, 6.0f);
+            slipper("slipper right", 0.86f, front + 0.16f, -24.0f);
+            CNA::Logger::Info("cna-room: sofa front z " + std::to_string(front) + ", slippers at z " + std::to_string(front + 0.16f));
+        }
     }
     placeModel("coffee-table", Vector3(0.0f, 0.0f, 0.45f), 0.0f, 0.0f, true, lacquer);
-    placeModel("leather-armchair-a", Vector3(-2.05f, 0.0f, 0.55f), 55.0f, 0.0f, true, leather);
+    {
+        // A folded newspaper dropped on the left armchair's seat (the right
+        // one holds the folded blankets): the front page on top, masthead
+        // toward the chair's back, plain paper below.
+        const std::size_t chairFirst = renderer_.itemCount();
+        placeModel("leather-armchair-a", Vector3(-2.05f, 0.0f, 0.55f), 55.0f, 0.0f, true, leather);
+        if (renderer_.itemCount() > chairFirst)
+        {
+            BoundingBox chair = renderer_.item(chairFirst).worldBounds;
+            const BoundingBox* seat = nullptr;
+            float bestArea = 0.0f;
+            for (std::size_t i = chairFirst; i < renderer_.itemCount(); ++i)
+            {
+                const BoundingBox& b = renderer_.item(i).worldBounds;
+                chair = BoundingBox::CreateMerged(chair, b);
+                // The seat cushion: the widest part whose top lies at sitting height.
+                if (b.Max.Y > 0.30f && b.Max.Y < 0.60f)
+                {
+                    const float area = (b.Max.X - b.Min.X) * (b.Max.Z - b.Min.Z);
+                    if (area > bestArea) { bestArea = area; seat = &b; }
+                }
+            }
+            const Vector3 chairCentre = (chair.Min + chair.Max) * 0.5f;
+            Vector3 seatCentre = chairCentre;
+            float seatTop = 0.42f;
+            if (seat != nullptr)
+            {
+                seatCentre = (seat->Min + seat->Max) * 0.5f;
+                seatTop = seat->Max.Y;
+            }
+            // Forward is from the chair's centre toward the seat's (the back sits behind it).
+            Vector3 forward(seatCentre.X - chairCentre.X, 0.0f, seatCentre.Z - chairCentre.Z);
+            if (forward.Length() < 0.02f) forward = Vector3(-1.0f, 0.0f, 0.0f);
+            forward.Normalize();
+            CNA::Logger::Info("cna-room: armchair seat top " + std::to_string(seatTop) + " at " + std::to_string(seatCentre.X) + ", " + std::to_string(seatCentre.Z)
+                              + " forward " + std::to_string(forward.X) + ", " + std::to_string(forward.Z) + (seat != nullptr ? "" : " (no seat part found)"));
+            // Local -Z is the masthead's edge; RotY(yaw) sends it to -forward.
+            const float yaw = std::atan2(forward.X, forward.Z) + MathHelper::ToRadians(9.0f);
+            const Matrix world = Matrix::CreateRotationY(yaw)
+                                 * Matrix::CreateTranslation(seatCentre.X + forward.X * 0.03f, seatTop + 0.001f, seatCentre.Z + forward.Z * 0.03f);
+            const float hw = 0.145f, hd = 0.10f, th = 0.012f;
+            MeshBuilder body;
+            body.addBox(Vector3(-hw, 0.0f, -hd), Vector3(hw, th, hd), 0.3f, kAllFaces & ~kFacePosY);
+            place(body.take(), "paper", "newspaper pages", world, true);
+            MeshBuilder page;   // seen from above with +X to the right, +Z is down the page
+            page.addQuadUv(Vector3(-hw, th + 0.0003f, hd), Vector3(hw, th + 0.0003f, hd), Vector3(hw, th + 0.0003f, -hd), Vector3(-hw, th + 0.0003f, -hd));
+            place(page.take(), "newsprint", "newspaper front", world, false);
+        }
+    }
     placeModel("leather-armchair-a", Vector3(2.05f, 0.0f, 0.55f), -55.0f, 0.0f, true, leather);
     placeModel("floor-lamp", Vector3(1.35f, 0.0f, -1.55f), 0.0f);
     placeModel("pedestal-table", Vector3(-2.35f, 0.0f, -1.20f), 0.0f);
@@ -761,6 +833,27 @@ void RoomScene::buildFurniture()
     placeModel("GlassVaseFlowers", Vector3(L.halfWidth - 0.17f, 1.177f, -1.20f), 0.0f);
     placeModel("radio", Vector3(L.halfWidth - 0.17f, 1.177f, -0.85f), 195.0f);
     placeModel("small-pictures", Vector3(L.halfWidth - 0.006f, 1.35f, 2.05f), 180.0f, 0.0f, false);
+    {
+        // A leather shoulder bag dropped by the door, leaning on the wall on
+        // the chest's side of it: a soft body, a flap over its front, a brass
+        // clasp and the strap slumped over its top.
+        // Tilted about its back bottom edge, the body's base sunk 2 cm into
+        // the floor so the raised front edge stays hidden, the way a soft bag sags.
+        const float lean = MathHelper::ToRadians(9.0f);
+        const Matrix world = Matrix::CreateTranslation(-0.055f, 0.0f, 0.0f) * Matrix::CreateRotationZ(-lean)
+                             * Matrix::CreateTranslation(L.halfWidth - 0.062f, 0.0f, L.doorCentreZ - L.doorWidth * 0.5f - L.doorFrameWidth - 0.26f);
+        MeshBuilder bag;
+        bag.addBox(Vector3(-0.055f, -0.02f, -0.17f), Vector3(0.055f, 0.30f, 0.17f), 0.3f);          // the body
+        bag.addBox(Vector3(-0.068f, 0.13f, -0.168f), Vector3(-0.054f, 0.31f, 0.168f), 0.3f);      // the flap, on the room side
+        bag.addBox(Vector3(-0.045f, 0.30f, -0.165f), Vector3(0.045f, 0.318f, 0.165f), 0.3f);      // the top, under the flap's fold
+        bag.addBox(Vector3(-0.03f, 0.318f, -0.20f), Vector3(0.0f, 0.34f, 0.20f), 0.3f);           // the strap lying across the top
+        bag.addBox(Vector3(-0.075f, 0.16f, -0.21f), Vector3(-0.045f, 0.34f, -0.19f), 0.3f);      // its ends hanging down the front
+        bag.addBox(Vector3(-0.075f, 0.16f, 0.19f), Vector3(-0.045f, 0.34f, 0.21f), 0.3f);
+        place(bag.take(), "bag_leather", "door bag", world, true);
+        MeshBuilder clasp;
+        clasp.addBox(Vector3(-0.072f, 0.145f, -0.02f), Vector3(-0.066f, 0.175f, 0.02f), 0.2f);
+        place(clasp.take(), "sconce_brass", "door bag clasp", world, false);
+    }
     placeModel("ChairDamaskPurplegold", Vector3(2.55f, 0.0f, 1.85f), -130.0f);
 
     // --- the window wall (-Z): curtains and the pier between the windows ---

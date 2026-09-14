@@ -213,6 +213,8 @@ PageUp/PageDown or F2 give them back.
 - Wind in the trees: each street tree's crown sways about the top of its trunk with the
   weather's wind, gusts on top, and its shadow proxies swing with it, so the dapples in the
   room drift in a storm.
+- More of a lived-in room: slippers kicked off by the sofa, a folded newspaper (a baked
+  front page) on the armchair, a leather bag leaning on the wall by the door.
 - The windows as light sources by day: a wide spot per window carries the sky's diffuse light
   into the room with distance fall-off, refreshed from the sky each frame, on top of the
   probes' ambient.

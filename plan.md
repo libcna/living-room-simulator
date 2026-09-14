@@ -1029,6 +1029,21 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   canopy outlines in a frame difference, the trunks and the street still. At the true
   amplitude the motion is a few pixels at 480x270, visible in a clip, not in a still; the
   clip `m9-storm-street.gif` (street view, storm, noon) joins the gallery.
+- 2026-09-14 M9 lived-in props II: a pair of felt slippers kicked off in front of the sofa's
+  right end (a rubber sole, a felt footbed and a squashed-sphere vamp over the toes, one
+  askew; placed from the sofa's merged bounds, its front at z -0.27), a folded newspaper on
+  the left armchair's seat (the right one holds the folded blankets: the seat is found as
+  the widest part of the chair whose top sits at sitting height, 0.449 m, and the paper
+  turned so its masthead faces the chair's back, found as the direction from the chair's
+  centre to the seat's; `TextureBaker::newsprint` bakes the front page once across a
+  quad: masthead letter blocks over a rule, a photograph as a grey field over the right
+  columns, a two-line headline, four columns of text lines with word gaps, paragraph ends
+  and crossheads, with a baker test for its bands), and a leather shoulder bag leaning on
+  the door wall on the chest's side of the door (a body tilted 9 degrees about its back
+  bottom edge and sunk 2 cm so the raised front edge stays hidden, a flap, a brass clasp,
+  the strap slumped over the top; the first placing, under the small pictures, was behind
+  the damask chair). Three materials: `newsprint`, `slipper_felt` (a lighter weave; the
+  first bake read as dark leather in the sofa's shadow), `bag_leather`.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as
