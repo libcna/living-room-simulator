@@ -104,6 +104,8 @@ private:
     int modelTextureCap_ = 1024;
     int framesDrawn_ = 0;
     std::string screenshotPath_;
+    std::string recordDirectory_;   ///< --record: every recordEvery_th frame saved here as a numbered PNG
+    int recordEvery_ = 1;
     std::string startView_ = "entrance";
     bool cameraOverride_ = false;
     Microsoft::Xna::Framework::Vector3 cameraOverridePosition_{0.0f, 1.6f, 0.0f};

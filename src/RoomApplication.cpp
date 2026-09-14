@@ -26,6 +26,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <cstring>
 #include <sstream>
 #include <string>
@@ -82,6 +83,7 @@ bool RoomApplication::configure(int argc, char** argv)
                 "  --no-vsync                do not wait for vertical retrace\n"
                 "  --frames N                draw N frames, then exit (prints frame statistics)\n"
                 "  --screenshot PATH         write the last frame to PATH (PNG)\n"
+                "  --record DIR[,EVERY]      write every EVERYth frame to DIR/frame-NNNN.png (deterministic 1/60 s steps)\n"
                 "  --view NAME               start at a named viewpoint (entrance, sofa-to-tv,\n"
                 "                            tv-to-sofa, bookshelf, window, window-close, material, corner)\n"
                 "  --camera x,y,z,yaw,pitch  start at an explicit camera (degrees)\n"
@@ -142,6 +144,14 @@ bool RoomApplication::configure(int argc, char** argv)
         else if (arg == "--no-vsync") settings_.vsync = false;
         else if (arg == "--frames") frameBudget_ = std::atoi(next("--frames"));
         else if (arg == "--screenshot") screenshotPath_ = next("--screenshot");
+        else if (arg == "--record")
+        {
+            // DIR[,EVERY]: every EVERYth frame written to DIR/frame-NNNN.png in deterministic time.
+            const std::string v = next("--record");
+            const std::size_t comma = v.find(',');
+            recordDirectory_ = v.substr(0, comma);
+            recordEvery_ = comma == std::string::npos ? 1 : std::max(1, std::atoi(v.c_str() + comma + 1));
+        }
         else if (arg == "--view") startView_ = next("--view");
         else if (arg == "--camera")
         {
@@ -492,7 +502,7 @@ void RoomApplication::handleHotkeys(const KeyboardState& keyboard, const Keyboar
 void RoomApplication::Update(GameTime& gameTime)
 {
     Game::Update(gameTime);
-    const bool deterministic = frameBudget_ > 0 || !screenshotPath_.empty();
+    const bool deterministic = frameBudget_ > 0 || !screenshotPath_.empty() || !recordDirectory_.empty();
     deterministic_ = deterministic;
     renderer_->setFocusPullRate(deterministic ? 200.0f : 6.0f);   // a capture settles its focus within a frame
     const float dt = deterministic ? 1.0f / 60.0f
@@ -691,6 +701,13 @@ void RoomApplication::Draw(const GameTime& gameTime)
     Game::Draw(gameTime);
 
     ++framesDrawn_;
+    if (!recordDirectory_.empty() && framesDrawn_ % recordEvery_ == 0)
+    {
+        if (framesDrawn_ == recordEvery_) std::filesystem::create_directories(recordDirectory_);
+        char name[32];
+        std::snprintf(name, sizeof name, "/frame-%04d.png", framesDrawn_ / recordEvery_);
+        captureScreenshot(recordDirectory_ + name);
+    }
     if (logEvery_ > 0 && framesDrawn_ % logEvery_ == 0 && framesDrawn_ != frameBudget_) logFrameStats();
     const bool last = frameBudget_ > 0 ? framesDrawn_ >= frameBudget_ : framesDrawn_ >= 3;
     if (!screenshotPath_.empty() && last)

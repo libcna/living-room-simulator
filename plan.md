@@ -998,6 +998,14 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   step across plain plaster (`day-bookshelf`, a tenth between its halves) that read as a
   rendering edge, and a wall's would be the same. The price of the probes: the bake is 108
   faces (8.6 s at 64 px, the content 23 s in all).
+- 2026-09-14 M9 frame recording and the clips: `--record DIR[,EVERY]` writes every EVERYth
+  frame as a numbered PNG in deterministic 1/60 s steps (the same clock the captures use),
+  and `scripts/record-gif.sh` records a clip at 480x270 and assembles every fifth frame
+  into a 12 fps GIF with Pillow (one palette for the clip, dithered). Two four-second clips
+  join the README: the rain running down the panes at night (`m9-rain-panes.gif`) and the
+  fireside with the flames, the steam and the set (`m9-fireside.gif`), about 2 MB each. The
+  first try, the `window` view, put the pendant's disc over the top of the frame and the
+  panes small; the close view shows the drops.
 - 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
   simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a

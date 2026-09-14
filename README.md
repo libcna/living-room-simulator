@@ -25,6 +25,13 @@ glTF furniture assets. There is no gameplay; the point is the picture.
 |---|---|---|
 | ![Wet street](docs/screenshots/m9-wet-street-night.png) | ![Road](docs/screenshots/m9-road-night-rain.png) | ![Stove](docs/screenshots/m9-stove-night.png) |
 
+The room in motion, four seconds each at twelve frames a second (`scripts/record-gif.sh`):
+the rain running down the panes, and the fireside with the flames, the steam over the cup and
+the set's picture.
+
+| ![Rain on the panes](docs/screenshots/m9-rain-panes.gif) | ![Fireside](docs/screenshots/m9-fireside.gif) |
+|---|---|
+
 ## Dependencies
 
 cna-room consumes CNA as a sibling checkout with `add_subdirectory()`; CNA in turn expects its
@@ -103,6 +110,10 @@ Without a display (CI, containers) run it under Xvfb with Mesa's software raster
 SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" \
     ./build/bin/cna-room --frames 3 --screenshot shot.png
 ```
+
+`--record DIR[,EVERY]` writes every EVERYth frame to `DIR/frame-NNNN.png` in deterministic
+1/60 s steps (for clips: `scripts/record-gif.sh OUT.gif SECONDS [options]` records one and
+assembles a 12 fps GIF with Pillow).
 
 Debug switches, as environment variables: `CNA_ROOM_DEBUG_SUNBEAMS=1..6` paints the beam
 march's inputs (depth, position, shadow, atlas, raw scatter, clip) and `CNA_ROOM_SUNBEAM_POINTS`
