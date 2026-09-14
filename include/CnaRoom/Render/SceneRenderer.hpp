@@ -95,6 +95,7 @@ struct Lamp
     float innerAngle = 0.5f;
     float outerAngle = 0.9f;
     bool castsShadow = false;      ///< at most one lamp per frame gets a cube shadow
+    bool daylightPortal = false;   ///< a window's sky light: left out of the probe captures (they see the sky themselves)
 
     /// 1 scene unit of irradiance ~ 25 000 lux, so a bulb's lumens convert
     /// to radiant intensity as lumens / (4 pi 25000).
@@ -336,6 +337,7 @@ private:
     float steamRadius_ = 0.035f;
     bool steamSet_ = false;
     bool loggedSteam_ = false;
+    bool loggedLampAssignment_ = false;
     void drawSteam(const Camera& camera, const RenderSettings& settings);
     std::unique_ptr<CNA::Graphics::AutoExposureEXT> autoExposure_;
     bool autoExposureEnabled_ = false;

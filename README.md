@@ -170,6 +170,9 @@ PageUp/PageDown or F2 give them back.
   their reflection up in that render (the screen through a Fresnel ramp under its picture, the
   mirror as silvered glass, the panes' Fresnel share of the lamp-lit room added over the street,
   bent by the rain droplets' normal map when the panes are wet).
+- The windows as light sources by day: a wide spot per window carries the sky's diffuse light
+  into the room with distance fall-off, refreshed from the sky each frame, on top of the
+  probes' ambient.
 - Artificial lights in lumens: pendant, floor lamp, table lamp, two sconces, television; one
   punctual light per object (the most influential), a cube shadow map for the pendant, emissive
   shades and screen.

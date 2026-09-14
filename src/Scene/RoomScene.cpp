@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <utility>
 
 using namespace Microsoft::Xna::Framework;
 using CnaRoom::Geometry::MeshBuilder;
@@ -796,6 +797,29 @@ void RoomScene::buildLamps()
     int streetIndex = 0;
     for (const Vector3& p : streetLampPositions_)
         add("street " + std::to_string(streetIndex++), p, 36000.0f, streetWhite, 26.0f, false);
+    // The windows as light sources: the probes hold the sky's light as one
+    // level across the room, so a surface by the window was lit no more than
+    // the far wall. A wide spot at each window's centre carries the sky's
+    // diffuse light in with the inverse-square fall-off (its intensity from
+    // the sky each frame, updateWindowLights), pointing a little downward.
+    for (int w = 0; w < L.windowCount; ++w)
+    {
+        Lamp window;
+        window.name = "window " + std::to_string(w);
+        window.position = Vector3(L.windowCentreX[w], L.windowSillHeight + L.windowHeight * 0.5f, -L.halfDepth + 0.08f);
+        window.colour = Vector3(0.8f, 0.9f, 1.0f);
+        window.intensity = 0.0f;
+        window.fullIntensity = 0.0f;
+        window.range = 9.0f;
+        window.spot = true;
+        window.direction = Vector3::Normalize(Vector3(0.0f, -0.18f, 1.0f));
+        // Near the hemisphere a Lambertian opening emits into: full to 52
+        // degrees off the axis, gone at 89 (a cosine-like roll-off between).
+        window.innerAngle = 0.90f;
+        window.outerAngle = 1.55f;
+        window.daylightPortal = true;
+        lamps.push_back(window);
+    }
     {
         Lamp tv;
         tv.name = "television";
@@ -991,6 +1015,7 @@ void RoomScene::update(float dt)
     const float fire = ramp(fireLevel_, fireOn_, 0.25f, 0.12f);
     fireSeconds_ += dt;
     if (televisionOn_) updateTelevisionGlow();
+    updateWindowLights();
     const bool fireLive = fire > 0.0f || fireLevel_ > 0.0f || lamp > 0.0f;   // the candle burns with the lamps
     if (lamp == lampLevel_ && street == streetLevel_ && !fireLive) return;
     lampLevel_ = lamp;
@@ -998,6 +1023,40 @@ void RoomScene::update(float dt)
     fireLevel_ = fire;
     if (fireLive) updateFire();
     applyLampLevels();
+}
+
+void RoomScene::updateWindowLights()
+{
+    // Each window's spot: the sky's hemisphere-average radiance over the
+    // opening's area gives the irradiance it delivers at a metre (a point
+    // source stands in for the opening; the effect's 1 / (1 + d^2) keeps the
+    // near field finite). The probes carry the window's light too, at their
+    // own distance, so this over-counts a little near the glass: the price of
+    // a gradient the three probes cannot hold.
+    const SkyLighting& lighting = renderer_.sky().lighting();
+    const Vector3 sky = lighting.ambientColour;
+    const float top = std::max({sky.X, sky.Y, sky.Z, 1e-6f});
+    const float area = layout_.windowWidth * layout_.windowHeight;
+    // CNA_ROOM_WINDOW_LIGHT scales the windows' light (0 turns it off).
+    static const float scale = std::getenv("CNA_ROOM_WINDOW_LIGHT") != nullptr ? std::strtof(std::getenv("CNA_ROOM_WINDOW_LIGHT"), nullptr) : 1.0f;
+    const float intensity = top * area * scale;
+    bool changed = false;
+    for (const Lamp& lamp : std::as_const(renderer_).lamps())
+        if (lamp.daylightPortal && std::abs(lamp.intensity - intensity) > intensity * 0.02f + 1e-6f) changed = true;
+    if (!changed) return;
+    for (Lamp& lamp : renderer_.lamps())
+    {
+        if (!lamp.daylightPortal) continue;
+        lamp.colour = sky / top;
+        lamp.intensity = intensity;
+        lamp.fullIntensity = intensity;
+        lamp.on = intensity > 1e-4f;
+    }
+    if (!loggedWindowLights_)
+    {
+        loggedWindowLights_ = true;
+        CNA::Logger::Info("cna-room: window lights " + std::to_string(intensity) + " (sky " + std::to_string(sky.X) + "," + std::to_string(sky.Y) + "," + std::to_string(sky.Z) + ")");
+    }
 }
 
 void RoomScene::updateTelevisionGlow()
@@ -1074,7 +1133,7 @@ void RoomScene::applyLampLevels()
     const auto tint = [](float level) { return Vector3(level, std::pow(level, 1.15f), std::pow(level, 1.3f)); };
     for (Lamp& lamp : renderer_.lamps())
     {
-        if (lamp.name == "television") continue;
+        if (lamp.name == "television" || lamp.daylightPortal) continue;
         if (lamp.name == "stove" || lamp.name == "candle")
         {
             const float level = lamp.name == "stove" ? fireLevel_ * (0.7f + 0.3f * fireFlicker_) : lampLevel_ * (0.8f + 0.2f * candleFlicker_);

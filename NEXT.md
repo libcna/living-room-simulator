@@ -4,9 +4,10 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
 
 1. M9 audits, next round (round 13 renders into `screenshots/audit13/` with the road out from
    under the grass, the puddles and the 16 m prepass plane): log findings in `plan.md` §28;
-   standing candidates: the sconces' daylight look, dusk facade saturation, the pendant's disc
-   in the views beneath it, the interior's flatness under overcast light (CNA's SSAO bias is a
-   fraction of the prepass far plane, R-32, so the effect stays gentle).
+   standing candidates: dusk facade saturation, the pendant's disc in the views beneath it.
+   Done in round 22: the sconces rebuilt as drum wall lights; the windows as spot lamps against
+   the interior's flatness under overcast light (a per-item probe still paints each surface
+   one level; an irradiance volume, or probes blended per pixel, would be the real cure).
 1a. Done: prefiltered specular in half-float as one cube per roughness class (the material
    picks the class from its roughness and its map's mean). Per-pixel roughness variation
    within one material still blurs at one class; a CNA EXT binding a cube face at a mip level

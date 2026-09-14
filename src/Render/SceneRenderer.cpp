@@ -436,6 +436,7 @@ void SceneRenderer::captureProbeFace(InteriorProbe& probe, RenderTarget2D& targe
     // few steps; both are undone when the texel goes into the cube.
     lightScale_ = captureHdr_ ? 1.0f : 0.5f;
     capturing_ = true;
+    appliedLamp_ = -2;   // re-apply the lamp under the capture's rules (the portals are left out)
     usingSceneTarget_ = false;
     const std::size_t count = static_cast<std::size_t>(size) * static_cast<std::size_t>(size);
     if (faces.size() != 6u * count) faces.assign(6u * count, Vector3::Zero);
@@ -496,6 +497,7 @@ void SceneRenderer::captureProbeFace(InteriorProbe& probe, RenderTarget2D& targe
         }
     lightScale_ = 1.0f;
     capturing_ = false;
+    appliedLamp_ = -2;
     appliedMaterial_ = nullptr;
     environmentBound_ = false;
 }
@@ -918,6 +920,18 @@ void SceneRenderer::assignLamps()
             }
         }
     }
+    static const bool debugLamps = std::getenv("CNA_ROOM_DEBUG_LAMPS") != nullptr;
+    if (debugLamps && !loggedLampAssignment_)
+    {
+        loggedLampAssignment_ = true;
+        for (const SceneItem& item : items_)
+        {
+            if (item.exterior) continue;
+            const std::string lamp = item.lamp >= 0 ? lamps_[static_cast<std::size_t>(item.lamp)].name : "none";
+            CNA::Logger::Info("cna-room: lamp for '" + item.name + "' at " + std::to_string(item.worldSphere.Center.X) + "," + std::to_string(item.worldSphere.Center.Y) + ","
+                              + std::to_string(item.worldSphere.Center.Z) + " r " + std::to_string(item.worldSphere.Radius) + ": " + lamp);
+        }
+    }
 }
 
 void SceneRenderer::applyLamp(int lampIndex)
@@ -925,7 +939,7 @@ void SceneRenderer::applyLamp(int lampIndex)
     if (lampIndex == appliedLamp_) return;
     appliedLamp_ = lampIndex;
     PunctualLightEXT light;
-    if (lampIndex >= 0 && lampIndex < static_cast<int>(lamps_.size()))
+    if (lampIndex >= 0 && lampIndex < static_cast<int>(lamps_.size()) && !(capturing_ && lamps_[static_cast<std::size_t>(lampIndex)].daylightPortal))
     {
         const Lamp& lamp = lamps_[static_cast<std::size_t>(lampIndex)];
         light.Kind = lamp.spot ? PunctualLightKindEXT::Spot : PunctualLightKindEXT::Point;
@@ -1046,6 +1060,7 @@ void SceneRenderer::cull(const Camera& camera)
 void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
 {
     currentSettings_ = &settings;
+    appliedLamp_ = -2;   // a lamp's level may have moved since last frame (the fire, the windows): re-apply
     stats_.drawCalls = 0;
     stats_.shadowDrawCalls = 0;
     stats_.triangles = 0;

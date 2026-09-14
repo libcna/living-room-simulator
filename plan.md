@@ -695,6 +695,12 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   every interior view within a level of round 19. No regressions. The sun views' frame
   times in the log (2.5 s for `sun-corner`) are contention: the half-size beam renders
   ran alongside this round. The half-size march came after this round's binary.
+- 2026-09-14 audit round 21 (29 views, `screenshots/audit21/`, with the half-size beam
+  march, the television's light following its picture and the steam over the cup): every
+  view within a fifth of a level of round 20 in the mean, the largest `sun-morning-corner`
+  at 0.16 (the beams' upsample), so none of the three moves the canonical views (the steam
+  is a close-up detail, the set's light a few levels on the mantel under the lamps). No
+  regressions. The wall lights and the window lights came after this round's binary.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
@@ -839,6 +845,24 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   frosted bulb inside seen through the ends (`sconce_bulb`, a bare bulb's 1.2 when lit); the
   lamps' point lights moved to the bulbs. The fittings cast shadows. The `wall-sconce`
   extract recipe and its asset row are gone.
+- 2026-09-14 M9 the windows as lights: the three probes hold the sky's light through the
+  windows as one level each, so a surface by the glass was lit no more than the far wall and
+  the room read flat under overcast skies (open since round 13). Each window now carries a
+  wide spot lamp at its centre (`Lamp::daylightPortal`; a Lambertian opening's hemisphere as
+  a cone full to 52 degrees and gone at 89), its colour the sky's chroma and its intensity
+  the sky's hemisphere-average radiance over the opening's area, refreshed from the sky each
+  frame (`RoomScene::updateWindowLights`, `CNA_ROOM_WINDOW_LIGHT` scales it, 0 off); off at
+  night with the sky. Left out of the probe captures, which see the sky themselves. The
+  effect's 1 / (1 + d^2) keeps the near field finite, and the probes carry the window's
+  light too, so this over-counts near the glass: the price of a gradient the probes cannot
+  hold. Under cloudy noon the door wall, which faces the windows across the room from a dim
+  probe, gains 40 % against the exterior; the sofa's back and the floor by the windows
+  4-5 % (the soft sun's patch already lights them), the pier between the windows nothing
+  (grazing). Two findings on the way: the lamp cache in `applyLamp` re-applied a lamp only
+  when its index changed, so a level that moved between frames (the fire's flicker, the
+  windows) never reached the effect; it is reset each frame and across captures now. And a
+  point light 8 cm off a wall lights that wall only next to itself (grazing incidence), so
+  the window wall stays as the probes paint it.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as
