@@ -701,6 +701,15 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   at 0.16 (the beams' upsample), so none of the three moves the canonical views (the steam
   is a close-up detail, the set's light a few levels on the mantel under the lamps). No
   regressions. The wall lights and the window lights came after this round's binary.
+- 2026-09-14 audit round 22 (29 views, `screenshots/audit22/`, with the drum wall lights and
+  the windows as lights): the sconces read as fittings in `day-tv-close` and glow as drums
+  at night; the day views sit 2-5 levels from round 21 in the mean (the window lights and
+  the exposure answering them), the door wall brighter in `day-corner`. One defect: the
+  night views were 10 levels darker (`night-street` 74.8 to 64.5 in the mean), because the
+  night sky's glow through the windows, small as it is, still made a lamp against the
+  pendant and moved the exposure. The window lights now scale with the sky's daylight, so
+  the night calibration stands. The handles, the picture's level and the props came after
+  this round's binary.
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant

@@ -134,7 +134,7 @@ void testSurfaces()
         for (int x = 0; x < size; ++x)
         {
             float column = 0.0f;
-            for (int y = 0; y < size; ++y) column += knit.albedo.at(x, y).r;
+            for (int y = 0; y < size; ++y) column += static_cast<float>(knit.albedo.rgba[knit.albedo.at(x, y)]) / 255.0f;
             column /= static_cast<float>(size);
             lightest = std::max(lightest, column);
             darkest = std::min(darkest, column);

@@ -1138,7 +1138,9 @@ void RoomScene::updateWindowLights()
     const float area = layout_.windowWidth * layout_.windowHeight;
     // CNA_ROOM_WINDOW_LIGHT scales the windows' light (0 turns it off).
     static const float scale = std::getenv("CNA_ROOM_WINDOW_LIGHT") != nullptr ? std::strtof(std::getenv("CNA_ROOM_WINDOW_LIGHT"), nullptr) : 1.0f;
-    const float intensity = top * area * scale;
+    // Scaled by the daylight: the night sky's glow through the glass is real
+    // but the probes carry it, and the lamp-lit calibration stays untouched.
+    const float intensity = top * area * scale * std::clamp(lighting.daylight, 0.0f, 1.0f);
     bool changed = false;
     for (const Lamp& lamp : std::as_const(renderer_).lamps())
         if (lamp.daylightPortal && std::abs(lamp.intensity - intensity) > intensity * 0.02f + 1e-6f) changed = true;
