@@ -1,0 +1,11 @@
+# Pinned upstream revisions cna-room was last built and verified against.
+# scripts/fetch-dependencies.sh --pin checks these out; without --pin the
+# branch heads are used. Recorded so a build failure can be attributed.
+# branch=next
+CNA=1b3151f2f1b7b712cfd26637580bebbb2e3602e4
+# branch=next
+SHARP_RUNTIME=0c82d9b888bdf5f7d5663c77942f339bcb2a7445
+# branch=develop
+EASY_GL=deda7a426c3c166c0e03a4790f1ede610e2e46fb
+# branch=develop
+META_GL=20c8b2dc5bb80e32706784066db9fd9e15b3f46a

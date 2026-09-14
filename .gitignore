@@ -1,0 +1,34 @@
+# Build trees
+build/
+build-*/
+cmake-build-*/
+out/
+
+# IDE and editor state
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+compile_commands.json
+.cache/
+
+# Generated content and fetched external assets (see scripts/fetch-assets.sh)
+assets/external/downloads/
+assets/content/*.cnb
+content-source/
+
+# Screenshots produced by local runs (canonical ones live in docs/screenshots/)
+/screenshots/
+*.tmp.png
+
+# Profiling captures and logs
+*.log
+*.prof
+perf.data*
+assets/external/extracted/
+tools/gltf-extract/node_modules/
+tools/gltf-extract/package-lock.json
+assets/cache/
+assets/cnb/

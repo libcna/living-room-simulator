@@ -1,0 +1,14 @@
+{
+  "name": "cna-room-gltf-extract",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prepares third-party glTF scenes for CNA: Draco decode, WebP to PNG, subtree extraction, recentring",
+  "type": "module",
+  "dependencies": {
+    "@gltf-transform/core": "^4.2.1",
+    "@gltf-transform/extensions": "^4.2.1",
+    "@gltf-transform/functions": "^4.2.1",
+    "draco3dgltf": "^1.5.7",
+    "sharp": "^0.33.5"
+  }
+}
