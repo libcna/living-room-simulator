@@ -102,6 +102,18 @@ void testWeather()
     check(rain.state().wetness > 0.95f, "rain soaks the ground");
     check(rain.state().lightning == 0.0f, "no lightning in plain rain");
     check(rain.state().kind == WeatherKind::Rain, "held kind does not change");
+    // The diurnal temperature: mid-afternoon is the day's warmest, the small hours the coldest
+    // (a sign slip once had it the other way round, and the stove is lit by it).
+    WeatherSystem warm(3u), cold(3u);
+    warm.setHold(true);
+    cold.setHold(true);
+    warm.advance(0.0f, 0.0f, 15.0f);
+    cold.advance(0.0f, 0.0f, 3.0f);
+    check(warm.state().temperatureC > cold.state().temperatureC + 6.0f, "15:00 is the warmest hour, 03:00 the coldest");
+    WeatherSystem evening(3u);
+    evening.setHold(true);
+    evening.advance(0.0f, 0.0f, 22.0f);
+    check(evening.state().temperatureC < 14.0f && evening.state().temperatureC > 9.0f, "a clear evening sits in the low teens");
 
     // Cold turns the same rain into snow that settles.
     rain.setTemperatureOverride(-4.0f);

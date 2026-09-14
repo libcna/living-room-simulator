@@ -22,10 +22,12 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
    cascade atlas and the prepass depth (`--sunbeams`), since the pipeline's volumetric fog
    cannot be given a shadow map (R-26). Next: a half-size march (214 ms at 720p), the lamps'
    own volumetrics at night (the cube shadow map for the pendant), dust motes in the beams.
-1d. Done in M9 round 17: dust motes in the beams, a wall clock that keeps the scene's time, the
-   wood stove lit on cool evenings (embers, flame cards, a flickering lamp). Next of that kind:
-   a candle flame on the candlestick at night (the flame card and a 12 lm lamp), steam over a
-   cup, the television's glow flickering with its programme.
+1d. Done in M9 rounds 17-18: dust motes in the beams, a wall clock that keeps the scene's
+   time, the wood stove lit on cool evenings (embers, flame cards, a flickering lamp), a candle
+   lit with the lamps, the street facades with recessed windows, sills, plinths, gutters and
+   downpipes, a bench, a bin and a bicycle across the road. Next of that kind: steam over a
+   cup, the television's glow flickering with its programme, a parked car (a procedural body
+   would do at 20 m), a shop front on the terrace opposite.
 2. Exposure: the meter is in; a histogram measure could follow if the pendant views still drift.
 3. Done earlier: street lights switch on their own elevation thresholds (0.5 / 3 degrees) and
    the lamps and street lights ramp over a second (`RoomScene::update`).
