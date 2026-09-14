@@ -710,6 +710,14 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   pendant and moved the exposure. The window lights now scale with the sky's daylight, so
   the night calibration stands. The handles, the picture's level and the props came after
   this round's binary.
+- 2026-09-14 audit round 23 (29 views, `screenshots/audit23/`, with the window lights scaled
+  by the daylight, the handles, the picture's dark-room level, the throw, the book, the post
+  and keys, and the chimney smoke): `night-street` back within a level of round 21 (the
+  night exposure restored), every other view within two levels of round 22 in the mean; the
+  throw reads as cream knit over the sofa's back in `day-corner` and `day-tv-to-sofa`, the
+  drum sconces glow as rounded shades at night, the smoke stays above the street views'
+  top edge under snow (its tail shows in `snow-day-street` only as a faint smudge). No
+  regressions. The frame times sit where round 21 left them (the plumes are two draws).
 - 2026-09-14 lens flare (the pipeline's `LensFlarePass`, wired as `--flare I[,T]` with the
   threshold divided by the exposure like bloom's): at 0.05 the lamps throw small cyan ghosts
   across the frame's centre, tasteful in the wide night views, but a view beneath the pendant
@@ -1167,6 +1175,10 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 | 2026-09-14 | M9 sunbeams | window, sun 45/180 clear | 1280×720 (1024² textures) | 1294 CPU (shadow 128, prepass 50, opaque 271, beams 214, post 844) | the beam march at full size, 24 steps with one atlas tap each; the sun now enters the room (the front skin cut) |
 | 2026-09-14 | M9 round 18 | entrance, noon cloudy | 1280×720 (1024² textures) | 1644 CPU (shadow 245, prepass 121, reflection 19 [60 draws], opaque 398, post 862) | 328 draws + 462 shadow, 843k tris (the facades' recesses, the props, the canvases, the clock); the beams' 210 ms land in "post" (asynchronous GL) |
 | 2026-09-14 | M9 half beams | window, sun 45/180 clear | 960×540 (512² textures) | 850 CPU beams off / 856 half-size march / 939 full-size march (the least of frames 5-16) | the half-size march with the bilinear upsample costs within the frame's noise; the full-size march about 90 ms here |
+| 2026-09-14 | M9 round 23 | entrance, noon cloudy | 1280×720 (1024² textures) | 1532 CPU | 339 draws + 488 shadow: the drum wall lights, the window lights, the throw, the book, the post and keys; the gallery's hero frame |
+| 2026-09-14 | M9 round 23 | sofa-to-tv, 22:00 clear | 1280×720 | 1595 CPU | the fire, the candle, the steam, the picture at its dark-room level, the sconces glowing as drums |
+| 2026-09-14 | M9 round 23 | corner, 10:30 clear | 1280×720 | 1770 CPU | the sun's patches on the floor, the half-size beam march, the motes |
+| 2026-09-14 | M9 round 23 | the pavement camera, 22:00 rain | 1280×720 | 877 CPU | outside the room: the street, its puddles and the chimney smoke off (a mild night) |
 | 2026-09-14 | M9 round 18 | sofa-to-tv, 22:00 clear | 1280×720 | 1640 CPU (shadow 395, prepass 57, reflection 142 [180 draws], opaque 73, post 974) | the stove's fire and the candle burning; two reflection planes (television, mirror) |
 | 2026-09-13 | M9 DoF | material, noon cloudy | 960×540 | 1011 CPU (shadow 304, prepass 48, reflection 48, opaque 300, post 311 with DoF; 235 without) | the depth-of-field pass costs ~90 ms of post here; the autofocus readback is under a millisecond |
 | 2026-09-14 | M9 wet street | street, 22:00 rain | 960×540 | 659 CPU (reflection 197 [304 draws: the panes' capture of the room plus the street's of the houses], opaque ~120, post ~250) | the street capture is 105 exterior draws, 20-40 ms; dry it costs nothing (the plane is disabled) |
