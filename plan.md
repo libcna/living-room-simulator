@@ -907,6 +907,14 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   sun; a faint smudge in a still, as thin smoke is, plainest against the snow sky. The
   chimneys sit at the top edge of the canonical street views, so the smoke shows in them
   only as its leaning tail.
+- 2026-09-14 M9 the door ajar and the hall beyond: the door leaf and its handle now swing 32
+  degrees into the hall about the hinge at the far jamb, and a hall stands beyond the door
+  wall (`RoomScene::buildHallway`): 1.2 m wide along the wall, its own oak floor, plaster
+  walls, ceiling and skirting, a frosted dome light that stays lit whatever the room's lamps
+  do (a lamp of 600 lm that never dims, `hall`, and a constant glow on `hall_dome`: a hall
+  without a window keeps its light on), a navy wool coat on a brass peg and a pair of shoes
+  by the far wall, both on the side the gap looks at. The views past the door show another
+  lit space now instead of a flat white panel.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

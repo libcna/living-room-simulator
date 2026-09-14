@@ -101,6 +101,7 @@ void RoomScene::build()
     buildWalls();
     buildWindows();
     buildDoor();
+    buildHallway();
     buildTrim();
     buildRadiator();
     buildFixtures();
@@ -299,7 +300,11 @@ void RoomScene::buildDoor()
             leaf.addBox(Vector3(lx0 - 0.008f, py0, pz0 + 0.03f), Vector3(lx0, py0 + 0.03f, pz1 - 0.03f), 0.5f);
             leaf.addBox(Vector3(lx0 - 0.008f, py1 - 0.03f, pz0 + 0.03f), Vector3(lx0, py1, pz1 - 0.03f), 0.5f);
         }
-    place(leaf.take(), "paint_door", "door_leaf");
+    // Ajar: the leaf and its handle swing 32 degrees into the hall about the
+    // hinge at the far jamb, so the views past the door show the hall.
+    const Matrix swing = Matrix::CreateTranslation(-(lx0 + 0.02f), 0.0f, -(z1 - 0.03f)) * Matrix::CreateRotationY(MathHelper::ToRadians(-32.0f))
+                         * Matrix::CreateTranslation(lx0 + 0.02f, 0.0f, z1 - 0.03f);
+    place(leaf.take(), "paint_door", "door_leaf", swing);
 
     // Handle: a lever on a rose, room side, at 1.05 m.
     MeshBuilder handle;
@@ -314,7 +319,60 @@ void RoomScene::buildDoor()
     lever.addCylinder(Vector3(0.0f, 0.0f, 0.0f), 0.009f, 0.12f, 16, 0.2f);
     lever.transform(Matrix::CreateRotationX(-MathHelper::PiOver2) * Matrix::CreateTranslation(lx0 - 0.065f, hy, hz));
     handle.mesh().append(lever.mesh());
-    place(handle.take(), "metal_brushed", "door_handle");
+    place(handle.take(), "metal_brushed", "door_handle", swing);
+}
+
+void RoomScene::buildHallway()
+{
+    // A hall beyond the door wall: 1.2 m wide along the wall, its own floor,
+    // ceiling and far wall, a flush dome light that stays on (no window of
+    // its own), a coat on a hook and a pair of shoes by the wall.
+    const RoomLayout& L = layout_;
+    const float x0 = L.halfWidth + L.interiorWallThickness, x1 = x0 + 1.20f;
+    const float z0 = -0.20f, z1 = 2.80f, H = L.ceilingHeight;
+    MeshBuilder floor, ceiling, walls;
+    floor.addFloor(x0, z0, x1, z1, 0.0f, 1.0f, true);
+    ceiling.addFloor(x0, z0, x1, z1, H, 1.0f, false);
+    walls.addBox(Vector3(x1, 0.0f, z0), Vector3(x1 + 0.12f, H, z1), 1.0f, kFaceNegX);           // the far wall, facing the door
+    walls.addBox(Vector3(x0, 0.0f, z0 - 0.12f), Vector3(x1, H, z0), 1.0f, kFacePosZ);           // the end walls
+    walls.addBox(Vector3(x0, 0.0f, z1), Vector3(x1, H, z1 + 0.12f), 1.0f, kFaceNegZ);
+    walls.addBox(Vector3(x0 - 0.01f, 0.0f, z0), Vector3(x0, H, z1), 1.0f, kFacePosX);            // the door wall's other face
+    place(floor.take(), "oak_floor", "hall_floor");
+    place(ceiling.take(), "plaster_ceiling", "hall_ceiling");
+    place(walls.take(), "plaster_warm_white", "hall_walls");
+    MeshBuilder skirting;
+    skirting.addBox(Vector3(x1 - 0.015f, 0.0f, z0), Vector3(x1, 0.10f, z1), 0.5f, kFaceNegX | kFacePosY);
+    place(skirting.take(), "paint_white_trim", "hall_skirting");
+    // The dome light: a frosted half sphere on the ceiling, always lit.
+    MeshBuilder dome;
+    dome.addSphere(Vector3((x0 + x1) * 0.5f, H + 0.02f, L.doorCentreZ), 0.13f, 20, 12, 0.3f);
+    place(dome.take(), "hall_dome", "hall_dome", Matrix::getIdentityProperty(), false);
+    // A coat on a hook: shoulders, body and a collar in navy wool, the hook a brass peg.
+    {
+        const float cx = x1 - 0.07f, cz = L.doorCentreZ - 0.62f;   // on the side the gap looks at
+        MeshBuilder coat;
+        coat.addBox(Vector3(cx - 0.05f, 1.42f, cz - 0.21f), Vector3(cx + 0.05f, 1.52f, cz + 0.21f), 0.3f);   // shoulders
+        coat.addBox(Vector3(cx - 0.045f, 0.55f, cz - 0.18f), Vector3(cx + 0.045f, 1.44f, cz + 0.18f), 0.3f);   // body
+        coat.addBox(Vector3(cx - 0.06f, 1.46f, cz - 0.09f), Vector3(cx + 0.06f, 1.58f, cz + 0.09f), 0.3f);   // collar
+        coat.addBox(Vector3(cx - 0.03f, 0.80f, cz - 0.28f), Vector3(cx + 0.035f, 1.40f, cz - 0.20f), 0.3f);   // sleeves
+        coat.addBox(Vector3(cx - 0.03f, 0.80f, cz + 0.20f), Vector3(cx + 0.035f, 1.40f, cz + 0.28f), 0.3f);
+        place(coat.take(), "coat_wool", "hall_coat");
+        MeshBuilder peg;
+        peg.addBox(Vector3(x1 - 0.10f, 1.58f, cz - 0.012f), Vector3(x1, 1.604f, cz + 0.012f), 0.2f);
+        peg.addBox(Vector3(x1 - 0.02f, 1.50f, cz - 0.03f), Vector3(x1, 1.66f, cz + 0.03f), 0.2f);
+        place(peg.take(), "sconce_brass", "hall_peg");
+    }
+    // Shoes by the far wall, one a little askew.
+    {
+        MeshBuilder shoes;
+        shoes.addBox(Vector3(x1 - 0.30f, 0.0f, L.doorCentreZ - 0.12f), Vector3(x1 - 0.04f, 0.07f, L.doorCentreZ - 0.02f), 0.2f);
+        shoes.addBox(Vector3(x1 - 0.30f, 0.0f, L.doorCentreZ - 0.12f), Vector3(x1 - 0.18f, 0.11f, L.doorCentreZ - 0.02f), 0.2f);   // the heel
+        place(shoes.take(), "rubber_black", "hall_shoe_a");
+        MeshBuilder shoe;
+        shoe.addBox(Vector3(-0.13f, 0.0f, -0.05f), Vector3(0.13f, 0.07f, 0.05f), 0.2f);
+        shoe.addBox(Vector3(-0.13f, 0.0f, -0.05f), Vector3(-0.01f, 0.11f, 0.05f), 0.2f);
+        place(shoe.take(), "rubber_black", "hall_shoe_b", Matrix::CreateRotationY(MathHelper::ToRadians(14.0f)) * Matrix::CreateTranslation(x1 - 0.17f, 0.0f, L.doorCentreZ + 0.08f));
+    }
 }
 
 void RoomScene::buildTrim()
@@ -883,6 +941,18 @@ void RoomScene::buildLamps()
     add("floor lamp", Vector3(1.35f, 1.40f, -1.55f), 800.0f, warm, 7.0f, false);
     add("table lamp", Vector3(-2.35f, 0.632f + 0.30f, -1.20f), 400.0f, warm, 6.0f, false);
     add("sconce left", Vector3(-1.10f, 1.84f, L.halfDepth - 0.105f), 300.0f, warm, 5.0f, false);
+    {
+        // The hall's dome light, always on: it has no window of its own.
+        Lamp hall;
+        hall.name = "hall";
+        hall.position = Vector3(L.halfWidth + L.interiorWallThickness + 0.60f, L.ceilingHeight - 0.12f, L.doorCentreZ);
+        hall.colour = warm;
+        hall.fullIntensity = Lamp::fromLumens(600.0f);
+        hall.intensity = hall.fullIntensity;
+        hall.range = 5.0f;
+        hall.on = true;
+        lamps.push_back(hall);
+    }
     add("sconce right", Vector3(1.10f, 1.84f, L.halfDepth - 0.105f), 300.0f, warm, 5.0f, false);
     add("reading lamp", Vector3(2.55f, 1.55f, 0.32f), 350.0f, warm, 6.0f, false);
     // The stove's fire: a few hundred lumens of orange, flickering (update).
@@ -1258,7 +1328,7 @@ void RoomScene::applyLampLevels()
     const auto tint = [](float level) { return Vector3(level, std::pow(level, 1.15f), std::pow(level, 1.3f)); };
     for (Lamp& lamp : renderer_.lamps())
     {
-        if (lamp.name == "television" || lamp.daylightPortal) continue;
+        if (lamp.name == "television" || lamp.name == "hall" || lamp.daylightPortal) continue;
         if (lamp.name == "stove" || lamp.name == "candle")
         {
             const float level = lamp.name == "stove" ? fireLevel_ * (0.7f + 0.3f * fireFlicker_) : lampLevel_ * (0.8f + 0.2f * candleFlicker_);

@@ -213,6 +213,10 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     surfaced("throw_knit", [&] { return TextureBaker::knit(size / 2, seed + 21u, 0.74f, 0.68f, 0.58f); }, 1.0f, 0.0f);
     if (Material* m = edit("throw_knit")) m->doubleSided = true;
     surfaced("book_cover", [&] { return TextureBaker::flat(size / 8, seed + 22u, 0.16f, 0.30f, 0.34f, 0.75f, 0.0f, 0.05f); }, 1.0f, 0.0f);
+    // The hall: a navy wool coat, a frosted dome that stays lit (~1000 cd/m^2 over its face).
+    surfaced("coat_wool", [&] { return TextureBaker::fabricWeave(size / 2, seed + 23u, 0.13f, 0.15f, 0.24f); }, 1.0f, 0.0f);
+    surfaced("hall_dome", [&] { return TextureBaker::flat(size / 8, seed + 24u, 0.95f, 0.93f, 0.88f, 0.45f, 0.0f, 0.0f); }, 1.0f, 0.0f);
+    if (Material* m = edit("hall_dome")) m->emissiveFactor = Vector3(1.0f, 0.86f, 0.68f) * 0.13f;
     surfaced("facade_render", [&] { return TextureBaker::plaster(size, seed + 21u, 0.80f, 0.74f, 0.62f); }, 1.0f, 0.0f);
     surfaced("facade_render_2", [&] { return TextureBaker::plaster(size, seed + 22u, 0.70f, 0.72f, 0.70f); }, 1.0f, 0.0f);
     surfaced("facade_render_3", [&] { return TextureBaker::plaster(size, seed + 25u, 0.78f, 0.62f, 0.42f); }, 1.0f, 0.0f);

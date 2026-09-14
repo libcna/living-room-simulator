@@ -31,9 +31,9 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
    half size (its cost now within the frame's noise), the television's light on the room
    following its picture, steam over the cup, the sconces rebuilt as linen drum wall lights.
    Handles on the windows, a throw over the sofa's back, an open paperback, post and keys on
-   the chest are in, and chimney smoke across the street on cold days. Next of that kind: a
-   coat and a bag by the door, slippers by the sofa, a newspaper on the armchair, a passer-by
-   on the pavement.
+   the chest are in, chimney smoke across the street on cold days, and the door ajar on a lit
+   hall with a coat and shoes. Next of that kind: slippers by the sofa, a newspaper on the
+   armchair, a passer-by on the pavement, a bag by the hall door.
 2. Exposure: the meter is in; a histogram measure could follow if the pendant views still drift.
 3. Done earlier: street lights switch on their own elevation thresholds (0.5 / 3 degrees) and
    the lamps and street lights ramp over a second (`RoomScene::update`).
