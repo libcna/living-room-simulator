@@ -213,6 +213,12 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     surfaced("throw_knit", [&] { return TextureBaker::knit(size / 2, seed + 21u, 0.74f, 0.68f, 0.58f); }, 1.0f, 0.0f);
     if (Material* m = edit("throw_knit")) m->doubleSided = true;
     surfaced("book_cover", [&] { return TextureBaker::flat(size / 8, seed + 22u, 0.16f, 0.30f, 0.34f, 0.75f, 0.0f, 0.05f); }, 1.0f, 0.0f);
+    // Street signage: the shop's sign box (lit with the street lights, its lettering in the
+    // glow), a bus stop's yellow flag and its timetable case's lit panel.
+    surfaced("shop_sign", [&] { return TextureBaker::signboard(size / 2, seed + 25u); }, 1.0f, 0.0f);
+    if (Material* m = edit("shop_sign")) m->emissive = m->albedo;
+    surfaced("bus_flag", [&] { return TextureBaker::flat(size / 8, seed + 26u, 0.95f, 0.72f, 0.10f, 0.45f, 0.0f, 0.02f); }, 1.0f, 0.0f);
+    surfaced("timetable", [&] { return TextureBaker::flat(size / 8, seed + 27u, 0.90f, 0.90f, 0.86f, 0.35f, 0.0f, 0.04f); }, 1.0f, 0.0f);
     // The hall: a navy wool coat, a frosted dome that stays lit (~1000 cd/m^2 over its face).
     surfaced("coat_wool", [&] { return TextureBaker::fabricWeave(size / 2, seed + 23u, 0.13f, 0.15f, 0.24f); }, 1.0f, 0.0f);
     surfaced("hall_dome", [&] { return TextureBaker::flat(size / 8, seed + 24u, 0.95f, 0.93f, 0.88f, 0.45f, 0.0f, 0.0f); }, 1.0f, 0.0f);

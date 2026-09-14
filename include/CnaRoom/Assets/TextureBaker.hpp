@@ -39,6 +39,8 @@ public:
                                               float b);
     [[nodiscard]] static SurfaceImages fabricWeave(int size, std::uint32_t seed, float r, float g,
                                                    float b);
+    /// A shop's sign: a cream board with a row of dark letter-like blocks.
+    [[nodiscard]] static SurfaceImages signboard(int size, std::uint32_t seed);
     /// A chunky rib knit: beaded ribs a centimetre apart, for throws and jumpers.
     [[nodiscard]] static SurfaceImages knit(int size, std::uint32_t seed, float r, float g, float b);
     [[nodiscard]] static SurfaceImages paintedWood(int size, std::uint32_t seed, float r, float g,

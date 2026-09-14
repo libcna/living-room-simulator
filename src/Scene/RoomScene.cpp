@@ -1022,6 +1022,8 @@ void RoomScene::buildLamps()
         {"tv.1", Vector3(0.6f, 0.7f, 0.9f), 0.004f, true},
         // Outside: luminaire diffusers (~10 000 cd/m^2) and lit windows (~80 cd/m^2).
         {"street_lamp_head", Vector3(1.0f, 0.88f, 0.70f), 1.3f, false, true},
+        {"shop_sign", Vector3(1.0f, 0.97f, 0.90f), 0.25f, false, true},      // a lit sign box, ~2000 cd/m^2
+        {"timetable", Vector3(1.0f, 1.0f, 1.0f), 0.12f, false, true},        // the bus stop's lit case
         {"facade_window_lit", Vector3(1.0f, 0.80f, 0.55f), 0.008f, false, true},
         {"facade_window_lit_dim", Vector3(1.0f, 0.72f, 0.45f), 0.0025f, false, true},    // behind drawn curtains
         {"facade_window_lit_cool", Vector3(0.65f, 0.78f, 1.0f), 0.006f, false, true},   // a television's flicker-blue

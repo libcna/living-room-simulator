@@ -920,6 +920,13 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   without a window keeps its light on), a navy wool coat on a brass peg and a pair of shoes
   by the far wall, both on the side the gap looks at. The views past the door show another
   lit space now instead of a flat white panel.
+- 2026-09-14 M9 street signage: the shop on the terrace opposite carries a sign box on its
+  fascia (a lettered board baked by `TextureBaker::signboard`, a word of dark blocks with
+  notches for eyes and crossbars, mapped once across the face; its lettering in the glow,
+  0.25 with the street lights, about 2000 cd/m^2 for the box's cream), and a bus stop stands
+  on the far pavement by the kerb: a pole on a base plate, a yellow flag in a metal rim at
+  the top, a timetable case at eye height whose panel lights with the street (0.12). Both
+  are chunked with the street furniture and cast shadows.
 - 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
   simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a

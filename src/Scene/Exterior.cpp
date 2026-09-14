@@ -220,7 +220,7 @@ void RoomScene::buildExterior()
     // ---- buildings ----
     const char* const facadeMaterials[] = {"facade_render", "brick_red", "facade_render_2", "facade_render_3", "facade_render_4"};
     ChunkSet facades[5];
-    ChunkSet frames, glassDark, glassLit, glassLitDim, glassLitCool, roofsTile, roofsSlate, doors, chimneys, sills, gutters, plinths, shopTrim;
+    ChunkSet frames, glassDark, glassLit, glassLitDim, glassLitCool, roofsTile, roofsSlate, doors, chimneys, sills, gutters, plinths, shopTrim, signs;
     Dice dice(20260912u);
 
     // Adds one building whose front plane is z = front, facing +Z (towards
@@ -296,6 +296,24 @@ void RoomScene::buildExterior()
                 // The fascia, proud of the front over door and window alike.
                 const float zFascia1 = zFront + facing * 0.10f;
                 shopTrim.at(bx).addBoxWorldUv(Vector3(b.x0 + 0.05f, ground + 2.58f, std::min(zFront, zFascia1)), Vector3(b.x1 - 0.05f, ground + 3.08f, std::max(zFront, zFascia1)), 0.5f, kAllFaces);
+                // The sign box on the fascia: a lettered panel that lights with the street.
+                const float zSign1 = zFascia1 + facing * 0.08f;
+                const float sx0 = b.x0 + 0.45f, sx1 = b.x1 - 0.45f;
+                signs.at(bx).addBoxWorldUv(Vector3(sx0, ground + 2.66f, std::min(zFascia1, zSign1)), Vector3(sx1, ground + 3.00f, std::max(zFascia1, zSign1)), 0.5f, kAllFaces);
+                // Its face carries the lettering once across, not the world-space tiling.
+                {
+                    MeshBuilder face;
+                    const float zFace = zSign1 + facing * 0.002f;
+                    if (facing > 0.0f)
+                        face.addQuadUv(Vector3(sx0, ground + 2.66f, zFace), Vector3(sx1, ground + 2.66f, zFace), Vector3(sx1, ground + 3.00f, zFace), Vector3(sx0, ground + 3.00f, zFace));
+                    else
+                        face.addQuadUv(Vector3(sx1, ground + 2.66f, zFace), Vector3(sx0, ground + 2.66f, zFace), Vector3(sx0, ground + 3.00f, zFace), Vector3(sx1, ground + 3.00f, zFace));
+                    MeshData data = face.take();
+                    MeshBuilder::computeTangents(data);
+                    const std::uint32_t base = static_cast<std::uint32_t>(signs.at(bx).mesh().vertices.size());
+                    for (const auto& v : data.vertices) signs.at(bx).mesh().vertices.push_back(v);
+                    for (std::uint32_t i : data.indices) signs.at(bx).mesh().indices.push_back(base + i);
+                }
                 continue;
             }
             for (int i = 0; i < bays; ++i)
@@ -467,6 +485,19 @@ void RoomScene::buildExterior()
             for (const auto& v : data.vertices) into.mesh().vertices.push_back(v);
             for (std::uint32_t i : data.indices) into.mesh().indices.push_back(base + i);
         };
+        // A bus stop on the far pavement by the kerb: a pole, a yellow flag at
+        // the top facing the road, a timetable case at eye height (lit at night).
+        ChunkSet flags, cases;
+        {
+            const float bx = -1.2f, bz = farKerbZ - 0.55f;
+            tube(metal.at(bx), Vector3(bx, 0.0f, bz), Vector3(bx, 2.75f, bz), 0.035f, 12);
+            metal.at(bx).addBoxWorldUv(Vector3(bx - 0.12f, 0.0f, bz - 0.12f), Vector3(bx + 0.12f, 0.03f, bz + 0.12f), 0.3f, kAllFaces);   // the base plate
+            flags.at(bx).addBoxWorldUv(Vector3(bx - 0.20f, 2.32f, bz - 0.012f), Vector3(bx + 0.20f, 2.70f, bz + 0.012f), 0.4f, kAllFaces);
+            metal.at(bx).addBoxWorldUv(Vector3(bx - 0.21f, 2.31f, bz - 0.016f), Vector3(bx + 0.21f, 2.33f, bz + 0.016f), 0.3f, kAllFaces);   // the flag's rim
+            metal.at(bx).addBoxWorldUv(Vector3(bx - 0.21f, 2.69f, bz - 0.016f), Vector3(bx + 0.21f, 2.71f, bz + 0.016f), 0.3f, kAllFaces);
+            metal.at(bx).addBoxWorldUv(Vector3(bx + 0.03f, 1.25f, bz - 0.04f), Vector3(bx + 0.42f, 1.85f, bz + 0.04f), 0.3f, kAllFaces);   // the case
+            cases.at(bx).addBoxWorldUv(Vector3(bx + 0.06f, 1.29f, bz - 0.045f), Vector3(bx + 0.39f, 1.81f, bz + 0.045f), 0.5f, kAllFaces);   // its lit panel, proud of both faces
+        }
         // The bench: two cast ends, five slats for the seat and three for the
         // back, which is on the house side (-Z) so it faces the road.
         {
@@ -670,6 +701,8 @@ void RoomScene::buildExterior()
         placeChunks(wood, "bench_wood", "exterior_furniture_wood", true);
         placeChunks(rubber, "rubber_black", "exterior_furniture_rubber", true);
         placeChunks(stone, "concrete", "exterior_furniture_stone", true);
+        placeChunks(flags, "bus_flag", "exterior_bus_flag", true);
+        placeChunks(cases, "timetable", "exterior_bus_case", true);
     }
     // Distant blocks behind the terrace and a taller skyline further out.
     {
@@ -705,6 +738,7 @@ void RoomScene::buildExterior()
     placeChunks(plinths, "concrete", "exterior_plinths", true);
     placeChunks(gutters, "gutter_metal", "exterior_gutters", true);
     placeChunks(shopTrim, "bench_wood", "exterior_shop_trim", true);
+    placeChunks(signs, "shop_sign", "exterior_shop_signs", true);
 
     // ---- trees ----
     {

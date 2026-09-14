@@ -138,6 +138,54 @@ SurfaceImages TextureBaker::carpet(int size, std::uint32_t seed, float r, float 
     return out;
 }
 
+SurfaceImages TextureBaker::signboard(int size, std::uint32_t seed)
+{
+    // A cream board (wide: the sign is 8:1, the texture stretches) with a
+    // word of dark blocks across its middle: letters of random width with
+    // gaps, a few with a notch, so it reads as lettering at 20 m.
+    SurfaceImages out;
+    out.albedo = Image(size, size);
+    out.orm = Image(size, size);
+    Field height(size, size);
+    out.tileMetres = 1.0f;
+    std::uint32_t state = seed * 2654435761u + 12345u;
+    const auto next = [&] { state ^= state << 13; state ^= state >> 17; state ^= state << 5; return static_cast<float>(state & 0xFFFFFFu) / 16777216.0f; };
+    struct Letter { float u0, u1; int notch; };
+    std::vector<Letter> letters;
+    float u = 0.08f;
+    while (u < 0.90f)
+    {
+        const float w = 0.035f + 0.045f * next();
+        if (u + w > 0.92f) break;
+        letters.push_back({u, u + w, static_cast<int>(next() * 3.0f)});
+        u += w + 0.014f + 0.02f * (next() < 0.2f ? 1.0f : 0.0f);   // a word gap now and then
+    }
+    for (int y = 0; y < size; ++y)
+        for (int x = 0; x < size; ++x)
+        {
+            const float px = (static_cast<float>(x) + 0.5f) / static_cast<float>(size), py = (static_cast<float>(y) + 0.5f) / static_cast<float>(size);
+            bool ink = false;
+            if (py > 0.30f && py < 0.70f)
+                for (const Letter& l : letters)
+                {
+                    if (px < l.u0 || px > l.u1) continue;
+                    // A notch cuts a hole or a bar out of the block: an eye, a crossbar.
+                    const float lu = (px - l.u0) / (l.u1 - l.u0), lv = (py - 0.30f) / 0.40f;
+                    if (l.notch == 1 && lu > 0.3f && lu < 0.7f && lv > 0.35f && lv < 0.65f) continue;
+                    if (l.notch == 2 && lv > 0.45f && lv < 0.55f && lu > 0.15f && lu < 0.85f) continue;
+                    ink = true;
+                }
+            const float grain = Noise::fbm(px, py, 12, 2, 0.5f, seed + 3u);
+            const float shade = 0.92f + 0.08f * (grain - 0.5f);
+            if (ink) out.albedo.set(x, y, 0.10f, 0.10f, 0.12f);
+            else out.albedo.set(x, y, clamp01(0.93f * shade), clamp01(0.88f * shade), clamp01(0.74f * shade));
+            height.ref(x, y) = ink ? 0.0f : 0.4f;
+            packOrm(out.orm, x, y, 1.0f, ink ? 0.45f : 0.6f, 0.0f);
+        }
+    out.normal = normalMapFromHeight(height, 0.6f);
+    return out;
+}
+
 SurfaceImages TextureBaker::knit(int size, std::uint32_t seed, float r, float g, float b)
 {
     SurfaceImages out;
