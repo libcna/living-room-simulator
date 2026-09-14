@@ -91,4 +91,12 @@ private:
 /// the room's own stove).
 [[nodiscard]] float chimneySmokeLevel(float temperatureC);
 
+/// Whether the sun sits behind a cloud at this moment, 0 (in a gap) to 1
+/// (behind), for a sky of the given coverage: a slow two-tone drift of the
+/// time (periods of 47 and 113 s) against the coverage, so a broken sky
+/// swaps the two over a minute or so and its average over time is the
+/// coverage; a clear sky is always 0, an overcast one always 1, and at
+/// second zero the sky sits at its typical state.
+[[nodiscard]] float cloudBehindSun(float coverage, float seconds);
+
 }  // namespace CnaRoom

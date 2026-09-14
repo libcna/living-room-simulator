@@ -4,6 +4,7 @@
 #include "CnaRoom/Sim/TimeOfDay.hpp"
 #include "CnaRoom/Sim/WeatherSystem.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <string>
@@ -188,11 +189,34 @@ void testChimneySmoke()
     check(chimneySmokeLevel(12.0f) < chimneySmokeLevel(10.0f), "colder smokes more");
 }
 
+void testPassingClouds()
+{
+    using CnaRoom::cloudBehindSun;
+    bool clearAlways = true, overcastAlways = true;
+    float lowest = 1.0f, highest = 0.0f, sum = 0.0f;
+    for (int second = 0; second < 600; ++second)
+    {
+        const float s = static_cast<float>(second);
+        clearAlways = clearAlways && cloudBehindSun(0.0f, s) == 0.0f;
+        overcastAlways = overcastAlways && cloudBehindSun(1.0f, s) == 1.0f;
+        const float b = cloudBehindSun(0.5f, s);
+        lowest = std::min(lowest, b);
+        highest = std::max(highest, b);
+        sum += b;
+    }
+    check(clearAlways, "a clear sky never hides the sun");
+    check(overcastAlways, "an overcast sky always does");
+    check(lowest < 0.05f && highest > 0.95f, "a half-covered sky swaps gap and cloud, span " + std::to_string(lowest) + ".." + std::to_string(highest));
+    check(near(sum / 600.0f, 0.5f, 0.15f), "over ten minutes the sun sits behind cloud about half the time: " + std::to_string(sum / 600.0f));
+    check(near(cloudBehindSun(0.5f, 0.0f), 0.5f, 0.01f), "second zero sits at the typical state");
+}
+
 int main()
 {
     testTimeOfDay();
     testWeather();
     testChimneySmoke();
+    testPassingClouds();
     if (failures == 0) std::printf("cna_room_sim_tests: all checks passed\n");
     return failures == 0 ? 0 : 1;
 }

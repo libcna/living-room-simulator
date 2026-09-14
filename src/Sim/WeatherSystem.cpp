@@ -236,4 +236,15 @@ float chimneySmokeLevel(float temperatureC)
     return std::clamp((14.0f - temperatureC) / 6.0f, 0.0f, 1.0f);
 }
 
+float cloudBehindSun(float coverage, float seconds)
+{
+    if (coverage <= 0.02f) return 0.0f;
+    if (coverage >= 0.98f) return 1.0f;
+    constexpr float kTwoPi = 6.28318530718f;
+    const float drift = 0.5f + 0.5f * (0.6f * std::sin(seconds * kTwoPi / 47.0f) + 0.4f * std::sin(seconds * kTwoPi / 113.0f));
+    constexpr float edge = 0.12f;
+    const float x = std::clamp((drift - (1.0f - coverage - edge)) / (2.0f * edge), 0.0f, 1.0f);
+    return x * x * (3.0f - 2.0f * x);
+}
+
 }  // namespace CnaRoom

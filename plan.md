@@ -927,6 +927,16 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   on the far pavement by the kerb: a pole on a base plate, a yellow flag in a metal rim at
   the top, a timetable case at eye height whose panel lights with the street (0.12). Both
   are chunked with the street furniture and cast shadows.
+- 2026-09-14 M9 passing clouds: the sun through the deck was one steady average
+  (`cloudDim`, the gap share plus what thin cloud passes) however broken the sky. Now
+  `cloudBehindSun(coverage, seconds)` (simulation layer, tested) says whether the sun sits in
+  a gap or behind a cloud at this moment, a two-tone drift of 47 and 113 s periods against
+  the coverage with a soft edge, so under a broken sky the sun swaps between the gap's
+  brightness (the gap share over the open share, capped at the open sun) and the thin
+  cloud's smear over a minute or so, the shadows sharpening in the gaps and softening
+  behind; the average over time stays `cloudDim`, a clear sky never hides the sun, an
+  overcast one always does, and second zero (every capture) sits at the typical state, so
+  the canonical views hold. The daylight in the room now breathes as clouds pass.
 - 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
   simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a

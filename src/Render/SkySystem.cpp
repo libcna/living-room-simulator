@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 #include "CnaRoom/Render/SkySystem.hpp"
 
+#include "CnaRoom/Sim/WeatherSystem.hpp"
+
 #include "CnaRoom/Render/FloatCube.hpp"
 #include "CnaRoom/Render/Irradiance.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTargetCube.hpp"
@@ -482,8 +484,15 @@ void SkySystem::computeLighting()
     const float gap = std::pow(1.0f - cover, 1.25f);
     const float thin = (1.0f - dense) * (1.0f - dense) * (1.0f - dense) * 0.2f;
     const float cloudDim = gap + cover * thin;
-    lighting_.shadowSoftness = clamp01(cover * (0.4f + 0.8f * dense));
-    lighting_.sunColour = Vector3(t.X, t.Y, t.Z) * (sunPower * state_.intensity * cloudDim);
+    // Passing clouds: at any moment the sun is either in a gap (the gap's
+    // share of the average, capped at the open sun) or behind a cloud (what
+    // the thin cloud passes), swapping over a minute under a broken sky so
+    // the daylight breathes; the average over time stays cloudDim.
+    const float behind = cloudBehindSun(cover, state_.timeSeconds);
+    const float gapBright = std::min(1.0f, gap / std::max(1.0f - cover, 0.05f));
+    const float sunNow = (1.0f - behind) * gapBright + behind * thin;
+    lighting_.shadowSoftness = clamp01((1.0f - behind) * cover * 0.35f * (1.0f + dense) + behind * (0.55f + 0.45f * dense));
+    lighting_.sunColour = Vector3(t.X, t.Y, t.Z) * (sunPower * state_.intensity * sunNow);
     if (!lighting_.sunUp) lighting_.sunColour = Vector3::Zero;
 
     // Moon: a cool dim key light at night.
