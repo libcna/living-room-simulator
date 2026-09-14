@@ -110,6 +110,14 @@ private:
     bool cameraOverride_ = false;
     Microsoft::Xna::Framework::Vector3 cameraOverridePosition_{0.0f, 1.6f, 0.0f};
     float cameraOverrideYaw_ = 0.0f, cameraOverridePitch_ = 0.0f;
+    // --dolly: the camera glides from where it starts to a target (a camera spec or a viewpoint)
+    // over a number of seconds, eased, for recorded clips.
+    std::string dollyTarget_;
+    float dollySeconds_ = 0.0f;
+    float dollyElapsed_ = 0.0f;
+    bool dollyActive_ = false;
+    Microsoft::Xna::Framework::Vector3 dollyFromPosition_, dollyToPosition_;
+    float dollyFromYaw_ = 0.0f, dollyToYaw_ = 0.0f, dollyFromPitch_ = 0.0f, dollyToPitch_ = 0.0f;
     float elapsedSeconds_ = 0.0f;
     bool contentLoaded_ = false;
     std::uint32_t seed_ = 20260912u;

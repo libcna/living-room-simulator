@@ -1,5 +1,9 @@
 # cna-room
 
+**Status:** closed on 2026-09-14 with all nine milestones delivered and 29 audit rounds logged;
+`plan.md` §32 is the closing summary, `NEXT.md` the optional backlog, `CNA_FINDINGS.md` the 37
+CNA findings met on the way.
+
 A realistic, explorable 3D living room rendered with [CNA](https://github.com/libcna/cna)
 (`next` branch) and [sharp-runtime](https://github.com/libcna/sharp-runtime) (`next` branch),
 using CNA's **EasyGL** renderer (`OPENGLES3`) and the **CNAEXT** modern graphics layer.
@@ -119,6 +123,10 @@ SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x2
 `--record DIR[,EVERY]` writes every EVERYth frame to `DIR/frame-NNNN.png` in deterministic
 1/60 s steps (for clips: `scripts/record-gif.sh OUT.gif SECONDS [options]` records one and
 assembles a 12 fps GIF with Pillow).
+`--dolly TARGET SECONDS` glides the camera from its start to a camera spec or a view name over
+the seconds (a tracking shot when recording); `--motion-blur S` sets the pipeline's camera
+motion blur (0 by default, not evaluated).
+
 
 Debug switches, as environment variables: `CNA_ROOM_DEBUG_SUNBEAMS=1..6` paints the beam
 march's inputs (depth, position, shadow, atlas, raw scatter, clip) and `CNA_ROOM_SUNBEAM_POINTS`

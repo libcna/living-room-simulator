@@ -130,6 +130,8 @@ bool RoomApplication::configure(int argc, char** argv)
                 "  --lamp-haze D             the pendant's light scattered by the room's air at night (default 0.35, 0 off)\n"
                 "  --contact-shadows D       screen-space contact shadows toward the sun, 0..1 (default 0, experimental)\n"
                 "  --no-decals               no wear and stains projected onto the room\n"
+                "  --dolly TARGET SECONDS    glide the camera from its start to TARGET (x,y,z,yaw,pitch or a view name) over SECONDS\n"
+                "  --motion-blur S           the pipeline's camera motion blur for moving shots (default 0)\n"
                 "  --motes N[,PX]            dust motes drifting in the beams (default 400, 0 off) and their size in pixels at 540p (default 2)\n"
                 "  --no-steam                no steam over the cup on the coffee table\n"
                 "  --no-reflections          planar reflections off (mirror, television screen)\n"
@@ -268,6 +270,12 @@ bool RoomApplication::configure(int argc, char** argv)
         else if (arg == "--contact-shadows") settings_.contactShadows = std::clamp(std::strtof(next("--contact-shadows"), nullptr), 0.0f, 1.0f);
         else if (arg == "--no-contact-shadows") settings_.contactShadows = 0.0f;
         else if (arg == "--no-decals") settings_.decals = false;
+        else if (arg == "--dolly")
+        {
+            dollyTarget_ = next("--dolly");
+            dollySeconds_ = std::max(0.01f, std::strtof(next("--dolly"), nullptr));
+        }
+        else if (arg == "--motion-blur") settings_.motionBlur = std::max(0.0f, std::strtof(next("--motion-blur"), nullptr));
         else if (arg == "--no-steam") settings_.steam = false;
         else if (arg == "--motes")
         {
@@ -381,6 +389,37 @@ void RoomApplication::LoadContent()
     else
     {
         applyViewpoint(startView_);
+    }
+    if (!dollyTarget_.empty())
+    {
+        // The dolly's end: a camera spec, or a named viewpoint; its start is where the camera is now.
+        Vector3 position;
+        float yaw = 0.0f, pitch = 0.0f;
+        bool found = parseCamera(dollyTarget_, position, yaw, pitch);
+        if (!found)
+            for (const Viewpoint& view : scene_->viewpoints())
+                if (view.name == dollyTarget_)
+                {
+                    position = view.position;
+                    yaw = view.yawDegrees;
+                    pitch = view.pitchDegrees;
+                    found = true;
+                    break;
+                }
+        if (found)
+        {
+            dollyFromPosition_ = camera_.position();
+            dollyFromYaw_ = camera_.yaw();
+            dollyFromPitch_ = camera_.pitch();
+            dollyToPosition_ = position;
+            dollyToYaw_ = MathHelper::ToRadians(yaw);
+            dollyToPitch_ = MathHelper::ToRadians(pitch);
+            dollyElapsed_ = 0.0f;
+            dollyActive_ = true;
+            CNA::Logger::Info("cna-room: dolly to " + dollyTarget_ + " over " + std::to_string(dollySeconds_) + " s");
+        }
+        else
+            CNA::Logger::Warn("cna-room: --dolly target not understood: " + dollyTarget_);
     }
 
     updateSky();
@@ -520,6 +559,19 @@ void RoomApplication::Update(GameTime& gameTime)
     {
         handleHotkeys(keyboard, previousKeyboard_);
         controller_.update(camera_, keyboard, dt);
+        if (dollyActive_)
+        {
+            // Eased glide; the yaw takes the short way round.
+            dollyElapsed_ += dt;
+            const float t = std::clamp(dollyElapsed_ / dollySeconds_, 0.0f, 1.0f);
+            const float e = t * t * (3.0f - 2.0f * t);
+            float yawDelta = dollyToYaw_ - dollyFromYaw_;
+            while (yawDelta > MathHelper::Pi) yawDelta -= MathHelper::TwoPi;
+            while (yawDelta < -MathHelper::Pi) yawDelta += MathHelper::TwoPi;
+            camera_.setPosition(Vector3::Lerp(dollyFromPosition_, dollyToPosition_, e));
+            camera_.setOrientation(dollyFromYaw_ + yawDelta * e, dollyFromPitch_ + (dollyToPitch_ - dollyFromPitch_) * e);
+            if (t >= 1.0f) dollyActive_ = false;
+        }
         renderer_->setFrameTime(dt, elapsedSeconds_);
         if (!sunOverride_) clock_.advance(dt);
         updateWeather(dt);

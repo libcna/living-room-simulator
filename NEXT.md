@@ -1,6 +1,18 @@
 # NEXT — continuation queue
 
-Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the next iteration.
+**The project was closed on 2026-09-14** (plan.md §32 is the closing summary). What follows is
+the backlog as it stood, kept for anyone who reopens the work; none of it is required.
+
+Open at the close:
+
+- Motion blur (`--motion-blur S`) is wired to the pipeline but was not evaluated in a clip.
+- Contact shadows stay off (`--contact-shadows D`): the pass rims silhouettes on this prepass.
+- Per-pixel probe blending needs a CNA change (CNA_FINDINGS R-36).
+- A passer-by on the pavement, a dressing gown over the door, a glass and a bottle on the
+  chest, a water mark under the plant pot, a rug edge worn pale.
+- A colour grade (LUT) for the night look; a histogram exposure meter.
+
+The queue as it was:
 
 1. M9 audits, next round (round 13 renders into `screenshots/audit13/` with the road out from
    under the grass, the puddles and the 16 m prepass plane): log findings in `plan.md` §28;

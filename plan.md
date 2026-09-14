@@ -6,6 +6,11 @@ iteration, and it is the first thing to read when resuming.
 
 ## CONTINUATION RULE
 
+**Closed on 2026-09-14 at the owner's request.** The nine milestones are complete, the audit
+loop ran 29 rounds, and the owner asked for the project to be closed: this plan is the record,
+§32 the closing summary, and `NEXT.md` an optional backlog for anyone who reopens it. The rule
+below is kept for that case.
+
 **Do not stop at feature completion.** Once the room renders, the job is to keep auditing,
 measuring, improving realism, using more of CNA and CNAEXT where it genuinely helps, fixing
 weaknesses and refining the scene until an external limit (usage budget, environment) prevents
@@ -1103,6 +1108,16 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   slightly dirtier run of boards between the door and the sofa, the scuffs a smudge by the
   threshold, the marks a grey smoke on the plaster; nothing smears onto the walls or the
   furniture, since the boxes are 5-6 cm deep.
+- 2026-09-14 M9 moving shots: `--dolly TARGET SECONDS` glides the camera from where it
+  starts (a `--view` or `--camera`) to a target, a camera spec or a viewpoint's name, eased
+  over the seconds, the yaw the short way round; with `--record` that is a tracking shot.
+  Checked with a three-second glide from `entrance` to `window` (six kept frames: the room
+  swings smoothly to the panes and settles). `--motion-blur S` passes the pipeline's camera
+  motion blur strength through (`RenderPipelineSettings::setMotionBlurStrength`, camera
+  motion from the depth and the previous frame's matrices); it was wired and built, not
+  evaluated in a clip before the close, so it stays at 0 by default.
+- 2026-09-14 gallery refreshed a second time at 720p (the eight stills, same recipes as round
+  23, now with the props of rounds 24-29 and the decals): no change to the recipes.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as
@@ -1417,3 +1432,36 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
 - [x] `GpuTimer` per stage + pipeline pass timings (`DebugDraw` pending)
 - [ ] `AutoExposureEXT` (compute)
 - [ ] `AreaLightEXT`, `DecalPass`, `ColorGradePass`, `LensFlarePass`
+
+## 32. Closing summary (2026-09-14)
+
+The project was closed at the owner's request with every milestone delivered and the audit
+loop at round 29. What stands on the branch `claude/confident-dijkstra-buqb36`:
+
+- **The room.** A 6.2 x 4.6 m living room in C++23 on CNA `next` (XNA 4.0 API, EasyGL
+  renderer, SDL3) with sharp-runtime `next`: PBR materials (43 procedural bakers plus 40
+  imported models compiled to `.cnb`), cascaded sun shadows, a cube-shadowed pendant, nine
+  interior probes with half-float irradiance, image-based exposure within an analytic prior,
+  ACES tonemapping, bloom, SSAO, depth of field, planar reflections (mirror, television,
+  wet street), ray-marched sunbeams and lamp haze, dust motes, steam, chimney smoke, rain,
+  hail, snow, a fire in the stove, a television with its own programme lighting the room.
+- **The world outside.** A street with terraces, a shop, a bus stop, parked cars, trees that
+  sway in the wind and dapple the floor, window boxes, aerials, street lights on a photocell,
+  facade windows with lamps and televisions behind them; a hallway beyond the door ajar.
+- **Time and weather.** A solar clock (latitude, day of year, moon), seven weather kinds
+  that evolve on their own with wetness, puddles, snow cover and passing clouds; the probes
+  keep pace with any clock speed.
+- **Lived in.** A throw, an open book, post and keys, slippers, a newspaper, a bag, a coat
+  and shoes in the hall, wear decals (a coffee ring, scuffs, a worn path, hand marks).
+- **Instrumentation and validation.** Per-stage CPU and GPU timings, an exposure meter, a
+  debug overlay, 29 audit rounds of 29 canonical views each with per-view diffs logged in
+  §28, five test suites (sim, bakers, reflections, cubes, render smoke), frame recording and
+  four gallery clips (rain on the panes, the fireside, a storm, a day in six seconds).
+- **CNA findings.** 37 numbered bugs, limitations and traps recorded in `CNA_FINDINGS.md`
+  with evidence and the workaround used (among them the FullscreenPass mirror, the cube
+  readback failure, the D3D-style projection on a GL clip volume, one probe per draw, the
+  contact-shadow pass's silhouette rims).
+
+Left open (see `NEXT.md`): motion blur unevaluated; contact shadows off pending a prepass
+whose edges do not rim; per-pixel probe blending needs a CNA change; a passer-by; a colour
+grade for the night look; a histogram meter.

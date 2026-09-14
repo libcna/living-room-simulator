@@ -263,6 +263,7 @@ void SceneRenderer::applySettings(const RenderSettings& settings)
     appliedExposure_ = settings.exposure;
     p.setTonemappingMode(toTonemap(settings.tonemap));
     p.setRenderQuality(toRenderQuality(settings.shadowQuality));
+    p.setMotionBlurStrength(std::max(0.0f, settings.motionBlur));
     p.setBloomEnabled(settings.bloom);
     p.setBloomIntensity(settings.bloomIntensity);
     p.setBloomThreshold(settings.bloomThreshold);
