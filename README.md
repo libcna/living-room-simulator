@@ -103,6 +103,16 @@ SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x2
     ./build/bin/cna-room --frames 3 --screenshot shot.png
 ```
 
+Debug switches, as environment variables: `CNA_ROOM_DEBUG_SUNBEAMS=1..6` paints the beam
+march's inputs (depth, position, shadow, atlas, raw scatter, clip) and `CNA_ROOM_SUNBEAM_POINTS`
+probes the cascade compare at world points; `CNA_ROOM_DUMP_ATLAS=FILE` writes the cascade atlas;
+`CNA_ROOM_DEBUG_STEAM` paints the steam and smoke magenta; `CNA_ROOM_DEBUG_TV` logs the picture's
+mean each frame and `CNA_ROOM_TV_TIME_SCALE` runs the programme faster; `CNA_ROOM_DEBUG_LAMPS`
+logs the lamp each item took; `CNA_ROOM_WINDOW_LIGHT=S` scales the windows' light (0 off);
+`CNA_ROOM_DEBUG_REFLECTIONS` and `CNA_ROOM_DEBUG_PUDDLES=1|2` expose the planar reflections and
+the puddle mask; `CNA_ROOM_NO_TREE_SHADOWS` drops the trees' shadow proxies; `CNA_ROOM_NO_CNB`
+imports the glTF sources instead of the compiled models and `CNA_ROOM_MODEL_DEBUG` logs the import.
+
 ## Controls
 
 | Key | Action |
