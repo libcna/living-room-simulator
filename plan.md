@@ -1057,7 +1057,13 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   (`Sim/TimeOfDay`, with a sim test) sizes the frame's budget so a bake completes within
   ten game minutes: one face at the default pace at 60 fps, eight at 0.7 game minutes a
   frame, eleven at a minute a frame, never more than a quarter of the queue; the
-  application feeds it the clock's pace each frame (`setProbeBakePace`).
+  application feeds it the clock's pace each frame (`setProbeBakePace`). Checked with a
+  time-lapse of a clear day from the `entrance` view (`--time 04:30 --day-length 0.4`,
+  1440 frames, every 20th kept, 72 frames at 12 fps): the lamps go off after dawn and come
+  back at dusk, the sun's patches cross the far wall through the morning, the room's light
+  follows the sky with no visible lag; the clip `m9-day-lapse.gif` (384x216, 2.9 MB) joins
+  the gallery. The paced bake made the recording about three times slower per frame
+  (eleven faces and a CPU integration or two a frame), 0.7 to 2 s at 480x270 on llvmpipe.
 - 2026-09-14 M9 contact shadows, evaluated and left off: CNAEXT's `ContactShadowPass` has no
   place in the pipeline before the tonemap (user passes run last, on display values), and the
   scene target cannot be read and rebound mid-frame, so `Render/ContactShadows` runs the pass

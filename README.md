@@ -27,11 +27,13 @@ glTF furniture assets. There is no gameplay; the point is the picture.
 
 The room in motion, four seconds each at twelve frames a second (`scripts/record-gif.sh`):
 the rain running down the panes, the fireside with the flames, the steam over the cup and
-the set's picture, and a storm over the street with the trees swaying and the rain driving.
+the set's picture, a storm over the street with the trees swaying and the rain driving, and a
+whole clear day from the door in six seconds (`--day-length 0.4`): the lamps off at dawn, the
+sun's patches crossing the wall, the lamps back on at dusk.
 
 | ![Rain on the panes](docs/screenshots/m9-rain-panes.gif) | ![Fireside](docs/screenshots/m9-fireside.gif) |
 |---|---|
-| ![Storm over the street](docs/screenshots/m9-storm-street.gif) | |
+| ![Storm over the street](docs/screenshots/m9-storm-street.gif) | ![A day in six seconds](docs/screenshots/m9-day-lapse.gif) |
 
 ## Dependencies
 
