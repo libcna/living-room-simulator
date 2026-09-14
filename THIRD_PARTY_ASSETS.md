@@ -86,7 +86,6 @@ altered beyond decoding, recentring and the per-material roughness overrides nam
 | bottle-and-glasses | bitterli/grey-and-white-room.glb | `^(Glass_000[123]|BottleCap)$` |
 | mirror | bitterli/grey-and-white-room.glb | `^(Mirror|Paneling_0012)$` |
 | fabric-sofa | bitterli/grey-and-white-room.glb | `^(Sofa_000[1-6]|SofaLegs)$` |
-| wall-sconce | bitterli/grey-and-white-room.glb | `^(Transluscent_0001|MattePaint_0001|BrushedStainlessSteel_0001)$` |
 | candlestick | bitterli/grey-and-white-room.glb | `^BrushedStainlessSteel_0003$` |
 | curtain-panel-a | bitterli/bedroom.glb | `^Curtains_0001$` |
 | curtain-panel-b | bitterli/bedroom.glb | `^Curtains_0002$` |

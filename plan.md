@@ -830,6 +830,15 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   the plume sits in the exposure by day and under the lamps alike. Drawn last among the
   transparents with depth read and premultiplied alpha, skipped in reflection captures;
   `--no-steam`.
+- 2026-09-14 M9 wall lights: the two sconces flanking the television were the White Room's
+  lattice sconce, a pure-white translucent panel in a chrome grid that read as a flat white
+  box by day in every audit (an off-white tint on its panel moved it a few levels, no more).
+  They are now built: a brass back plate and arm (`sconce_brass`, metallic), a linen drum
+  shade 15 cm across and 16 cm tall open at both ends (`sconce_linen`, double-sided, lit as
+  fabric by day and glowing 0.16 with the lamps, the 300 lm over the drum's area) and a
+  frosted bulb inside seen through the ends (`sconce_bulb`, a bare bulb's 1.2 when lit); the
+  lamps' point lights moved to the bulbs. The fittings cast shadows. The `wall-sconce`
+  extract recipe and its asset row are gone.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

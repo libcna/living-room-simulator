@@ -277,6 +277,11 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     }
     // The candle: its wax, and a flame of its own (a smaller card, brighter).
     surfaced("candle_wax", [&] { return TextureBaker::flat(size / 4, seed + 175u, 0.92f, 0.90f, 0.84f, 0.55f, 0.0f, 0.03f); }, 1.0f, 0.0f);
+    // The wall lights: brushed brass, a linen drum (lit from both sides), a frosted bulb.
+    surfaced("sconce_brass", [&] { return TextureBaker::flat(size / 4, seed + 180u, 0.86f, 0.68f, 0.40f, 0.35f, 1.0f, 0.02f); }, 1.0f, 1.0f);
+    surfaced("sconce_linen", [&] { return TextureBaker::flat(size / 4, seed + 181u, 0.90f, 0.85f, 0.74f, 0.85f, 0.0f, 0.08f); }, 1.0f, 0.0f);
+    if (Material* m = edit("sconce_linen")) m->doubleSided = true;
+    surfaced("sconce_bulb", [&] { return TextureBaker::flat(size / 8, seed + 182u, 0.95f, 0.92f, 0.85f, 0.40f, 0.0f, 0.0f); }, 1.0f, 0.0f);
     surfaced("flame_candle", [&] { return TextureBaker::flame(size / 2, seed + 174u); }, 1.0f, 0.0f);
     if (Material* m = edit("flame_candle"))
     {

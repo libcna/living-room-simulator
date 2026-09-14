@@ -556,8 +556,27 @@ void RoomScene::buildFurniture()
     }
     placeModel("potted-plant-b", Vector3(1.80f, 0.0f, L.halfDepth - 0.45f), 0.0f);
     placeModel("DiffuseTransmissionPlant", Vector3(-2.60f, 0.0f, L.halfDepth - 0.50f), 0.0f);
-    placeModel("wall-sconce", Vector3(1.10f, 1.75f, L.halfDepth - 0.03f), 180.0f, 0.0f, false);
-    placeModel("wall-sconce", Vector3(-1.10f, 1.75f, L.halfDepth - 0.03f), 180.0f, 0.0f, false);
+    // Wall lights flanking the television: a linen drum shade on a brass arm
+    // and back plate, a bulb inside seen through the drum's open ends (the
+    // source's lattice sconce read as a flat white box by day).
+    for (const float x : {-1.10f, 1.10f})
+    {
+        const float wallZ = L.halfDepth - 0.005f, y = 1.85f;
+        const std::string side = x < 0.0f ? "left" : "right";
+        MeshBuilder metal;
+        metal.addBox(Vector3(x - 0.045f, y - 0.08f, wallZ - 0.012f), Vector3(x + 0.045f, y + 0.08f, wallZ), 0.3f);
+        metal.addSphere(Vector3(x, y, wallZ - 0.112f), 0.013f, 12, 8, 0.3f);
+        place(metal.take(), "sconce_brass", "sconce " + side + " metal", Matrix::getIdentityProperty(), true);
+        MeshBuilder arm;   // built along Y, turned to run out from the wall
+        arm.addCylinder(Vector3::Zero, 0.007f, 0.105f, 10, 0.3f, true);
+        place(arm.take(), "sconce_brass", "sconce " + side + " arm", Matrix::CreateRotationX(-MathHelper::PiOver2) * Matrix::CreateTranslation(x, y, wallZ - 0.012f), true);
+        MeshBuilder shade;
+        shade.addCylinder(Vector3(x, y - 0.08f, wallZ - 0.10f), 0.075f, 0.16f, 28, 0.3f, false);
+        place(shade.take(), "sconce_linen", "sconce " + side + " shade", Matrix::getIdentityProperty(), true);
+        MeshBuilder bulb;
+        bulb.addSphere(Vector3(x, y - 0.01f, wallZ - 0.10f), 0.02f, 14, 10, 0.3f);
+        place(bulb.take(), "sconce_bulb", "sconce " + side + " bulb", Matrix::getIdentityProperty(), false);
+    }
 
     // --- the door wall (+X) ---
     placeModel("chest-of-drawers", Vector3(L.halfWidth - 0.17f, 0.0f, -1.10f), 180.0f);
@@ -763,8 +782,8 @@ void RoomScene::buildLamps()
     add("pendant", Vector3(0.0f, L.ceilingHeight - 1.065f + 0.31f, 0.0f), 1600.0f, warm, 9.0f, true);
     add("floor lamp", Vector3(1.35f, 1.40f, -1.55f), 800.0f, warm, 7.0f, false);
     add("table lamp", Vector3(-2.35f, 0.632f + 0.30f, -1.20f), 400.0f, warm, 6.0f, false);
-    add("sconce left", Vector3(-1.10f, 1.93f, L.halfDepth - 0.05f), 300.0f, warm, 5.0f, false);
-    add("sconce right", Vector3(1.10f, 1.93f, L.halfDepth - 0.05f), 300.0f, warm, 5.0f, false);
+    add("sconce left", Vector3(-1.10f, 1.84f, L.halfDepth - 0.105f), 300.0f, warm, 5.0f, false);
+    add("sconce right", Vector3(1.10f, 1.84f, L.halfDepth - 0.105f), 300.0f, warm, 5.0f, false);
     add("reading lamp", Vector3(2.55f, 1.55f, 0.32f), 350.0f, warm, 6.0f, false);
     // The stove's fire: a few hundred lumens of orange, flickering (update).
     add("stove", Vector3(0.0f, 0.50f, L.halfDepth - 0.34f + 0.02f), 260.0f, Vector3(1.0f, 0.48f, 0.14f), 4.5f, false);
@@ -805,7 +824,7 @@ void RoomScene::buildLamps()
     glows_ = {
         {"floor-lamp.1", warm, 0.10f}, {"floor-lamp.2", warm, 0.05f},
         {"ceiling-lamp.4", warm, 0.06f},
-        {"wall-sconce.0", warm, 0.25f},
+        {"sconce_linen", warm, 0.16f}, {"sconce_bulb", warm, 1.2f},
         {"IridescenceLamp.1", warm, 0.12f}, {"IridescenceLamp.2", warm, 0.04f},
         {"tv.1", Vector3(0.6f, 0.7f, 0.9f), 0.004f, true},
         // Outside: luminaire diffusers (~10 000 cd/m^2) and lit windows (~80 cd/m^2).

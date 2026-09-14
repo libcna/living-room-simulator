@@ -28,8 +28,8 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
    downpipes, a bench, a bin and a bicycle across the road; in rounds 19-20 three parked cars
    (lofted procedural bodies), a shop front on the terrace opposite, and the beam march at
    half size (its cost now within the frame's noise), the television's light on the room
-   following its picture, steam over the cup. Next of that kind: the sconces' shades in
-   daylight, a throw over the sofa's arm, handles on the windows.
+   following its picture, steam over the cup, the sconces rebuilt as linen drum wall lights.
+   Next of that kind: a throw over the sofa's arm, handles on the windows.
 2. Exposure: the meter is in; a histogram measure could follow if the pendant views still drift.
 3. Done earlier: street lights switch on their own elevation thresholds (0.5 / 3 degrees) and
    the lamps and street lights ramp over a second (`RoomScene::update`).

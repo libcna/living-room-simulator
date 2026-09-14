@@ -33,7 +33,6 @@
   {"name": "bottle-and-glasses", "source": "bitterli/grey-and-white-room.glb", "select": "^(Glass_000[123]|BottleCap)$"},
   {"name": "mirror", "source": "bitterli/grey-and-white-room.glb", "select": "^(Mirror|Paneling_0012)$"},
   {"name": "fabric-sofa", "source": "bitterli/grey-and-white-room.glb", "select": "^(Sofa_000[1-6]|SofaLegs)$"},
-  {"name": "wall-sconce", "source": "bitterli/grey-and-white-room.glb", "select": "^(Transluscent_0001|MattePaint_0001|BrushedStainlessSteel_0001)$"},
   {"name": "candlestick", "source": "bitterli/grey-and-white-room.glb", "select": "^BrushedStainlessSteel_0003$"},
   {"name": "curtain-panel-a", "source": "bitterli/bedroom.glb", "select": "^Curtains_0001$"},
   {"name": "curtain-panel-b", "source": "bitterli/bedroom.glb", "select": "^Curtains_0002$"},
