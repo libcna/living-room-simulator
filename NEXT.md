@@ -35,8 +35,9 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
    Handles on the windows, a throw over the sofa's back, an open paperback, post and keys on
    the chest are in, chimney smoke across the street on cold days, and the door ajar on a lit
    hall with a coat and shoes, the shop's sign box and a bus stop lit at night, window boxes,
-   dishes and aerials on the facades. Next of that kind: slippers by the sofa, a newspaper on
-   the armchair, a passer-by on the pavement, a bag by the hall door.
+   dishes and aerials on the facades, and the trees' crowns sway with the wind (their shadow
+   proxies with them). Next of that kind: slippers by the sofa, a newspaper on the armchair, a
+   passer-by on the pavement, a bag by the hall door.
 2. Exposure: the meter is in; a histogram measure could follow if the pendant views still drift.
 3. Done earlier: street lights switch on their own elevation thresholds (0.5 / 3 degrees) and
    the lamps and street lights ramp over a second (`RoomScene::update`).

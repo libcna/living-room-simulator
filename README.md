@@ -26,11 +26,12 @@ glTF furniture assets. There is no gameplay; the point is the picture.
 | ![Wet street](docs/screenshots/m9-wet-street-night.png) | ![Road](docs/screenshots/m9-road-night-rain.png) | ![Stove](docs/screenshots/m9-stove-night.png) |
 
 The room in motion, four seconds each at twelve frames a second (`scripts/record-gif.sh`):
-the rain running down the panes, and the fireside with the flames, the steam over the cup and
-the set's picture.
+the rain running down the panes, the fireside with the flames, the steam over the cup and
+the set's picture, and a storm over the street with the trees swaying and the rain driving.
 
 | ![Rain on the panes](docs/screenshots/m9-rain-panes.gif) | ![Fireside](docs/screenshots/m9-fireside.gif) |
 |---|---|
+| ![Storm over the street](docs/screenshots/m9-storm-street.gif) | |
 
 ## Dependencies
 
@@ -122,7 +123,8 @@ probes the cascade compare at world points; `CNA_ROOM_DUMP_ATLAS=FILE` writes th
 mean each frame and `CNA_ROOM_TV_TIME_SCALE` runs the programme faster; `CNA_ROOM_DEBUG_LAMPS`
 logs the lamp each item took; `CNA_ROOM_WINDOW_LIGHT=S` scales the windows' light (0 off);
 `CNA_ROOM_DEBUG_REFLECTIONS` and `CNA_ROOM_DEBUG_PUDDLES=1|2` expose the planar reflections and
-the puddle mask; `CNA_ROOM_NO_TREE_SHADOWS` drops the trees' shadow proxies; `CNA_ROOM_NO_CNB`
+the puddle mask; `CNA_ROOM_NO_TREE_SHADOWS` drops the trees' shadow proxies and
+`CNA_ROOM_TREE_SWAY=N` scales their sway; `CNA_ROOM_NO_CNB`
 imports the glTF sources instead of the compiled models and `CNA_ROOM_MODEL_DEBUG` logs the import.
 
 ## Controls
@@ -208,6 +210,9 @@ PageUp/PageDown or F2 give them back.
   the glass while it rains.
 - Passing clouds: under a broken sky the sun swaps between gap and cloud over a minute or so,
   the shadows sharpening and softening with it.
+- Wind in the trees: each street tree's crown sways about the top of its trunk with the
+  weather's wind, gusts on top, and its shadow proxies swing with it, so the dapples in the
+  room drift in a storm.
 - The windows as light sources by day: a wide spot per window carries the sky's diffuse light
   into the room with distance fall-off, refreshed from the sky each frame, on top of the
   probes' ambient.

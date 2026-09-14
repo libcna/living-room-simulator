@@ -164,6 +164,14 @@ private:
         float phase;
     };
     std::vector<Curtain> curtains_;
+    struct Tree
+    {
+        std::size_t canopy;                          ///< the crown's item
+        std::size_t shadow;                          ///< its shadow proxies' item, or npos
+        Microsoft::Xna::Framework::Vector3 pivot;    ///< where the boughs leave the trunk
+        float phase;
+    };
+    std::vector<Tree> trees_;   ///< the street trees, swayed by the wind (applyWeather)
     struct FireCard
     {
         std::size_t item;

@@ -1016,6 +1016,19 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   panes small; the close view shows the drops.
 - 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
   simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
+- 2026-09-14 M9 wind in the trees: the street trees stood rigid in every weather, so a storm
+  through the window was rain and nothing else moving. Each tree's crown is now its own scene
+  item (the leaf blobs of one tree in one mesh, `exterior_tree_N_canopy`) and its shadow
+  proxies another, and `RoomScene::applyWeather` sets both items' world matrix each frame: a
+  rotation about the top of the trunk (the pivot 0.85 of the way up), leaning downwind by up
+  to 7 degrees times the wind (11 m/s in a storm, 2 in the clear) with three summed gusts on
+  top, and a 2.5-degree wobble about the downwind axis, each tree with its own phase. The
+  shadow proxies swing with the crown, so the dapples on the room's floor drift in the wind
+  as well. A check that the crowns turn about their trunks and not about the origin:
+  `CNA_ROOM_TREE_SWAY=4` (an amplitude scale) recorded over 1.5 s of storm moves only the
+  canopy outlines in a frame difference, the trunks and the street still. At the true
+  amplitude the motion is a few pixels at 480x270, visible in a clip, not in a still; the
+  clip `m9-storm-street.gif` (street view, storm, noon) joins the gallery.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

@@ -1183,6 +1183,34 @@ void RoomScene::applyWeather(const WeatherState& weather, float seconds)
     }
     // Curtains: a draught proportional to the wind rocks each panel about its rod.
     const float wind = std::clamp(weather.windSpeed / 12.0f, 0.0f, 1.0f);
+    // The street trees: each crown sways about the top of its trunk, a slow
+    // lean downwind with gusts on top, up to a few degrees in a storm; the
+    // shadow proxies follow, so the dapples in the room drift too.
+    {
+        const Vector3 downwind(std::sin(weather.windDirection), 0.0f, std::cos(weather.windDirection));
+        // CNA_ROOM_TREE_SWAY=N scales the amplitude (a check that the crowns turn about their trunks).
+        static const float swayScale = [] {
+            const char* value = std::getenv("CNA_ROOM_TREE_SWAY");
+            return value != nullptr ? std::max(0.0f, static_cast<float>(std::atof(value))) : 1.0f;
+        }();
+        for (const Tree& tree : trees_)
+        {
+            const float gust = std::sin(seconds * 0.6f + tree.phase) * 0.55f + std::sin(seconds * 1.7f + tree.phase * 1.9f) * 0.3f + std::sin(seconds * 3.1f + tree.phase * 0.7f) * 0.15f;
+            const float lean = MathHelper::ToRadians(7.0f) * swayScale * wind * (0.6f + 0.4f * gust);
+            const float across = MathHelper::ToRadians(2.5f) * swayScale * wind * std::sin(seconds * 1.1f + tree.phase * 2.3f);
+            // Lean downwind: a rotation about the axis across the wind; the wobble about the downwind axis.
+            const Vector3 axisAcross = Vector3::Cross(Vector3::Up, downwind);
+            const Matrix sway = Matrix::CreateTranslation(-tree.pivot) * Matrix::CreateFromAxisAngle(axisAcross, lean) * Matrix::CreateFromAxisAngle(downwind, across)
+                                * Matrix::CreateTranslation(tree.pivot);
+            for (std::size_t index : {tree.canopy, tree.shadow})
+            {
+                if (index >= renderer_.itemCount()) continue;
+                SceneItem& item = renderer_.item(index);
+                item.world = sway;
+                SceneRenderer::updateBounds(item);
+            }
+        }
+    }
     for (const Curtain& c : curtains_)
     {
         const float gust = std::sin(seconds * 0.9f + c.phase) * 0.6f + std::sin(seconds * 2.3f + c.phase * 1.7f) * 0.4f;

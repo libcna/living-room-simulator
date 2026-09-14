@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <map>
 #include <cmath>
+#include <limits>
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -841,9 +842,13 @@ void RoomScene::buildExterior()
                 for (std::uint32_t i : data.indices) trunks.mesh().indices.push_back(base + i);
             }
             // Canopy: a cluster of leaf spheres, masked by the foliage alpha.
+            // Each crown is an item of its own (not chunked), so the wind can
+            // sway it about the trunk (applyWeather).
+            (void)canopies;
+            MeshBuilder crown;
             const Vector3 centre(t.x, ground + trunkH + t.spread * 0.55f, t.z);
             const int blobs = 9;
-            const std::size_t canopyStart = canopies.mesh().vertices.size();
+            const std::size_t canopyStart = crown.mesh().vertices.size();
             for (int b = 0; b < blobs; ++b)
             {
                 const float a = local.range(0.0f, MathHelper::TwoPi);
@@ -851,15 +856,15 @@ void RoomScene::buildExterior()
                 const float y = b == 0 ? 0.2f : local.range(-0.35f, 0.45f);
                 const Vector3 c = centre + Vector3(std::cos(a) * r, y * t.spread, std::sin(a) * r);
                 const float radius = (b == 0 ? 0.62f : local.range(0.42f, 0.6f)) * t.spread;
-                canopies.addSphere(c, radius, 14, 9, 1.0f);
+                crown.addSphere(c, radius, 14, 9, 1.0f);
             }
             // The blobs' normals bend toward the crown's own (from its centre,
             // squashed so the underside reads as beneath): the canopy then
             // shades as one volume, lit on top and dark below, instead of nine
             // balls each with its own highlight.
-            for (std::size_t i = canopyStart; i < canopies.mesh().vertices.size(); ++i)
+            for (std::size_t i = canopyStart; i < crown.mesh().vertices.size(); ++i)
             {
-                auto& v = canopies.mesh().vertices[i];
+                auto& v = crown.mesh().vertices[i];
                 Vector3 crown = v.Position - centre;
                 crown.Y *= 1.4f;
                 if (crown.LengthSquared() > 1e-6f) crown.Normalize();
@@ -872,23 +877,35 @@ void RoomScene::buildExterior()
             // canopy's silhouette, so sun through it reaches the ground and
             // the room dappled rather than not at all.
             const int clusters = 7;
+            (void)canopyShadows;
+            MeshBuilder proxies;
             for (int k = 0; k < clusters; ++k)
             {
                 const float ca = local.range(0.0f, MathHelper::TwoPi);
                 const float cr = local.range(0.1f, 0.6f) * t.spread;
                 const float cy = local.range(-0.3f, 0.4f) * t.spread;
                 const Vector3 cc = centre + Vector3(std::cos(ca) * cr, cy, std::sin(ca) * cr);
-                canopyShadows.addSphere(cc, local.range(0.17f, 0.23f) * t.spread, 8, 5, 1.0f);
+                proxies.addSphere(cc, local.range(0.17f, 0.23f) * t.spread, 8, 5, 1.0f);
             }
+            const std::string name = "exterior_tree_" + std::to_string(index);
+            place(crown.take(), "foliage", name + "_canopy", Matrix::getIdentityProperty(), false, true);
+            Tree tree;
+            tree.canopy = renderer_.itemCount() - 1;
+            tree.shadow = std::numeric_limits<std::size_t>::max();
+            // CNA_ROOM_NO_TREE_SHADOWS=1 leaves the crowns' shadow proxies out (a
+            // diagnostic: clear sun through the windows to test what depends on it).
+            if (std::getenv("CNA_ROOM_NO_TREE_SHADOWS") == nullptr)
+            {
+                place(proxies.take(), "bark", name + "_canopy_shadow", Matrix::getIdentityProperty(), true, true, true);
+                tree.shadow = renderer_.itemCount() - 1;
+            }
+            tree.pivot = Vector3(t.x, ground + trunkH * 0.85f, t.z);
+            tree.phase = local.range(0.0f, MathHelper::TwoPi);
+            trees_.push_back(tree);
         }
         placeChunks(trunkSet, "bark", "exterior_tree_trunks", true);
-        placeChunks(canopySet, "foliage", "exterior_tree_canopies", false);
-        // CNA_ROOM_NO_TREE_SHADOWS=1 leaves the crowns' shadow proxies out (a
-        // diagnostic: clear sun through the windows to test what depends on it).
-        if (std::getenv("CNA_ROOM_NO_TREE_SHADOWS") == nullptr)
-            placeChunks(canopyShadowSet, "bark", "exterior_tree_canopy_shadows", true, true);
-        else
-            canopyShadowSet.chunks.clear();
+        canopySet.chunks.clear();
+        canopyShadowSet.chunks.clear();
     }
 
     // ---- street lights ----
