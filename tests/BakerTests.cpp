@@ -143,6 +143,21 @@ void testSurfaces()
     }
     check(meanChannel(knit.normal, 2) < 0.97f, "the knit has relief in its normals");
 
+    // The raindrop flipbook: a phase moves only the runners (most of the map
+    // stays), and a whole loop comes back to the first frame.
+    {
+        const CnaRoom::Assets::Image f0 = TextureBaker::raindrops(size, 8u, 0.0f), fHalf = TextureBaker::raindrops(size, 8u, 0.5f), fLoop = TextureBaker::raindrops(size, 8u, 1.0f);
+        std::size_t movedHalf = 0, movedLoop = 0, total = static_cast<std::size_t>(size) * static_cast<std::size_t>(size);
+        for (std::size_t i = 0; i < f0.rgba.size(); i += 4)
+        {
+            if (f0.rgba[i] != fHalf.rgba[i] || f0.rgba[i + 1] != fHalf.rgba[i + 1]) ++movedHalf;
+            if (f0.rgba[i] != fLoop.rgba[i] || f0.rgba[i + 1] != fLoop.rgba[i + 1]) ++movedLoop;
+        }
+        const float halfShare = static_cast<float>(movedHalf) / static_cast<float>(total), loopShare = static_cast<float>(movedLoop) / static_cast<float>(total);
+        check(halfShare > 0.01f && halfShare < 0.5f, "half a loop moves the runners and leaves the rest: " + std::to_string(halfShare));
+        check(loopShare < 0.001f, "a whole loop returns to the first frame: " + std::to_string(loopShare));
+    }
+
     // The clock dial: round (transparent corners), light inside, dark at the
     // 12 o'clock bar.
     const SurfaceImages dial = TextureBaker::clockDial(size, 5u);

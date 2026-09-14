@@ -82,7 +82,9 @@ public:
     /// charcoal on warm grey), the cloth's weave under the paint.
     [[nodiscard]] static SurfaceImages canvas(int size, std::uint32_t seed, int kind);
     /// Water droplets on glass as a normal map (for the window panes when it rains).
-    [[nodiscard]] static Image raindrops(int size, std::uint32_t seed);
+    /// Droplets on glass as a normal map; `phase` 0..1 moves the running drops
+    /// down the tile (wrapping), so a set of phases makes a looping flipbook.
+    [[nodiscard]] static Image raindrops(int size, std::uint32_t seed, float phase = 0.0f);
     /// A flat surface with a stated colour/roughness/metallic and faint variation.
     [[nodiscard]] static SurfaceImages flat(int size, std::uint32_t seed, float r, float g, float b,
                                             float roughness, float metallic, float variation);

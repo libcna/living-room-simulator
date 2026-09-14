@@ -539,10 +539,12 @@ SurfaceImages TextureBaker::roofTiles(int size, std::uint32_t seed, float r, flo
     return out;
 }
 
-Image TextureBaker::raindrops(int size, std::uint32_t seed)
+Image TextureBaker::raindrops(int size, std::uint32_t seed, float phase)
 {
     // Droplets on glass as a tangent-space normal map: hemispherical bumps
-    // of varied size scattered on a flat field, plus a few running streaks.
+    // of varied size scattered on a flat field, plus a few running streaks
+    // that slide down the tile by the phase (the same drop set at every
+    // phase, so the frames loop), each with a thin trail above it.
     Field height(size, size, 0.0f);
     std::uint32_t rng = seed * 2654435761u + 7u;
     const auto next = [&rng]() {
@@ -552,9 +554,13 @@ Image TextureBaker::raindrops(int size, std::uint32_t seed)
     const int drops = size * size / 260;
     for (int d = 0; d < drops; ++d)
     {
-        const float cx = next() * static_cast<float>(size), cy = next() * static_cast<float>(size);
+        const float cx = next() * static_cast<float>(size);
+        float cy = next() * static_cast<float>(size);
         const float r = (1.5f + next() * next() * 9.0f) * static_cast<float>(size) / 512.0f;
-        const float stretch = next() < 0.15f ? 2.5f + next() * 4.0f : 1.0f;   // a running drop
+        const bool running = next() < 0.15f;
+        const float stretch = running ? 2.5f + next() * 4.0f : 1.0f;   // a running drop
+        const float speed = running ? (next() < 0.7f ? 1.0f : 2.0f) : 0.0f;   // whole tiles per loop, so the loop is seamless
+        if (running) cy += phase * speed * static_cast<float>(size);      // down the glass: +y in the image
         const int ri = static_cast<int>(r * stretch) + 1;
         for (int y = -ri; y <= ri; ++y)
             for (int x = -static_cast<int>(r) - 1; x <= static_cast<int>(r) + 1; ++x)
@@ -566,6 +572,21 @@ Image TextureBaker::raindrops(int size, std::uint32_t seed)
                 float& cell = height.ref(((static_cast<int>(cx) + x) % size + size) % size, ((static_cast<int>(cy) + y) % size + size) % size);
                 cell = std::max(cell, h);
             }
+        if (running)
+        {
+            // The trail: a thin ridge left behind up the glass, fading with distance.
+            const int trail = static_cast<int>(r * stretch * 3.0f);
+            for (int y = -ri - trail; y < -ri; ++y)
+            {
+                const float fade = static_cast<float>(-ri - y) / static_cast<float>(trail);
+                const float h = (1.0f - fade) * r / static_cast<float>(size) * 8.0f;
+                for (int x = -1; x <= 1; ++x)
+                {
+                    float& cell = height.ref(((static_cast<int>(cx) + x) % size + size) % size, ((static_cast<int>(cy) + y) % size + size) % size);
+                    cell = std::max(cell, h * (x == 0 ? 1.0f : 0.5f));
+                }
+            }
+        }
     }
     return normalMapFromHeight(height, 3.0f);
 }

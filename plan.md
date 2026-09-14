@@ -953,6 +953,13 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   sphere pressed flat, tilted up and toward the street, on a bracket with its arm ahead);
   every other chimney has a television aerial (a mast and three crossbars in the gutters'
   metal). All chunked with the street and casting shadows.
+- 2026-09-14 M9 running raindrops: the droplet normal map is a flipbook of eight frames now,
+  the same drop set at eight phases with the running drops (15 % of them, stretched) slid
+  down the tile by their own speed (one or two whole tiles a loop, wrapping, so the loop
+  is seamless; a baker test holds a whole loop to the first frame and half a loop to a
+  moved minority) and a thin fading trail above each; the glass takes the frame at six a second
+  while it rains, so the runners slide a 0.4 m tile in about 1.3 s. Stills are as they were
+  (frame zero at second zero); in motion the rain runs down the panes.
 - 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
   simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a

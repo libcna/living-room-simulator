@@ -61,12 +61,18 @@ public:
     [[nodiscard]] const SurfaceTextures& hedgeSnowSurface() const { return hedgeSnow_; }
     [[nodiscard]] const SurfaceTextures& hedgeFringeSnowSurface() const { return hedgeFringeSnow_; }
     /// Droplet normal map for wet window panes (null before buildProcedural).
-    [[nodiscard]] Microsoft::Xna::Framework::Graphics::Texture2D* raindropsNormal() const { return raindrops_; }
+    /// The droplets' normal map; the frames loop as the running drops slide down the glass.
+    [[nodiscard]] Microsoft::Xna::Framework::Graphics::Texture2D* raindropsNormal(int frame = 0) const
+    {
+        if (raindropFrames_.empty()) return nullptr;
+        return raindropFrames_[static_cast<std::size_t>(((frame % static_cast<int>(raindropFrames_.size())) + static_cast<int>(raindropFrames_.size())) % static_cast<int>(raindropFrames_.size()))];
+    }
+    [[nodiscard]] int raindropFrameCount() const { return static_cast<int>(raindropFrames_.size()); }
     [[nodiscard]] std::size_t textureCount() const { return textures_.size(); }
     [[nodiscard]] std::size_t textureBytes() const { return textureBytes_; }
 
 private:
-    Microsoft::Xna::Framework::Graphics::Texture2D* raindrops_ = nullptr;
+    std::vector<Microsoft::Xna::Framework::Graphics::Texture2D*> raindropFrames_;
     SurfaceTextures snow_, foliageSnow_, hedgeSnow_, hedgeFringeSnow_;
     struct Surface
     {

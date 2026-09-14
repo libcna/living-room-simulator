@@ -336,7 +336,10 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     surfaced("rubber_black", [&] { return TextureBaker::flat(size / 4, seed + 185u, 0.03f, 0.03f, 0.035f, 0.62f, 0.0f, 0.03f); }, 1.0f, 0.0f);
     surfaced("bench_wood", [&] { return TextureBaker::paintedWood(size / 2, seed + 186u, 0.17f, 0.22f, 0.19f, 0.5f); }, 1.0f, 0.0f);
 
-    raindrops_ = own(TextureBaker::upload(device_, TextureBaker::raindrops(std::max(64, size / 2), seed + 40u), false));
+    // Eight frames of the droplets, the runners a phase further down each: a loop.
+    raindropFrames_.clear();
+    for (int frame = 0; frame < 8; ++frame)
+        raindropFrames_.push_back(own(TextureBaker::upload(device_, TextureBaker::raindrops(std::max(64, size / 2), seed + 40u, static_cast<float>(frame) / 8.0f), false)));
     {
         const Surface s = uploadSurface(SurfaceImagesRef{cachedBake("snow", seed, size, [&] { return TextureBaker::snow(size / 2, seed + 41u); })});
         snow_.albedo = s.albedo;

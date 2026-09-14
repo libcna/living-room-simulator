@@ -1131,7 +1131,9 @@ void RoomScene::applyWeather(const WeatherState& weather, float seconds)
     {
         const bool raining = weather.type == PrecipitationType::Rain || weather.type == PrecipitationType::Hail;
         const float drops = std::clamp(raining ? std::max(wet, 0.4f) : wet * 0.7f, 0.0f, 1.0f);
-        glass->normal = drops > 0.02f ? materials_.raindropsNormal() : nullptr;
+        // The runners slide a tile (0.4 m) in about 1.3 s: six frames a second through the loop.
+        const int frame = static_cast<int>(seconds * 6.0f);
+        glass->normal = drops > 0.02f ? materials_.raindropsNormal(frame) : nullptr;
         glass->normalScale = drops;
         glass->uvScale = Vector2(3.5f, 3.5f);   // ~0.4 m tiles: drops of a centimetre or two
     }

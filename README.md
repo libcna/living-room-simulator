@@ -188,6 +188,8 @@ PageUp/PageDown or F2 give them back.
   hook and shoes beyond the door wall.
 - Chimney smoke across the street on cold days, leaning with the wind, from the same plume
   drawer as the cup's steam.
+- Running raindrops: the panes' droplets are an eight-frame flipbook whose runners slide down
+  the glass while it rains.
 - Passing clouds: under a broken sky the sun swaps between gap and cloud over a minute or so,
   the shadows sharpening and softening with it.
 - The windows as light sources by day: a wide spot per window carries the sky's diffuse light
