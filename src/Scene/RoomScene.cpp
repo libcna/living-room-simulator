@@ -73,7 +73,11 @@ std::size_t RoomScene::geometryBytes() const
 
 std::vector<Vector3> RoomScene::probePositions() const
 {
-    return {Vector3(-1.9f, 1.3f, 0.1f), Vector3(0.0f, 1.4f, 0.2f), Vector3(1.9f, 1.3f, 0.1f)};
+    // Two rows of three: one toward the windows, one toward the television
+    // wall, so the sections of the floor and ceiling nearest the glass take a
+    // probe that sees the windows large, and the far ones a dimmer one.
+    return {Vector3(-1.9f, 1.3f, -1.15f), Vector3(0.0f, 1.4f, -1.1f), Vector3(1.9f, 1.3f, -1.15f),
+            Vector3(-1.9f, 1.3f, 1.15f), Vector3(0.0f, 1.4f, 1.1f), Vector3(1.9f, 1.3f, 1.15f)};
 }
 
 const GpuMesh* RoomScene::place(MeshData mesh, const std::string& materialName,
@@ -121,18 +125,28 @@ void RoomScene::buildFloorAndCeiling()
 {
     const RoomLayout& L = layout_;
     const Material& oak = materials_.get("oak_floor");
-    MeshBuilder floor;
-    // Planks run along X (the long axis): rotate the UV by transforming a floor built along Z.
-    floor.addFloor(-L.halfWidth, -L.halfDepth, L.halfWidth, L.halfDepth, 0.0f, 2.4f, true);
-    // Swap UV axes so the plank length runs along X.
-    for (auto& v : floor.mesh().vertices) v.TextureCoordinate = Vector2(v.TextureCoordinate.Y, v.TextureCoordinate.X);
-    MeshBuilder::computeTangents(floor.mesh());
+    // Both in three by two sections, so each takes the probe nearest to it
+    // (one probe lights one item) and the room's light falls off from the
+    // windows inward instead of sitting at one level wall to wall. The UVs
+    // come from world position, so the planks run on across the seams.
     (void)oak;
-    place(floor.take(), "oak_floor", "floor");
-
-    MeshBuilder ceiling;
-    ceiling.addFloor(-L.halfWidth, -L.halfDepth, L.halfWidth, L.halfDepth, L.ceilingHeight, 2.0f, false);
-    place(ceiling.take(), "plaster_ceiling", "ceiling");
+    for (int ix = 0; ix < 3; ++ix)
+        for (int iz = 0; iz < 2; ++iz)
+        {
+            const float x0 = -L.halfWidth + L.halfWidth * 2.0f * static_cast<float>(ix) / 3.0f, x1 = x0 + L.halfWidth * 2.0f / 3.0f;
+            const float z0 = -L.halfDepth + L.halfDepth * static_cast<float>(iz), z1 = z0 + L.halfDepth;
+            const std::string suffix = " " + std::to_string(ix) + "," + std::to_string(iz);
+            MeshBuilder floor;
+            // Planks run along X (the long axis): rotate the UV by transforming a floor built along Z.
+            floor.addFloor(x0, z0, x1, z1, 0.0f, 2.4f, true);
+            // Swap UV axes so the plank length runs along X.
+            for (auto& v : floor.mesh().vertices) v.TextureCoordinate = Vector2(v.TextureCoordinate.Y, v.TextureCoordinate.X);
+            MeshBuilder::computeTangents(floor.mesh());
+            place(floor.take(), "oak_floor", "floor" + suffix);
+            MeshBuilder ceiling;
+            ceiling.addFloor(x0, z0, x1, z1, L.ceilingHeight, 2.0f, false);
+            place(ceiling.take(), "plaster_ceiling", "ceiling" + suffix);
+        }
 }
 
 void RoomScene::buildWalls()

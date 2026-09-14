@@ -6,8 +6,9 @@ Read `plan.md` §CONTINUATION RULE first. This file is the short queue for the n
    under the grass, the puddles and the 16 m prepass plane): log findings in `plan.md` §28;
    standing candidates: dusk facade saturation, the pendant's disc in the views beneath it.
    Done in round 22: the sconces rebuilt as drum wall lights; the windows as spot lamps against
-   the interior's flatness under overcast light (a per-item probe still paints each surface
-   one level; an irradiance volume, or probes blended per pixel, would be the real cure).
+   the interior's flatness under overcast light; then six probes in two rows with the floor
+   and ceiling in sections (a per-item probe still paints each section one level, with a
+   step at the seams; probes blended per pixel would be the real cure).
 1a. Done: prefiltered specular in half-float as one cube per roughness class (the material
    picks the class from its roughness and its map's mean). Per-pixel roughness variation
    within one material still blurs at one class; a CNA EXT binding a cube face at a mip level

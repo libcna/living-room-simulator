@@ -980,6 +980,17 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   the option is `--lamp-haze`; and at the 0.05 first tried the term was invisible (the
   lamp's radiant intensity is 0.005 in scene units, so the coefficient has to sit near one
   to read next to walls at a few ten-thousandths).
+- 2026-09-14 M9 six probes and a sectioned floor: the interior probes are two rows of three
+  now (x -1.9, 0, 1.9 at z -1.15 toward the windows and z 1.15 toward the television wall)
+  and the floor and the ceiling are built in three by two sections, so each section takes
+  the probe nearest to it; one probe lights one draw, so this is how the probes' light can
+  fall off at all. The window-row probes peak at 0.85-1.23 in radiance, the far row at
+  0.50-0.59, and under cloudy noon in `day-corner` the floor by the windows holds 0.82 of
+  the exterior while the far floor drops from 0.49 to 0.38 and the ceiling's far half from
+  0.88 to 0.81; the room reads deeper from the windows inward. The price: the bake is 72
+  faces (5.3 s at 64 px, the content 20 s in all), and a step at each section seam where
+  the two probes differ, which the rug and the furniture hide for the most part. The walls
+  stay whole (their pieces already sit near one row or the other).
 - 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
   simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a

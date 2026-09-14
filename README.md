@@ -189,6 +189,8 @@ PageUp/PageDown or F2 give them back.
   hook and shoes beyond the door wall.
 - Chimney smoke across the street on cold days, leaning with the wind, from the same plume
   drawer as the cup's steam.
+- Six interior probes in two rows, the floor and ceiling in sections that each take the
+  nearest one, so the probes' light falls off from the windows inward.
 - Lamp haze at night: the pendant's light scattered by the room's air, shadowed by its cube
   map, in the same half-size march as the sunbeams (`--lamp-haze D`).
 - Running raindrops: the panes' droplets are an eight-frame flipbook whose runners slide down
