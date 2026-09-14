@@ -231,4 +231,9 @@ std::string WeatherSystem::describe() const
     return buffer;
 }
 
+float chimneySmokeLevel(float temperatureC)
+{
+    return std::clamp((14.0f - temperatureC) / 6.0f, 0.0f, 1.0f);
+}
+
 }  // namespace CnaRoom

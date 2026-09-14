@@ -836,11 +836,16 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   shader is smooth at that scale, so the mean is the picture's), decoded from the sRGB the
   picture is written in. `RoomScene::updateTelevisionGlow` gives the "television" lamp the
   mean's colour at the luminance of its calibrated cool white, and its level the mean's
-  luminance over the programme's own mean (0.29, measured over the 70 s cycle with
+  luminance over the programme's own mean (measured over the 70 s cycle with
   `CNA_ROOM_TV_TIME_SCALE`, which runs the programme faster than a capture's 1/60 s frames:
   the sunset landscape sits at 0.33-0.34 and warm, the studio at 0.19 and blue, the test card
   at 0.30), so the calibrated lumens stay the long-run level and the cuts and pans move the room's light
-  around it (0.65 to 1.15 here; `CNA_ROOM_DEBUG_TV` logs the mean each frame). With the
+  around it (`CNA_ROOM_DEBUG_TV` logs the mean each frame). The programme then gained a
+  night drive (a dark road, street lights sweeping past, oncoming headlights, the dashboard's
+  glow: 0.034) and each programme fades up from black over half a second, the schedule now
+  30 s landscape, 15 s night drive, 20 s studio, 5 s test card; the cycle's mean is 0.23 and
+  the room's light from the set swings from a tenth (the cuts) through 0.15 (the drive) to
+  1.5 (the landscape). With the
   lamps on the effect is a few levels on the mantel; with the lamps off (`--lamps off --tv
   on`) the set is the room's light and its colour and level change with the programme.
 - 2026-09-14 M9 steam over the cup: a plume of 24 soft billboards (`Steam`, a static
@@ -915,6 +920,8 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   without a window keeps its light on), a navy wool coat on a brass peg and a pair of shoes
   by the far wall, both on the side the gap looks at. The views past the door show another
   lit space now instead of a flat white panel.
+- 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
+  simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

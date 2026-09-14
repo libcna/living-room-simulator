@@ -23,8 +23,9 @@ namespace CnaRoom {
  *
  * Synthetic programming drawn by a fragment shader (nothing photographic, so
  * nothing to license): a slow-panning landscape with drifting clouds and a
- * setting sun, cut every so often to a studio set of coloured panels with a
- * moving chart and a ticker, and now and then a colour test card. The image
+ * setting sun, a night drive down a dark road, a studio set of coloured panels
+ * with a moving chart and a ticker, and now and then a colour test card, each
+ * fading up from black; the dark stretches let the room's light dip. The image
  * is written sRGB-encoded because it is bound as an emissive map, which the
  * PBR shader decodes; a faint scanline flicker keeps it from reading as a
  * still picture.

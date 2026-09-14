@@ -1136,7 +1136,7 @@ void RoomScene::applyWeather(const WeatherState& weather, float seconds)
     // Chimney smoke across the street on cold days (the stoves lit as ours
     // is), fully below 8 C and gone above 14, carried by the wind.
     {
-        const float smoke = std::clamp((14.0f - weather.temperatureC) / 6.0f, 0.0f, 1.0f);
+        const float smoke = chimneySmokeLevel(weather.temperatureC);
         std::vector<SceneRenderer::SmokePlume> plumes;
         if (smoke > 0.0f)
         {
@@ -1263,7 +1263,7 @@ void RoomScene::updateTelevisionGlow()
     // 250 lm stay the long-run level and the cuts and pans move around it.
     const TelevisionContent* content = renderer_.television();
     if (content == nullptr || !content->hasMean()) return;
-    constexpr float kTelevisionMeanLuminance = 0.29f;
+    constexpr float kTelevisionMeanLuminance = 0.23f;
     const Vector3 mean = content->meanColour();
     const auto luminance = [](const Vector3& v) { return 0.2126f * v.X + 0.7152f * v.Y + 0.0722f * v.Z; };
     const float lum = luminance(mean);

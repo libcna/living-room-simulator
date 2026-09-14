@@ -179,10 +179,20 @@ void testWeather()
 
 }  // namespace
 
+void testChimneySmoke()
+{
+    using CnaRoom::chimneySmokeLevel;
+    check(chimneySmokeLevel(20.0f) == 0.0f && chimneySmokeLevel(14.0f) == 0.0f, "no smoke at 14 C and above");
+    check(chimneySmokeLevel(8.0f) == 1.0f && chimneySmokeLevel(-3.0f) == 1.0f, "every hearth lit at 8 C and below");
+    check(near(chimneySmokeLevel(11.0f), 0.5f, 1e-5f), "half the band at 11 C");
+    check(chimneySmokeLevel(12.0f) < chimneySmokeLevel(10.0f), "colder smokes more");
+}
+
 int main()
 {
     testTimeOfDay();
     testWeather();
+    testChimneySmoke();
     if (failures == 0) std::printf("cna_room_sim_tests: all checks passed\n");
     return failures == 0 ? 0 : 1;
 }

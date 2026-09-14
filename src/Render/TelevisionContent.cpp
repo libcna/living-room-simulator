@@ -98,6 +98,37 @@ vec3 studio(vec2 uv, float t) {
     return c;
 }
 
+// Programme 4: a night drive: a dark road, its dashes streaming, street lights
+// sweeping past on the right, a pair of headlights coming the other way, the
+// dashboard's glow at the bottom of the frame. Dark, so the room's light dips.
+vec3 nightDrive(vec2 uv, float t) {
+    vec3 c = mix(vec3(0.010, 0.012, 0.030), vec3(0.030, 0.035, 0.070), smoothstep(0.3, 0.6, uv.y));
+    float horizon = 0.56;
+    float below = max(horizon - uv.y, 0.0);
+    float halfWidth = 0.025 + below * 1.3;
+    float road = step(uv.y, horizon) * step(abs(uv.x - 0.5), halfWidth);
+    c = mix(c, vec3(0.045, 0.045, 0.05), road);
+    float dashes = step(0.55, fract(below * 9.0 - t * 2.2)) * step(abs(uv.x - 0.5), 0.003 + below * 0.03) * road * smoothstep(0.0, 0.04, below);
+    c = mix(c, vec3(0.55, 0.5, 0.35), dashes);
+    for (int i = 0; i < 6; ++i) {
+        float d = fract(float(i) / 6.0 + t * 0.22);
+        float e = d * d;
+        vec2 p = mix(vec2(0.53, horizon), vec2(0.98, 0.95), e);
+        float size = 0.004 + 0.03 * e;
+        float glow = exp(-dot((uv - p) * vec2(1.0, 1.78), (uv - p) * vec2(1.0, 1.78)) / (size * size));
+        c += vec3(1.0, 0.75, 0.4) * glow * (0.3 + 0.7 * e);
+    }
+    float h = fract(t * 0.16);
+    vec2 hp = mix(vec2(0.49, horizon), vec2(0.22, 0.86), h * h);
+    float hs = 0.003 + 0.02 * h * h;
+    for (int k = 0; k < 2; ++k) {
+        vec2 q = hp + vec2(float(k) * (0.01 + 0.06 * h * h), 0.0);
+        c += vec3(0.9, 0.9, 1.0) * exp(-dot((uv - q) * vec2(1.0, 1.78), (uv - q) * vec2(1.0, 1.78)) / (hs * hs)) * (0.2 + 0.8 * h);
+    }
+    c += vec3(0.16, 0.08, 0.03) * smoothstep(0.14, 0.0, uv.y);
+    return c;
+}
+
 // Programme 3: colour bars.
 vec3 testCard(vec2 uv) {
     float i = floor(uv.x * 8.0);
@@ -113,12 +144,16 @@ void main() {
     vec2 uv = vec2(TexCoord.x, mix(TexCoord.y, 1.0 - TexCoord.y, uFlipV));
     uv.y = 1.0 - uv.y;    // image origin at the top
     float t = uTime;
-    // Schedule: 40 s landscape, 25 s studio, 5 s test card, with 0.4 s cuts.
+    // Schedule: 30 s landscape, 15 s night drive, 20 s studio, 5 s test card,
+    // each fading up from black over half a second.
     float cycle = mod(t, 70.0);
     vec3 c;
-    if (cycle < 40.0) c = landscape(uv, t);
-    else if (cycle < 65.0) c = studio(uv, t);
-    else c = testCard(uv);
+    float start;
+    if (cycle < 30.0) { c = landscape(uv, t); start = 0.0; }
+    else if (cycle < 45.0) { c = nightDrive(uv, t); start = 30.0; }
+    else if (cycle < 65.0) { c = studio(uv, t); start = 45.0; }
+    else { c = testCard(uv); start = 65.0; }
+    c *= smoothstep(0.0, 0.5, cycle - start);
     // Letterbox and a little vignette + flicker.
     float box = step(0.04, uv.y) * step(uv.y, 0.96);
     float vignette = 1.0 - 0.35 * pow(length((uv - 0.5) * vec2(1.0, 1.4)), 2.0);

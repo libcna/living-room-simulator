@@ -86,4 +86,9 @@ private:
     float hailBurstHours_ = 0.0f;
 };
 
+/// How much the neighbours' chimneys smoke at a temperature: nothing above
+/// 14 C, everything below 8 C, a straight ramp between (the band that lights
+/// the room's own stove).
+[[nodiscard]] float chimneySmokeLevel(float temperatureC);
+
 }  // namespace CnaRoom
