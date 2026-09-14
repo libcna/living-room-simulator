@@ -822,7 +822,7 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   luminance over the programme's own mean (0.29, measured over the 70 s cycle with
   `CNA_ROOM_TV_TIME_SCALE`, which runs the programme faster than a capture's 1/60 s frames:
   the sunset landscape sits at 0.33-0.34 and warm, the studio at 0.19 and blue, the test card
-  at 0.30), so the 250 lm stay the long-run level and the cuts and pans move the room's light
+  at 0.30), so the calibrated lumens stay the long-run level and the cuts and pans move the room's light
   around it (0.65 to 1.15 here; `CNA_ROOM_DEBUG_TV` logs the mean each frame). With the
   lamps on the effect is a few levels on the mantel; with the lamps off (`--lamps off --tv
   on`) the set is the room's light and its colour and level change with the programme.
@@ -863,6 +863,12 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   windows) never reached the effect; it is reset each frame and across captures now. And a
   point light 8 cm off a wall lights that wall only next to itself (grazing incidence), so
   the window wall stays as the probes paint it.
+- 2026-09-14 M9 window handles and the picture's level: each casement carries a brass
+  espagnolette handle (a square rose, a neck and a lever hanging closed) on its stile by
+  the mullion, room side, so the windows read as openable in the close views. The
+  television's picture drops from 200 to 120 cd/m^2 (a set's dark-room mode; its lamp from
+  250 to 150 lm to match): at 200 the picture paled under the tonemapper next to the
+  lamp-lit walls, and the ACES curve desaturated it.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

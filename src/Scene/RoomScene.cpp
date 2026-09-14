@@ -226,6 +226,18 @@ void RoomScene::buildWindows()
         // Interior sill (board) and exterior sill (sloped stone approximated by a box).
         frame.addBox(Vector3(x0 - 0.04f, y0 - 0.03f, zFrameIn), Vector3(x1 + 0.04f, y0, zInside + 0.04f), 0.5f);
         place(frame.take(), "paint_white_trim", id + "_frame");
+        // Handles: a square rose, a neck and a lever hanging closed, on each
+        // casement's stile by the mullion, on the room side.
+        MeshBuilder handles;
+        for (int c = 0; c < 2; ++c)
+        {
+            const float hx = c == 0 ? mid - 0.004f - cf * 0.5f : mid + 0.004f + cf * 0.5f;
+            const float hy = y0 + (y1 - y0) * 0.45f;
+            handles.addBox(Vector3(hx - 0.016f, hy - 0.016f, zc1), Vector3(hx + 0.016f, hy + 0.016f, zc1 + 0.006f), 0.3f);
+            handles.addBox(Vector3(hx - 0.007f, hy - 0.007f, zc1 + 0.006f), Vector3(hx + 0.007f, hy + 0.007f, zc1 + 0.026f), 0.3f);
+            handles.addBox(Vector3(hx - 0.007f, hy - 0.105f, zc1 + 0.018f), Vector3(hx + 0.007f, hy + 0.007f, zc1 + 0.032f), 0.3f);
+        }
+        place(handles.take(), "sconce_brass", id + "_handles", Matrix::getIdentityProperty(), true);
 
         MeshBuilder exteriorSill;
         exteriorSill.addBox(Vector3(x0 - 0.03f, y0 - 0.05f, zInside - L.exteriorWallThickness - 0.03f),
@@ -825,7 +837,7 @@ void RoomScene::buildLamps()
         tv.name = "television";
         tv.position = Vector3(0.0f, 1.30f + 0.37f, L.halfDepth - 0.06f);
         tv.colour = Vector3(0.75f, 0.85f, 1.0f);
-        tv.intensity = Lamp::fromLumens(250.0f);
+        tv.intensity = Lamp::fromLumens(150.0f);   // the dark-room picture level (120 cd/m^2 over the screen)
         tv.fullIntensity = tv.intensity;
         tv.range = 5.0f;
         tv.spot = true;
@@ -1167,8 +1179,10 @@ void RoomScene::setTelevisionOn(bool on)
         TelevisionContent* content = renderer_.television();
         const bool playing = on && content != nullptr && content->supported();
         picture->emissive = playing ? content->texture() : nullptr;
-        // ~200 cd/m^2 for a bright picture: 0.025 in scene units, on top of the glow's own level.
-        picture->emissiveFactor = playing ? Vector3(0.028f, 0.028f, 0.028f) : Vector3::Zero;
+        // ~120 cd/m^2, a set's dark-room picture mode (0.017 in scene units, on
+        // top of the glow's own level): at 200 the picture paled under the
+        // tonemapper next to the lamp-lit walls.
+        picture->emissiveFactor = playing ? Vector3(0.017f, 0.017f, 0.017f) : Vector3::Zero;
     }
     for (Lamp& lamp : renderer_.lamps())
         if (lamp.name == "television") lamp.on = on;
