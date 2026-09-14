@@ -808,6 +808,18 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   and 939 marching every pixel, so the beams are now within the frame's noise. The debug
   views (`CNA_ROOM_DEBUG_SUNBEAMS`) stay full size over the scene; `--sunbeams-full` marches
   every pixel.
+- 2026-09-14 M9 the television's glow follows its programme: `TelevisionContent` renders the
+  same shader a second time at 32x18 after each picture and reads it back (2 KB a frame; the
+  shader is smooth at that scale, so the mean is the picture's), decoded from the sRGB the
+  picture is written in. `RoomScene::updateTelevisionGlow` gives the "television" lamp the
+  mean's colour at the luminance of its calibrated cool white, and its level the mean's
+  luminance over the programme's own mean (0.29, measured over the 70 s cycle with
+  `CNA_ROOM_TV_TIME_SCALE`, which runs the programme faster than a capture's 1/60 s frames:
+  the sunset landscape sits at 0.33-0.34 and warm, the studio at 0.19 and blue, the test card
+  at 0.30), so the 250 lm stay the long-run level and the cuts and pans move the room's light
+  around it (0.65 to 1.15 here; `CNA_ROOM_DEBUG_TV` logs the mean each frame). With the
+  lamps on the effect is a few levels on the mantel; with the lamps off (`--lamps off --tv
+  on`) the set is the room's light and its colour and level change with the programme.
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a
   tree read as a cluster of balls with a highlight apiece. The blobs' normals now bend 0.7
   toward the direction from the crown's centre (squashed 1.4 in y so the underside reads as

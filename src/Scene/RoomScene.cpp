@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 
 using namespace Microsoft::Xna::Framework;
 using CnaRoom::Geometry::MeshBuilder;
@@ -958,6 +959,7 @@ void RoomScene::update(float dt)
     // The fire catches and dies slowly, and flickers while it burns.
     const float fire = ramp(fireLevel_, fireOn_, 0.25f, 0.12f);
     fireSeconds_ += dt;
+    if (televisionOn_) updateTelevisionGlow();
     const bool fireLive = fire > 0.0f || fireLevel_ > 0.0f || lamp > 0.0f;   // the candle burns with the lamps
     if (lamp == lampLevel_ && street == streetLevel_ && !fireLive) return;
     lampLevel_ = lamp;
@@ -965,6 +967,38 @@ void RoomScene::update(float dt)
     fireLevel_ = fire;
     if (fireLive) updateFire();
     applyLampLevels();
+}
+
+void RoomScene::updateTelevisionGlow()
+{
+    // The set's light on the room follows its picture: the lamp takes the
+    // picture's mean colour at the luminance of its calibrated cool white,
+    // and its level the mean's luminance against the programme's own mean
+    // (kTelevisionMeanLuminance, measured over the 70 s cycle), so the
+    // 250 lm stay the long-run level and the cuts and pans move around it.
+    const TelevisionContent* content = renderer_.television();
+    if (content == nullptr || !content->hasMean()) return;
+    constexpr float kTelevisionMeanLuminance = 0.29f;
+    const Vector3 mean = content->meanColour();
+    const auto luminance = [](const Vector3& v) { return 0.2126f * v.X + 0.7152f * v.Y + 0.0722f * v.Z; };
+    const float lum = luminance(mean);
+    const float level = std::clamp(lum / kTelevisionMeanLuminance, 0.1f, 2.5f);
+    for (Lamp& lamp : renderer_.lamps())
+    {
+        if (lamp.name != "television") continue;
+        static const Vector3 white(0.75f, 0.85f, 1.0f);
+        static const float whiteLuminance = luminance(white);
+        const Vector3 colour = lum > 1e-4f ? mean * (whiteLuminance / lum) : white;
+        const float top = std::max({colour.X, colour.Y, colour.Z});
+        lamp.colour = top > 2.0f ? colour * (2.0f / top) : colour;
+        lamp.intensity = lamp.fullIntensity * level;
+        if (!loggedTelevisionGlow_ || std::getenv("CNA_ROOM_DEBUG_TV") != nullptr)
+        {
+            loggedTelevisionGlow_ = true;
+            CNA::Logger::Info("cna-room: television picture mean " + std::to_string(mean.X) + " " + std::to_string(mean.Y) + " " + std::to_string(mean.Z)
+                              + " luminance " + std::to_string(lum) + " level " + std::to_string(level));
+        }
+    }
 }
 
 void RoomScene::updateFire()

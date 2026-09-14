@@ -143,7 +143,9 @@ PageUp/PageDown or F2 give them back.
   depth/normal prepass, sorted transparency, daylight height fog, optional SSR; GPU timers per
   pass and an on-screen overlay.
 - A television that plays a synthetic programme (landscape, studio, test card) on a render
-  target bound as its emissive picture, a wall clock whose hands follow the scene's time, and a
+  target bound as its emissive picture, whose light on the room takes the picture's mean
+  colour and level each frame (read back from a 32x18 render of the same programme), a wall
+  clock whose hands follow the scene's time, and a
   wood stove that burns on cool evenings (embers, flickering flames and their light), with a
   candle lit alongside the lamps.
 - Weather that drifts between clear, cloudy, overcast, rain, storm (lightning), hail and snow:

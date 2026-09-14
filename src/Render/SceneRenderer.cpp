@@ -1087,7 +1087,13 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
             appliedFogDensity_ = fogDensity_;
         }
     }
-    if (television_ != nullptr && television_->supported() && televisionPlaying_) television_->update(frameSeconds_);
+    if (television_ != nullptr && television_->supported() && televisionPlaying_)
+    {
+        // CNA_ROOM_TV_TIME_SCALE runs the programme faster (its cycle is 70 s; a
+        // deterministic capture steps 1/60 s a frame), for measuring its mean.
+        static const float tvTimeScale = std::getenv("CNA_ROOM_TV_TIME_SCALE") != nullptr ? std::strtof(std::getenv("CNA_ROOM_TV_TIME_SCALE"), nullptr) : 1.0f;
+        television_->update(frameSeconds_ * tvTimeScale);
+    }
 
     const auto openStage = [this](GpuStage stage) {
         auto& timer = gpuStage_[static_cast<std::size_t>(stage)];

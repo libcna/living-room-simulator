@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 
+#include "Microsoft/Xna/Framework/Color.hpp"
+#include "Microsoft/Xna/Framework/Vector3.hpp"
+
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace Microsoft::Xna::Framework::Graphics {
     class GraphicsDevice;
@@ -38,8 +42,19 @@ public:
     /// Redraws the picture for `seconds` (call once per frame while the set is on).
     void update(float seconds);
     [[nodiscard]] Microsoft::Xna::Framework::Graphics::Texture2D* texture() const;
+    /// The picture's mean colour (linear), from a 32x18 render of the same
+    /// programme read back after each update(): the light the set throws
+    /// into the room. False until the first readback (or after it failed).
+    [[nodiscard]] bool hasMean() const { return meanValid_; }
+    [[nodiscard]] const Microsoft::Xna::Framework::Vector3& meanColour() const { return mean_; }
 
 private:
+    void readMean();
+    std::unique_ptr<Microsoft::Xna::Framework::Graphics::RenderTarget2D> meanTarget_;
+    std::vector<Microsoft::Xna::Framework::Color> meanPixels_;
+    Microsoft::Xna::Framework::Vector3 mean_;
+    bool meanValid_ = false;
+    bool meanFailed_ = false;
     Microsoft::Xna::Framework::Graphics::GraphicsDevice& device_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::RenderTarget2D> target_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::ShaderEffect> effect_;

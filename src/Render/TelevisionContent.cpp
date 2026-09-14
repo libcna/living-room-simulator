@@ -13,6 +13,10 @@
 #include "Microsoft/Xna/Framework/Graphics/SurfaceFormat.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
 
+#include <array>
+#include <cmath>
+#include <cstddef>
+
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
 
@@ -163,7 +167,49 @@ void TelevisionContent::update(float seconds)
     effect_->SetUniformFloat("uTime", seconds);
     effect_->SetUniformFloat("uFlipV", 1.0f);   // FullscreenPass sprite origin (CNA_FINDINGS R-8)
     pass_->draw(white_.get(), target_.get(), effect_.get(), width_, height_);
+    readMean();
     device_.SetRenderTarget(nullptr);
+}
+
+namespace {
+constexpr int kMeanWidth = 32, kMeanHeight = 18;
+}
+
+void TelevisionContent::readMean()
+{
+    // The same programme at 32x18 (smooth at that scale, so its mean is the
+    // picture's), read back and decoded from the sRGB it is written in. A
+    // readback each frame: 2 KB, and the exposure meter reads the frame anyway.
+    if (meanFailed_) return;
+    try
+    {
+        if (meanTarget_ == nullptr)
+            meanTarget_ = std::make_unique<RenderTarget2D>(device_, kMeanWidth, kMeanHeight, false, SurfaceFormat::Color, DepthFormat::None, 0,
+                                                           RenderTargetUsage::PreserveContents);
+        pass_->draw(white_.get(), meanTarget_.get(), effect_.get(), kMeanWidth, kMeanHeight);
+        meanPixels_.resize(static_cast<std::size_t>(kMeanWidth) * static_cast<std::size_t>(kMeanHeight));
+        meanTarget_->GetData(meanPixels_.data(), static_cast<int>(meanPixels_.size()));
+        static const std::array<float, 256> decode = [] {
+            std::array<float, 256> table{};
+            for (int i = 0; i < 256; ++i)
+            {
+                const float c = static_cast<float>(i) / 255.0f;
+                table[static_cast<std::size_t>(i)] = c <= 0.04045f ? c / 12.92f : std::pow((c + 0.055f) / 1.055f, 2.4f);
+            }
+            return table;
+        }();
+        Vector3 sum;
+        for (const Color& c : meanPixels_)
+            sum += Vector3(decode[c.getRProperty()], decode[c.getGProperty()], decode[c.getBProperty()]);
+        mean_ = sum / static_cast<float>(meanPixels_.size());
+        meanValid_ = true;
+    }
+    catch (const std::exception& error)
+    {
+        meanFailed_ = true;
+        meanValid_ = false;
+        CNA::Logger::Warn(std::string("cna-room: the television's mean readback failed, its glow stays fixed: ") + error.what());
+    }
 }
 
 }  // namespace CnaRoom

@@ -123,6 +123,7 @@ private:
     bool lampsOn_ = false;
     bool streetLightsOn_ = false;
     bool televisionOn_ = false;
+    bool loggedTelevisionGlow_ = false;
     float lampLevel_ = 0.0f;      ///< 0..1 fade of the room's lamps
     float streetLevel_ = 0.0f;
     void applyLampLevels();
@@ -177,6 +178,7 @@ private:
     float candleFlicker_ = 1.0f;
     float fireSeconds_ = 0.0f;
     void updateFire();
+    void updateTelevisionGlow();   ///< the set's lamp from its picture's mean, each frame it plays
     std::size_t clockHourHand_ = static_cast<std::size_t>(-1), clockMinuteHand_ = static_cast<std::size_t>(-1);
     Microsoft::Xna::Framework::Vector3 clockHourPivot_, clockMinutePivot_;
     RoomLayout layout_;
