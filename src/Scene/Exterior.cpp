@@ -221,6 +221,15 @@ void RoomScene::buildExterior()
     const char* const facadeMaterials[] = {"facade_render", "brick_red", "facade_render_2", "facade_render_3", "facade_render_4"};
     ChunkSet facades[5];
     ChunkSet frames, glassDark, glassLit, glassLitDim, glassLitCool, roofsTile, roofsSlate, doors, chimneys, sills, gutters, plinths, shopTrim, signs;
+    ChunkSet troughs, boxFoliage, flowersRed, flowersYellow, dishes, brackets;
+    // Appends one builder's mesh into a chunk (tangents computed), for parts built in their own frame.
+    const auto appendInto = [](MeshBuilder& into, MeshBuilder& part) {
+        MeshData data = part.take();
+        MeshBuilder::computeTangents(data);
+        const std::uint32_t base = static_cast<std::uint32_t>(into.mesh().vertices.size());
+        for (const auto& v : data.vertices) into.mesh().vertices.push_back(v);
+        for (std::uint32_t i : data.indices) into.mesh().indices.push_back(base + i);
+    };
     Dice dice(20260912u);
 
     // Adds one building whose front plane is z = front, facing +Z (towards
@@ -365,6 +374,38 @@ void RoomScene::buildExterior()
                 frames.at(bx).addBoxWorldUv(Vector3(cx - 0.025f, y0, zf0), Vector3(cx + 0.025f, y1, zf0 + 0.03f), 0.5f, kAllFaces);
                 const float zs1 = zFront + facing * 0.06f;
                 sills.at(bx).addBoxWorldUv(Vector3(x0 - 0.06f, y0 - 0.07f, std::min(zSkinIn, zs1)), Vector3(x1 + 0.06f, y0, std::max(zSkinIn, zs1)), 0.5f, kAllFaces);
+                // Extras by a hash of the window's place (the dice would reshuffle
+                // the rest): a window box under some upper windows, a satellite
+                // dish on a bracket beside a few.
+                const float extra = std::fmod(std::fabs(std::sin(x0 * 3.17f + y0 * 9.31f + zFace * 1.7f) * 12345.678f), 1.0f);
+                if (s >= 1 && extra < 0.28f)
+                {
+                    const float zb0 = std::min(zs1, zs1 + facing * 0.22f), zb1 = std::max(zs1, zs1 + facing * 0.22f);
+                    troughs.at(bx).addBoxWorldUv(Vector3(x0 + 0.05f, y0 - 0.26f, zb0), Vector3(x1 - 0.05f, y0 - 0.03f, zb1), 0.3f, kAllFaces);
+                    boxFoliage.at(bx).addBoxWorldUv(Vector3(x0 + 0.02f, y0 - 0.08f, std::min(zs1 - facing * 0.02f, zs1 + facing * 0.27f)),
+                                                    Vector3(x1 - 0.02f, y0 + 0.14f, std::max(zs1 - facing * 0.02f, zs1 + facing * 0.27f)), 0.25f, kAllFaces);
+                    const int blooms = 4 + static_cast<int>(extra * 10.0f);
+                    for (int f = 0; f < blooms; ++f)
+                    {
+                        const float u = (static_cast<float>(f) + 0.5f) / static_cast<float>(blooms);
+                        const float fx = x0 + 0.08f + (x1 - x0 - 0.16f) * u;
+                        const float fz = zs1 + facing * (0.08f + 0.12f * std::fmod(u * 7.3f, 1.0f));
+                        const float fy = y0 + 0.14f + 0.05f * std::fmod(u * 3.1f, 1.0f);
+                        MeshBuilder& into = (f + static_cast<int>(extra * 100.0f)) % 2 ? flowersRed.at(bx) : flowersYellow.at(bx);
+                        into.addSphere(Vector3(fx, fy, fz), 0.045f, 8, 6, 0.2f);
+                    }
+                }
+                else if (s >= 1 && extra < 0.36f)
+                {
+                    const float dx = x1 + 0.34f, dy = y0 + 0.55f, dz = zFront + facing * 0.30f;
+                    brackets.at(bx).addBoxWorldUv(Vector3(dx - 0.04f, dy - 0.05f, std::min(zFront, dz)), Vector3(dx + 0.04f, dy + 0.05f, std::max(zFront, dz)), 0.2f, kAllFaces);
+                    MeshBuilder dish;
+                    dish.addSphere(Vector3::Zero, 0.30f, 20, 10, 0.3f);
+                    // A shallow dish: the sphere pressed flat, tilted up and toward the street, its arm ahead.
+                    dish.transform(Matrix::CreateScale(1.0f, 1.0f, 0.12f) * Matrix::CreateRotationX(facing * MathHelper::ToRadians(-30.0f)) * Matrix::CreateTranslation(dx, dy, dz));
+                    appendInto(dishes.at(bx), dish);
+                    brackets.at(bx).addBoxWorldUv(Vector3(dx - 0.012f, dy - 0.24f, std::min(dz, dz + facing * 0.28f)), Vector3(dx + 0.012f, dy - 0.21f, std::max(dz, dz + facing * 0.28f)), 0.2f, kAllFaces);
+                }
             }
         }
         // Rainwater: a gutter along the front eave (or the parapet's foot) and a downpipe down one end.
@@ -497,6 +538,18 @@ void RoomScene::buildExterior()
             metal.at(bx).addBoxWorldUv(Vector3(bx - 0.21f, 2.69f, bz - 0.016f), Vector3(bx + 0.21f, 2.71f, bz + 0.016f), 0.3f, kAllFaces);
             metal.at(bx).addBoxWorldUv(Vector3(bx + 0.03f, 1.25f, bz - 0.04f), Vector3(bx + 0.42f, 1.85f, bz + 0.04f), 0.3f, kAllFaces);   // the case
             cases.at(bx).addBoxWorldUv(Vector3(bx + 0.06f, 1.29f, bz - 0.045f), Vector3(bx + 0.39f, 1.81f, bz + 0.045f), 0.5f, kAllFaces);   // its lit panel, proud of both faces
+        }
+        // Television aerials by every other chimney: a mast and three crossbars.
+        for (std::size_t c = 0; c < chimneyTops_.size(); c += 2)
+        {
+            const Vector3 top = chimneyTops_[c];
+            const Vector3 foot(top.X + 0.55f, top.Y - 0.7f, top.Z), head(top.X + 0.55f, top.Y + 0.9f, top.Z);
+            tube(metal.at(foot.X), foot, head, 0.016f, 8);
+            for (int bar = 0; bar < 3; ++bar)
+            {
+                const float y = head.Y - 0.12f - static_cast<float>(bar) * 0.22f, half = 0.32f - static_cast<float>(bar) * 0.06f;
+                tube(metal.at(foot.X), Vector3(head.X - half, y, head.Z), Vector3(head.X + half, y, head.Z), 0.007f, 6);
+            }
         }
         // The bench: two cast ends, five slats for the seat and three for the
         // back, which is on the house side (-Z) so it faces the road.
@@ -739,6 +792,12 @@ void RoomScene::buildExterior()
     placeChunks(gutters, "gutter_metal", "exterior_gutters", true);
     placeChunks(shopTrim, "bench_wood", "exterior_shop_trim", true);
     placeChunks(signs, "shop_sign", "exterior_shop_signs", true);
+    placeChunks(troughs, "terracotta", "exterior_window_boxes", true);
+    placeChunks(boxFoliage, "hedge", "exterior_window_box_foliage", true);
+    placeChunks(flowersRed, "flower_red", "exterior_flowers_red", true);
+    placeChunks(flowersYellow, "flower_yellow", "exterior_flowers_yellow", true);
+    placeChunks(dishes, "plastic_white", "exterior_dishes", true);
+    placeChunks(brackets, "gutter_metal", "exterior_dish_brackets", true);
 
     // ---- trees ----
     {

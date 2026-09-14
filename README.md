@@ -181,6 +181,7 @@ PageUp/PageDown or F2 give them back.
   their reflection up in that render (the screen through a Fresnel ramp under its picture, the
   mirror as silvered glass, the panes' Fresnel share of the lamp-lit room added over the street,
   bent by the rain droplets' normal map when the panes are wet).
+- Facade extras across the street: window boxes in bloom, satellite dishes, television aerials.
 - Street signage: the shop's lettered sign box and a bus stop with a timetable case, both lit
   with the street lights.
 - The door ajar on a lit hallway: a floor, walls, a dome light that stays on, a coat on a

@@ -937,6 +937,13 @@ See `NEXT.md` for the ordered queue. Audit log (what the contact sheets showed a
   behind; the average over time stays `cloudDim`, a clear sky never hides the sun, an
   overcast one always does, and second zero (every capture) sits at the typical state, so
   the canonical views hold. The daylight in the room now breathes as clouds pass.
+- 2026-09-14 M9 facade extras: by a hash of each window's place (the builder's dice would
+  reshuffle every building after an extra draw), 28 % of the upper windows across the street
+  carry a window box (a terracotta trough proud of the sill, a leafy top in the hedge's
+  material, four to thirteen red and yellow blooms) and the next 8 % a satellite dish (a
+  sphere pressed flat, tilted up and toward the street, on a bracket with its arm ahead);
+  every other chimney has a television aerial (a mast and three crossbars in the gutters'
+  metal). All chunked with the street and casting shadows.
 - 2026-09-14 hygiene: the chimney-smoke band is `chimneySmokeLevel(temperatureC)` in the
   simulation layer, with a sim test (nothing at 14 C, all at 8 C, half at 11 C, monotone).
 - 2026-09-14 M9 tree crowns: the canopies were nine leaf spheres each shaded on its own, so a

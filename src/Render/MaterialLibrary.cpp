@@ -219,6 +219,10 @@ void MaterialLibrary::buildProcedural(std::uint32_t seed, int size)
     if (Material* m = edit("shop_sign")) m->emissive = m->albedo;
     surfaced("bus_flag", [&] { return TextureBaker::flat(size / 8, seed + 26u, 0.95f, 0.72f, 0.10f, 0.45f, 0.0f, 0.02f); }, 1.0f, 0.0f);
     surfaced("timetable", [&] { return TextureBaker::flat(size / 8, seed + 27u, 0.90f, 0.90f, 0.86f, 0.35f, 0.0f, 0.04f); }, 1.0f, 0.0f);
+    // Window boxes across the street: a terracotta trough and its flowers.
+    surfaced("terracotta", [&] { return TextureBaker::flat(size / 8, seed + 28u, 0.70f, 0.38f, 0.24f, 0.85f, 0.0f, 0.06f); }, 1.0f, 0.0f);
+    surfaced("flower_red", [&] { return TextureBaker::flat(size / 8, seed + 29u, 0.85f, 0.10f, 0.12f, 0.6f, 0.0f, 0.05f); }, 1.0f, 0.0f);
+    surfaced("flower_yellow", [&] { return TextureBaker::flat(size / 8, seed + 30u, 0.95f, 0.78f, 0.15f, 0.6f, 0.0f, 0.05f); }, 1.0f, 0.0f);
     // The hall: a navy wool coat, a frosted dome that stays lit (~1000 cd/m^2 over its face).
     surfaced("coat_wool", [&] { return TextureBaker::fabricWeave(size / 2, seed + 23u, 0.13f, 0.15f, 0.24f); }, 1.0f, 0.0f);
     surfaced("hall_dome", [&] { return TextureBaker::flat(size / 8, seed + 24u, 0.95f, 0.93f, 0.88f, 0.45f, 0.0f, 0.0f); }, 1.0f, 0.0f);
