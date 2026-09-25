@@ -26,8 +26,13 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # The renderer CNA compiles in. OPENGLES3 is EasyGL's reference identity: every
 # CNAEXT subsystem lands and is verified there first. OPENGL33 shares the same
 # EasyGL implementation on a desktop GL 3.3 core context.
-set(CNA_ROOM_RENDERER "OPENGLES3" CACHE STRING
-    "CNA graphics renderer to build against (OPENGLES3 or OPENGL33 -- both are EasyGL)")
+if(EMSCRIPTEN)
+    set(_cna_room_default_renderer "WEBGL2")
+else()
+    set(_cna_room_default_renderer "OPENGLES3")
+endif()
+set(CNA_ROOM_RENDERER "${_cna_room_default_renderer}" CACHE STRING
+    "CNA graphics renderer to build against (WEBGL2 for Emscripten, OPENGLES3 or OPENGL33 natively)")
 
 option(CNA_ROOM_BUILD_TESTS "Build living-room-simulator's unit tests" ON)
 
@@ -52,7 +57,12 @@ target_include_directories(cna_room_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inc
 find_package(Threads REQUIRED)
 target_link_libraries(cna_room_core PUBLIC CNA PRIVATE CnaRoom::Warnings Threads::Threads)
 
-set(CNA_ROOM_ASSET_DIR "${CMAKE_SOURCE_DIR}/assets" CACHE PATH
+if(EMSCRIPTEN)
+    set(_cna_room_default_asset_dir "/assets")
+else()
+    set(_cna_room_default_asset_dir "${CMAKE_SOURCE_DIR}/assets")
+endif()
+set(CNA_ROOM_ASSET_DIR "${_cna_room_default_asset_dir}" CACHE PATH
     "Directory the application loads its assets from")
 target_compile_definitions(cna_room_core PUBLIC
     CNA_ROOM_VERSION="${PROJECT_VERSION}"
@@ -61,6 +71,33 @@ target_compile_definitions(cna_room_core PUBLIC
 
 add_executable(living-room-simulator src/Main.cpp)
 target_link_libraries(living-room-simulator PRIVATE CnaRoom::Core CnaRoom::Warnings)
+if(EMSCRIPTEN)
+    set_target_properties(living-room-simulator PROPERTIES SUFFIX ".html")
+    target_link_libraries(living-room-simulator PRIVATE CNA::EmscriptenAsyncify)
+    target_link_options(living-room-simulator PRIVATE
+        -sALLOW_MEMORY_GROWTH=1
+        -sFORCE_FILESYSTEM=1
+        -sMIN_WEBGL_VERSION=2
+        -sMAX_WEBGL_VERSION=2
+        --shell-file "${CMAKE_SOURCE_DIR}/web/shell.html")
+
+    # Ship the actual imported furniture used by RoomScene, rather than every
+    # extracted source model. The files are fetched/extracted by the existing
+    # asset pipeline and remain outside version control for license reasons.
+    file(STRINGS "${CMAKE_SOURCE_DIR}/web/model-assets.txt" _web_models)
+    foreach(_model IN LISTS _web_models)
+        if(_model STREQUAL "" OR _model MATCHES "^#")
+            continue()
+        endif()
+        set(_model_file "${CMAKE_SOURCE_DIR}/assets/external/extracted/${_model}.glb")
+        if(NOT EXISTS "${_model_file}")
+            message(FATAL_ERROR
+                "Web build needs ${_model_file}. Run scripts/fetch-assets.sh and scripts/extract-assets.sh first.")
+        endif()
+        target_link_options(living-room-simulator PRIVATE
+            "SHELL:--preload-file ${_model_file}@/assets/external/extracted/${_model}.glb")
+    endforeach()
+endif()
 if(TARGET SDL3::SDL3main)
     target_link_libraries(living-room-simulator PRIVATE SDL3::SDL3main)
 endif()

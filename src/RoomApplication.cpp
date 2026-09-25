@@ -33,6 +33,10 @@
 #include <string>
 #include <vector>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
 using namespace Microsoft::Xna::Framework::Input;
@@ -761,6 +765,12 @@ void RoomApplication::Draw(const GameTime& gameTime)
     Game::Draw(gameTime);
 
     ++framesDrawn_;
+#ifdef __EMSCRIPTEN__
+    EM_ASM({
+        Module['roomFrames'] = $0;
+        if ($0 === 1 && Module['roomReady']) Module['roomReady']();
+    }, framesDrawn_);
+#endif
     if (!recordDirectory_.empty() && framesDrawn_ % recordEvery_ == 0)
     {
         if (framesDrawn_ == recordEvery_) std::filesystem::create_directories(recordDirectory_);

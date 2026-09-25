@@ -1,6 +1,29 @@
 # living-room-simulator
 
-**Status:** closed on 2026-09-14 with all nine milestones delivered and 29 audit rounds logged;
+## WebGL2 / WebAssembly
+
+Webová verze sestavuje **stejnou C++ aplikaci** s CNA/EasyGL rendererem `WEBGL2` pomocí
+Emscriptenu. Webová stránka v [`web/shell.html`](web/shell.html) zajišťuje načtení WASM a
+ovládací nápovědu; místnost, počasí, materiály a vykreslování běží v původním C++ kódu.
+
+Připravte závislosti popsané níže a Emscripten SDK (výchozí umístění skriptu je
+`/home/robertvokac/emsdk`; jinde nastavte `EMSDK_ROOT`). Modely jsou externí aktiva a nejsou
+v Gitu:
+
+```bash
+scripts/fetch-assets.sh
+scripts/extract-assets.sh
+scripts/build-web.sh
+python3 -m http.server 8000 --directory build-probe/bin
+```
+
+Otevřete `http://localhost:8000/living-room-simulator.html` v prohlížeči s WebGL2. Vedle
+HTML musí být v témže adresáři také vygenerované `.js`, `.wasm` a `.data`; `.data` obsahuje
+použité modely (přibližně 128 MiB). Webový build používá sdílenou `build-probe/` a
+`/rv/cnaccache` podle pravidel projektu. Základní ovládání je stejné jako u desktopové
+verze: **W/A/S/D**, šipky, **1–8**, **Page Up/Down**, **F2**, **L** a **T**.
+
+**Desktop status:** closed on 2026-09-14 with all nine milestones delivered and 29 audit rounds logged;
 `plan.md` §32 is the closing summary, `NEXT.md` the optional backlog, `CNA_FINDINGS.md` the 37
 CNA findings met on the way.
 

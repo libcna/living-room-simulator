@@ -91,7 +91,14 @@ Image Image::halved(bool srgb) const
     };
     // The top levels of a mip chain are the bulk of an asset load; they are
     // split by rows over the cores while the GL thread has nothing to do.
+    // Browser builds use Emscripten's single-threaded ABI by default. Spawning
+    // workers there would require a different Wasm memory ABI and COOP/COEP
+    // response headers from every host serving the page.
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+    const unsigned cores = 1;
+#else
     const unsigned cores = std::min(4u, std::max(1u, std::thread::hardware_concurrency()));
+#endif
     const int rowsPerThread = h / static_cast<int>(cores);
     if (cores > 1 && rowsPerThread >= 32 && static_cast<std::size_t>(w) * static_cast<std::size_t>(h) >= 65536u)
     {
