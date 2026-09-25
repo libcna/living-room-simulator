@@ -23,6 +23,12 @@ použité modely (přibližně 128 MiB). Webový build používá sdílenou `bui
 `/rv/cnaccache` podle pravidel projektu. Základní ovládání je stejné jako u desktopové
 verze: **W/A/S/D**, šipky, **1–8**, **Page Up/Down**, **F2**, **L** a **T**.
 
+Pro publikování na GitHub Pages zkopírujte build do repozitáře s ukázkami pomocí
+`python3 scripts/package-web-demo.py ../demos.libcna.com/living-room-simulator`.
+Skript rozdělí datový balík na 64MiB soubory a upraví jeho načítání, aby každý
+soubor splnil limit GitHubu. Pro lokální spuštění tohoto balíčku spusťte HTTP server
+v kořeni `demos.libcna.com` a otevřete `living-room-simulator/living-room-simulator.html`.
+
 **Desktop status:** closed on 2026-09-14 with all nine milestones delivered and 29 audit rounds logged;
 `plan.md` §32 is the closing summary, `NEXT.md` the optional backlog, `CNA_FINDINGS.md` the 37
 CNA findings met on the way.
