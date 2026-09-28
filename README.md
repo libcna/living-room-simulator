@@ -1,5 +1,17 @@
 # living-room-simulator
 
+A standalone reference application for integration and visual regression testing of
+[CNA](https://github.com/libcna/cna) across supported graphics renderers, windowing
+platforms and operating systems. Keep the scene and capture scenarios stable so changes
+in CNA can be compared against a known reference.
+
+The existing rendering baseline uses the EasyGL family (OPENGLES3, OPENGL33 and WEBGL2).
+Other renderer families require compatibility checks; custom GLSL effects may need
+adaptation or an explicitly documented reduced-feature test profile.
+
+The original Git history is preserved. See [repository origin](docs/ORIGIN.md) for the
+2026-09-28 extraction from CNA Lab and instructions for reproducing it.
+
 ## WebGL2 / WebAssembly
 
 Webová verze sestavuje **stejnou C++ aplikaci** s CNA/EasyGL rendererem `WEBGL2` pomocí
