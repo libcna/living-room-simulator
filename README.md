@@ -46,8 +46,13 @@ v kořeni `demos.libcna.com` a otevřete `living-room-simulator/living-room-simu
 CNA findings met on the way.
 
 A realistic, explorable 3D living room rendered with [CNA](https://github.com/libcna/cna)
-(`next` branch) and [sharp-runtime](https://github.com/libcna/sharp-runtime) (`next` branch),
-using CNA's **EasyGL** renderer (`OPENGLES3`) and the **CNAEXT** modern graphics layer.
+and [sharp-runtime](https://github.com/libcna/sharp-runtime) from the current sibling checkouts,
+using CNA's **EasyGL** renderer (`OPENGLES3`) and the simulator's own scene effects.
+
+The graphics engine layer removed from CNA now lives in this repository under
+`CnaRoom::Effects`. CNA supplies devices, resources, PBR effects, portable shader packages
+and model loading; the simulator supplies shadows, sky and postprocessing. See
+[current CNA migration](docs/CNA_MIGRATION.md) for provenance and compatibility limits.
 
 The application is a free-flying camera inside a furnished residential living room: a slow
 continuous day/night cycle, slowly evolving weather seen through the windows, physically based
@@ -109,8 +114,12 @@ apt-get install build-essential cmake ninja-build git \
 ## Building
 
 ```
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target living-room-simulator
+export CCACHE_DIR=/rv/cnaccache CCACHE_BASEDIR=/rv CMAKE_BUILD_PARALLEL_LEVEL=2
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    -DCNA_MAX_VENDORED_BUILD_JOBS=2
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
 ```
 
 `-DCNA_ROOM_RENDERER=OPENGL33` selects the desktop GL 3.3 identity of the same EasyGL renderer.

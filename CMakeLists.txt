@@ -24,8 +24,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # The renderer CNA compiles in. OPENGLES3 is EasyGL's reference identity: every
-# CNAEXT subsystem lands and is verified there first. OPENGL33 shares the same
-# EasyGL implementation on a desktop GL 3.3 core context.
+# shader path is exercised there first. OPENGL33 shares the same EasyGL
+# implementation on a desktop GL 3.3 core context.
 if(EMSCRIPTEN)
     set(_cna_room_default_renderer "WEBGL2")
 else()

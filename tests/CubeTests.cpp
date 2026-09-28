@@ -3,7 +3,7 @@
 // convolution's normalisation and the GGX prefilter's blur.
 #include "CnaRoom/Render/Irradiance.hpp"
 
-#include "CNA/Graphics/EnvironmentProcessor.hpp"
+#include "CnaRoom/Effects/EnvironmentProcessor.hpp"
 #include "Microsoft/Xna/Framework/Vector3.hpp"
 
 #include <cmath>
@@ -47,7 +47,7 @@ int main()
     for (int f = 0; f < 6; ++f)
     {
         const int x = 3 + f, y = 11 - f;
-        const Vector3 d = CNA::Graphics::EnvironmentProcessor::faceDirection(
+        const Vector3 d = CnaRoom::Effects::EnvironmentProcessor::faceDirection(
             f, (static_cast<float>(x) + 0.5f) / size, (static_cast<float>(y) + 0.5f) / size);
         const Vector3 got = sampleCube(faces, size, d);
         check(std::fabs(got.X - static_cast<float>(f)) < 1e-3f && std::fabs(got.Y - static_cast<float>(x)) < 1e-2f

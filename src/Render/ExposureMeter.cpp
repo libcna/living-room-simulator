@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 #include "CnaRoom/Render/ExposureMeter.hpp"
 
-#include "CNA/Graphics/ComputeShader.hpp"
+#include "CnaRoom/Effects/ComputeShader.hpp"
 #include "CNA/Graphics/ShaderCodeEXT.hpp"
 #include "CNA/Graphics/ShaderPackageEXT.hpp"
-#include "CNA/Graphics/StorageBuffer.hpp"
+#include "CnaRoom/Effects/StorageBuffer.hpp"
 #include "CNA/GraphicsCapability.hpp"
 #include "CNA/Logger.hpp"
 #include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
@@ -69,8 +69,8 @@ ExposureMeter::ExposureMeter(GraphicsDevice& device) : device_(device)
                                                         CNA::ShaderStageEXT::Compute),
              CNA::Graphics::ShaderBindingRequirementEXT("Cells", 1, CNA::Graphics::ShaderBindingTypeEXT::StorageBuffer,
                                                         CNA::ShaderStageEXT::Compute)});
-        reducer_ = std::make_unique<CNA::Graphics::ComputeShader>(device_, package);
-        cells_ = std::make_unique<CNA::Graphics::StorageBufferT<float>>(device_, kCellsX * kCellsY);
+        reducer_ = std::make_unique<CnaRoom::Effects::ComputeShader>(device_, package);
+        cells_ = std::make_unique<CnaRoom::Effects::StorageBufferT<float>>(device_, kCellsX * kCellsY);
         luminance_.assign(static_cast<std::size_t>(kCellsX * kCellsY), 0.0f);
         supported_ = true;
     }

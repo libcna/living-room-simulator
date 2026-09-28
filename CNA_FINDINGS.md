@@ -1,5 +1,85 @@
 # CNA findings from living-room-simulator
 
+The numbered findings below are historical. CNA's retired engine implementations
+now live in the simulator as `CnaRoom::Effects`; those entries are not claims
+about the current CNA API. Migration details are in
+[CNA_MIGRATION.md](docs/CNA_MIGRATION.md).
+
+## Current build diagnostics (2026-09-28)
+
+Building CNA `8d56fa2fa` with GCC 14 in Release mode emitted the following
+diagnostics. These are recorded as unconfirmed compiler warnings, not confirmed
+bugs; no changes were made to CNA or sharp-runtime.
+
+- `modules/graphics/src/Internal/DibBitmap.cpp:91`, `WithBitmapFileHeader`:
+  `-Wfree-nonheap-object` while inlining `std::vector<uint8_t>::push_back`.
+- `modules/content/src/Cnb/CnbModelCodec.cpp`: `-Wstringop-overread` in the
+  standard library comparison of `std::vector<uint8_t>` keys.
+- `modules/content/src/GltfImport/GltfImportCore.cpp:2697`, `CloseLineLoop`:
+  `-Wstringop-overflow` while inlining the vector copy.
+- Vendored Draco's PLY readers/writers emit deprecated implicit `this` capture
+  and `-Wstringop-overread` diagnostics. This run loads GLB models, not PLY files.
+
+The build log is `build/build.log`. The simulator also triggers existing
+overloaded virtual and conversion warnings in upstream public headers under its
+stricter warning flags. These diagnostics were left visible.
+
+## Current runtime observation: non-finite EasyGL PBR pixels
+
+On CNA `8d56fa2fa` / sharp-runtime `6c4a857de`, OPENGLES3 with Mesa
+llvmpipe produces non-finite RGB samples in the imported furniture's PBR
+scene. At 320×180 the default entrance view contained 2331 such pixels out of
+57600 before postprocessing. Bloom spread them across the whole frame, yielding
+a completely black screenshot; CPU probe convolution also produced NaN
+irradiance. This is a reproducible rendering observation; the underlying cause
+has not been isolated sufficiently to attribute it to a particular upstream
+function or to sharp-runtime.
+
+The samples also occur with shadows, IBL, probes, reflections, decals, contact
+shadows and normal maps disabled. A scene containing only the simulator's
+procedural geometry was finite. CPU readback of the imported vertex buffers
+showed finite unit normals. Replacing the imported normal/tangent basis and
+disabling material maps did not remove the observation. The temporary diagnostic
+overrides were removed after investigation. No upstream sources were changed.
+
+Reproduce and inspect the raw scene with the final binary:
+
+```sh
+SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 CNA_ROOM_TRACE_POST=1 \
+  xvfb-run -a -s '-screen 0 320x180x24' ./build/bin/living-room-simulator \
+  --width 320 --height 180 --frames 1 --texture-size 64 --time 12:00 \
+  --view entrance --weather cloudy --hold-weather --screenshot build/hdr-check.png
+```
+
+`post trace scene` reports the original non-finite count. The simulator contains
+the damage locally: an EasyGL fullscreen `FiniteHDR` pass replaces non-finite
+pixels with finite neighbours before spatial filters, and probe capture applies
+the same rule before CPU convolution. Finite samples are kept unchanged. This
+is a consumer workaround, not an upstream fix. Other shader languages retain
+their existing path. `CNA_ROOM_TRACE_POST` adds synchronous readback for diagnosis
+and should be omitted during normal use.
+
+## Concurrent CNA working-tree compile failure
+
+After a successful build on CNA HEAD `c90f0e39f`, unrelated local sensor and
+window changes appeared in the sibling checkout during this task. A subsequent
+build failed in `modules/runtime/src/Game.cpp:492`:
+
+```text
+error: expected '}' before 'else'
+```
+
+`Game::setIsMouseVisibleProperty` contained a bare `else` immediately inside the
+`if (GraphicsDevice_.GetPlatformWindowInternal() != nullptr)` block. The new
+keyboard-accelerometer/orientation fallback was inserted there without a
+matching `if`. This is in the uncommitted working tree, not in the recorded HEAD.
+The full compiler output is retained in `build/build-concurrent-failure.log`.
+No dependency edits or resets were performed. Later external edits removed
+the misplaced `else`; rebuilding the latest working tree then succeeded.
+The failed compiler output is kept as a record of the transient failure.
+
+## Historical findings
+
 Bugs, surprising behaviours and limitations of CNA (`next` @ `1b3151f2f`, EasyGL renderer on
 Mesa llvmpipe ES 3.2) met while building this project, with the evidence and the workaround
 used here. Numbered so `plan.md` and commit messages can refer to them. "Bug" means the

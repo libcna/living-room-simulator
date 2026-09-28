@@ -16,13 +16,13 @@ namespace Microsoft::Xna::Framework::Graphics {
     class Texture2D;
     class VertexBuffer;
 }
-namespace CNA::Graphics {
+namespace CnaRoom::Effects {
     class ContactShadowPass;
 }
 
 namespace CnaRoom {
 
-/// Screen-space contact shadows for the sun: CNAEXT's `ContactShadowPass`
+/// Screen-space contact shadows for the sun: the local `Effects::ContactShadowPass`
 /// marched over the prepass depth before the frame opens (into a visibility
 /// mask, a white source darkened where a short ray toward the sun meets a
 /// nearer surface), then multiplied into the lit scene after the opaque pass
@@ -66,7 +66,7 @@ private:
     void drawQuad();
 
     Microsoft::Xna::Framework::Graphics::GraphicsDevice& device_;
-    std::unique_ptr<CNA::Graphics::ContactShadowPass> pass_;
+    std::unique_ptr<CnaRoom::Effects::ContactShadowPass> pass_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::ShaderEffect> copyEffect_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::VertexBuffer> quad_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::IndexBuffer> quadIndices_;

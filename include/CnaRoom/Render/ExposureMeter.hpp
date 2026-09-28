@@ -9,7 +9,7 @@ namespace Microsoft::Xna::Framework::Graphics {
     class GraphicsDevice;
     class RenderTarget2D;
 }
-namespace CNA::Graphics {
+namespace CnaRoom::Effects {
     class ComputeShader;
     template <typename T> class StorageBufferT;
 }
@@ -44,8 +44,8 @@ public:
 
 private:
     Microsoft::Xna::Framework::Graphics::GraphicsDevice& device_;
-    std::unique_ptr<CNA::Graphics::ComputeShader> reducer_;
-    std::unique_ptr<CNA::Graphics::StorageBufferT<float>> cells_;
+    std::unique_ptr<CnaRoom::Effects::ComputeShader> reducer_;
+    std::unique_ptr<CnaRoom::Effects::StorageBufferT<float>> cells_;
     std::vector<float> luminance_;
     bool supported_ = false;
     std::string reason_;

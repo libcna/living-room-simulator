@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 #include "CnaRoom/Render/ContactShadows.hpp"
 
-#include "CNA/Graphics/ContactShadowPass.hpp"
-#include "CNA/Graphics/PostProcessContext.hpp"
+#include "CnaRoom/Effects/ContactShadowPass.hpp"
+#include "CnaRoom/Effects/PostProcessContext.hpp"
 #include "CNA/Logger.hpp"
 #include "Microsoft/Xna/Framework/Color.hpp"
 #include "Microsoft/Xna/Framework/Graphics/Blend.hpp"
@@ -91,7 +91,7 @@ ContactShadows::ContactShadows(GraphicsDevice& device) : device_(device)
 {
     try
     {
-        pass_ = std::make_unique<CNA::Graphics::ContactShadowPass>(device_);
+        pass_ = std::make_unique<CnaRoom::Effects::ContactShadowPass>(device_);
         if (!pass_->isSupported(device_))
         {
             reason_ = "the contact shadow pass is not supported on this renderer";
@@ -181,7 +181,7 @@ void ContactShadows::march(const Inputs& in, int width, int height)
     pass_->setBias(in.bias);
     pass_->setIntensity(std::clamp(in.intensity, 0.0f, 1.0f));
     pass_->setStepCount(in.steps);
-    CNA::Graphics::PostProcessContext context;
+    CnaRoom::Effects::PostProcessContext context;
     context.source = white_.get();
     context.destination = mask_.get();
     context.width = width;

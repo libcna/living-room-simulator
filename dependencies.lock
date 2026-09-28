@@ -2,9 +2,9 @@
 # scripts/fetch-dependencies.sh --pin checks these out; without --pin the
 # branch heads are used. Recorded so a build failure can be attributed.
 # branch=next
-CNA=1b3151f2f1b7b712cfd26637580bebbb2e3602e4
-# branch=next
-SHARP_RUNTIME=0c82d9b888bdf5f7d5663c77942f339bcb2a7445
+CNA=c90f0e39f45e7823623058a1063b364735a9214e
+# branch=feature/gamer-services-collections
+SHARP_RUNTIME=6c4a857de129cf29b5d43430bedf24157d594f12
 # branch=develop
 EASY_GL=deda7a426c3c166c0e03a4790f1ede610e2e46fb
 # branch=develop

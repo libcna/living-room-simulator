@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "CnaRoom/Render/TelevisionContent.hpp"
 
-#include "CNA/Graphics/FullscreenPass.hpp"
+#include "CnaRoom/Effects/FullscreenPass.hpp"
 #include "CNA/GraphicsCapability.hpp"
 #include "CNA/Logger.hpp"
 #include "Microsoft/Xna/Framework/Color.hpp"
@@ -185,7 +185,7 @@ TelevisionContent::TelevisionContent(GraphicsDevice& device, int width, int heig
     }
     target_ = std::make_unique<RenderTarget2D>(device_, width_, height_, false, SurfaceFormat::Color, DepthFormat::None, 0,
                                                RenderTargetUsage::PreserveContents);
-    pass_ = std::make_unique<CNA::Graphics::FullscreenPass>(device_);
+    pass_ = std::make_unique<CnaRoom::Effects::FullscreenPass>(device_);
     white_ = std::make_unique<Texture2D>(device_, 1, 1);
     const Color pixel = Color::White;
     white_->SetData(&pixel, 1);

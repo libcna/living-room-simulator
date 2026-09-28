@@ -14,7 +14,7 @@ namespace Microsoft::Xna::Framework::Graphics {
     class ShaderEffect;
     class Texture2D;
 }
-namespace CNA::Graphics { class FullscreenPass; }
+namespace CnaRoom::Effects { class FullscreenPass; }
 
 namespace CnaRoom {
 
@@ -59,7 +59,7 @@ private:
     Microsoft::Xna::Framework::Graphics::GraphicsDevice& device_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::RenderTarget2D> target_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::ShaderEffect> effect_;
-    std::unique_ptr<CNA::Graphics::FullscreenPass> pass_;
+    std::unique_ptr<CnaRoom::Effects::FullscreenPass> pass_;
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::Texture2D> white_;
     int width_, height_;
     bool supported_ = false;

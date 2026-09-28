@@ -44,7 +44,7 @@ struct RenderSettings
     float lampHaze = 0.35f;              ///< the shadowed lamp's light scattered by the air at night (0 off)
     float contactShadows = 0.0f;         ///< screen-space contact shadows toward the sun (0 off, the default; how dark a full hit goes)
     float contactRange = 0.12f;          ///< metres the contact ray walks toward the sun
-    bool decals = true;                  ///< wear and stains projected onto the lit room (CNAEXT DecalPass)
+    bool decals = true;                  ///< wear and stains projected onto the lit room (Effects::DecalPass)
     float motionBlur = 0.0f;             ///< the pipeline's camera motion blur strength (0 off), for moving shots
     int sunbeamMotes = 400;          ///< dust motes drifting in the beams (0 off)
     bool steam = true;               ///< the plume over the cup on the coffee table

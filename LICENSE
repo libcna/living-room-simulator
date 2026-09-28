@@ -20,6 +20,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This licence covers the source code of living-room-simulator only. Third-party 3D models,
+This licence covers the original source code of living-room-simulator. The effects
+ported from CNA in include/CnaRoom/Effects/ and src/Effects/ retain the Microsoft
+Public License (Ms-PL), identified in their SPDX headers; its full text is in
+src/Effects/LICENSE. Third-party 3D models,
 textures and other assets keep their own licences, recorded per asset in
 THIRD_PARTY_ASSETS.md.

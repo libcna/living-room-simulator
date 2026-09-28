@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "CnaRoom/Render/Irradiance.hpp"
 
-#include "CNA/Graphics/EnvironmentProcessor.hpp"
+#include "CnaRoom/Effects/EnvironmentProcessor.hpp"
 #include "Microsoft/Xna/Framework/MathHelper.hpp"
 
 #include <algorithm>
@@ -41,7 +41,7 @@ std::vector<Vector3> convolveIrradiance(const std::vector<Vector3>& faces, int s
                     }
                 const float u = 2.0f * (static_cast<float>(i) + 0.5f) / static_cast<float>(small) - 1.0f;
                 const float v = 2.0f * (static_cast<float>(j) + 0.5f) / static_cast<float>(small) - 1.0f;
-                Vector3 d = CNA::Graphics::EnvironmentProcessor::faceDirection(
+                Vector3 d = CnaRoom::Effects::EnvironmentProcessor::faceDirection(
                     f, (static_cast<float>(i) + 0.5f) / static_cast<float>(small), (static_cast<float>(j) + 0.5f) / static_cast<float>(small));
                 d.Normalize();
                 // Solid angle of a cube-face cell: (2/small)^2 / (1 + u^2 + v^2)^(3/2).
@@ -53,7 +53,7 @@ std::vector<Vector3> convolveIrradiance(const std::vector<Vector3>& faces, int s
         for (int y = 0; y < out; ++y)
             for (int x = 0; x < out; ++x)
             {
-                Vector3 n = CNA::Graphics::EnvironmentProcessor::faceDirection(
+                Vector3 n = CnaRoom::Effects::EnvironmentProcessor::faceDirection(
                     f, (static_cast<float>(x) + 0.5f) / static_cast<float>(out), (static_cast<float>(y) + 0.5f) / static_cast<float>(out));
                 n.Normalize();
                 Vector3 e = Vector3::Zero;
@@ -129,7 +129,7 @@ std::vector<Vector3> prefilterSpecular(const std::vector<Vector3>& faces, int si
         for (int y = 0; y < out; ++y)
             for (int x = 0; x < out; ++x)
             {
-                Vector3 n = CNA::Graphics::EnvironmentProcessor::faceDirection(
+                Vector3 n = CnaRoom::Effects::EnvironmentProcessor::faceDirection(
                     f, (static_cast<float>(x) + 0.5f) / static_cast<float>(out), (static_cast<float>(y) + 0.5f) / static_cast<float>(out));
                 n.Normalize();
                 // Tangent frame about n.

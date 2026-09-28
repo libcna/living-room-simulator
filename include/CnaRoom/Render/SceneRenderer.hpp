@@ -32,7 +32,7 @@ namespace Microsoft::Xna::Framework::Graphics {
     class TextureCube;
 }
 
-namespace CNA::Graphics {
+namespace CnaRoom::Effects {
     class DecalPass;
     class AutoExposureEXT;
     class CascadedShadowMap;
@@ -175,7 +175,7 @@ public:
 
     /// Seconds since the last frame (auto exposure adaptation, television playback).
     void setFrameTime(float dt, float seconds) { frameDt_ = dt; frameSeconds_ = seconds; }
-    /// Image-based exposure from the HDR scene's log-average luminance (CNAEXT AutoExposureEXT).
+    /// Image-based exposure from the HDR scene's log-average luminance (Effects::AutoExposureEXT).
     void setAutoExposureEnabled(bool enabled) { autoExposureEnabled_ = enabled; }
     [[nodiscard]] bool autoExposureAvailable() const { return autoExposure_ != nullptr; }
     /// The exposure the measurement asks for (< 0 until the first measured frame).
@@ -314,12 +314,12 @@ private:
     bool reflectionsUnsupported_ = false;
     bool mirrorPass_ = false;          ///< drawing the mirrored scene: winding is flipped
     std::unique_ptr<Microsoft::Xna::Framework::Graphics::PbrEffect> effect_;
-    std::unique_ptr<CNA::Graphics::RenderPipeline> pipeline_;
-    std::unique_ptr<CNA::Graphics::CascadedShadowMap> shadows_;
-    std::unique_ptr<CNA::Graphics::DepthNormalPrepass> prepass_;
+    std::unique_ptr<CnaRoom::Effects::RenderPipeline> pipeline_;
+    std::unique_ptr<CnaRoom::Effects::CascadedShadowMap> shadows_;
+    std::unique_ptr<CnaRoom::Effects::DepthNormalPrepass> prepass_;
 
     enum class GpuStage { Shadow, Prepass, Sky, Opaque, Sunbeams, Count };
-    std::array<std::unique_ptr<CNA::Graphics::GpuTimer>, static_cast<std::size_t>(GpuStage::Count)> gpuStage_;
+    std::array<std::unique_ptr<CnaRoom::Effects::GpuTimer>, static_cast<std::size_t>(GpuStage::Count)> gpuStage_;
     std::array<double, static_cast<std::size_t>(GpuStage::Count)> gpuStageMs_{};
     bool gpuTimingAvailable_ = false;
 
@@ -369,7 +369,7 @@ private:
     std::vector<SmokePlume> smokePlumes_;
     bool loggedLampAssignment_ = false;
     void drawSteam(const Camera& camera, const RenderSettings& settings);
-    std::unique_ptr<CNA::Graphics::AutoExposureEXT> autoExposure_;
+    std::unique_ptr<CnaRoom::Effects::AutoExposureEXT> autoExposure_;
     bool autoExposureEnabled_ = false;
     float measuredExposure_ = -1.0f;
     float measuredLuminance_ = -1.0f;
@@ -379,7 +379,7 @@ private:
     std::unique_ptr<Vignette> vignette_;
     std::unique_ptr<Sunbeams> sunbeams_;
     std::unique_ptr<ContactShadows> contact_;
-    std::unique_ptr<CNA::Graphics::DecalPass> decalPass_;
+    std::unique_ptr<CnaRoom::Effects::DecalPass> decalPass_;
     struct Decal
     {
         Microsoft::Xna::Framework::Graphics::Texture2D* texture = nullptr;
@@ -408,7 +408,7 @@ private:
     int lampShadowFace_ = 6;      ///< next cube face to render; 6 = up to date
     float appliedExposure_ = -1.0f;
     int appliedLamp_ = -2;
-    std::unique_ptr<CNA::Graphics::CubeShadowMap> lampShadow_;
+    std::unique_ptr<CnaRoom::Effects::CubeShadowMap> lampShadow_;
     int width_ = 1280;
     int height_ = 720;
     mutable bool loggedCascades_ = false;

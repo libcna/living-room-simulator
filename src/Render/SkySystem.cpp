@@ -7,9 +7,9 @@
 #include "CnaRoom/Render/Irradiance.hpp"
 #include "Microsoft/Xna/Framework/Graphics/RenderTargetCube.hpp"
 
-#include "CNA/Graphics/AtmosphericSky.hpp"
-#include "CNA/Graphics/EnvironmentProcessor.hpp"
-#include "CNA/Graphics/FullscreenPass.hpp"
+#include "CnaRoom/Effects/AtmosphericSky.hpp"
+#include "CnaRoom/Effects/EnvironmentProcessor.hpp"
+#include "CnaRoom/Effects/FullscreenPass.hpp"
 #include "CNA/GraphicsCapability.hpp"
 #include "CNA/Logger.hpp"
 #include "System/Diagnostics/Stopwatch.hpp"
@@ -28,9 +28,9 @@
 
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
-using CNA::Graphics::AtmosphericSky;
-using CNA::Graphics::EnvironmentProcessor;
-using CNA::Graphics::FullscreenPass;
+using CnaRoom::Effects::AtmosphericSky;
+using CnaRoom::Effects::EnvironmentProcessor;
+using CnaRoom::Effects::FullscreenPass;
 
 using System::Diagnostics::Stopwatch;
 

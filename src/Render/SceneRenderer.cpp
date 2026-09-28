@@ -10,23 +10,23 @@
 #include "CnaRoom/Render/Material.hpp"
 #include "CnaRoom/Render/Sunbeams.hpp"
 #include "CnaRoom/Render/ContactShadows.hpp"
-#include "CNA/Graphics/DecalPass.hpp"
+#include "CnaRoom/Effects/DecalPass.hpp"
 #include "CnaRoom/Render/Vignette.hpp"
 
-#include "CNA/Graphics/AutoExposureEXT.hpp"
-#include "CNA/Graphics/CascadedShadowMap.hpp"
-#include "CNA/Graphics/CubeShadowMap.hpp"
-#include "CNA/Graphics/PointLightEXT.hpp"
-#include "CNA/Graphics/DepthNormalPrepass.hpp"
-#include "CNA/Graphics/DirectionalLightEXT.hpp"
-#include "CNA/Graphics/EnvironmentProcessor.hpp"
-#include "CNA/Graphics/GpuTimer.hpp"
-#include "CNA/Graphics/RenderPipeline.hpp"
-#include "CNA/Graphics/RenderPipelineSettings.hpp"
-#include "CNA/Graphics/RenderQuality.hpp"
-#include "CNA/Graphics/ShadowQuality.hpp"
-#include "CNA/Graphics/TonemappingMode.hpp"
-#include "CNA/Graphics/TransparencyMode.hpp"
+#include "CnaRoom/Effects/AutoExposureEXT.hpp"
+#include "CnaRoom/Effects/CascadedShadowMap.hpp"
+#include "CnaRoom/Effects/CubeShadowMap.hpp"
+#include "CnaRoom/Effects/PointLightEXT.hpp"
+#include "CnaRoom/Effects/DepthNormalPrepass.hpp"
+#include "CnaRoom/Effects/DirectionalLightEXT.hpp"
+#include "CnaRoom/Effects/EnvironmentProcessor.hpp"
+#include "CnaRoom/Effects/GpuTimer.hpp"
+#include "CnaRoom/Effects/RenderPipeline.hpp"
+#include "CnaRoom/Effects/RenderPipelineSettings.hpp"
+#include "CnaRoom/Effects/RenderQuality.hpp"
+#include "CnaRoom/Effects/ShadowQuality.hpp"
+#include "CnaRoom/Effects/TonemappingMode.hpp"
+#include "CnaRoom/Effects/TransparencyMode.hpp"
 #include "CNA/GraphicsCapability.hpp"
 #include "CNA/Logger.hpp"
 #include "Microsoft/Xna/Framework/Graphics/PackedVector/HalfVector4.hpp"
@@ -64,15 +64,15 @@
 
 using namespace Microsoft::Xna::Framework;
 using namespace Microsoft::Xna::Framework::Graphics;
-using CNA::Graphics::CascadedShadowMap;
-using CNA::Graphics::DepthNormalPrepass;
-using CNA::Graphics::DirectionalLightEXT;
-using CNA::Graphics::GpuTimer;
-using CNA::Graphics::RenderPipeline;
-using CNA::Graphics::RenderQuality;
-using CNA::Graphics::ShadowQuality;
-using CNA::Graphics::TonemappingMode;
-using CNA::Graphics::TransparencyMode;
+using CnaRoom::Effects::CascadedShadowMap;
+using CnaRoom::Effects::DepthNormalPrepass;
+using CnaRoom::Effects::DirectionalLightEXT;
+using CnaRoom::Effects::GpuTimer;
+using CnaRoom::Effects::RenderPipeline;
+using CnaRoom::Effects::RenderQuality;
+using CnaRoom::Effects::ShadowQuality;
+using CnaRoom::Effects::TonemappingMode;
+using CnaRoom::Effects::TransparencyMode;
 using System::Diagnostics::Stopwatch;
 
 namespace CnaRoom {
@@ -215,7 +215,7 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
     if (!contact_->supported()) limitations_.emplace_back("contact shadows off: " + contact_->reason());
     try
     {
-        decalPass_ = std::make_unique<CNA::Graphics::DecalPass>(device_);
+        decalPass_ = std::make_unique<CnaRoom::Effects::DecalPass>(device_);
         if (!decalPass_->isSupported())
         {
             limitations_.emplace_back("decals off: the decal pass is not supported on this renderer");
@@ -234,7 +234,7 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
     if (!television_->supported()) limitations_.emplace_back("no television picture: " + television_->reason());
     try
     {
-        autoExposure_ = std::make_unique<CNA::Graphics::AutoExposureEXT>(device_);
+        autoExposure_ = std::make_unique<CnaRoom::Effects::AutoExposureEXT>(device_);
         autoExposure_->setKeyValue(0.05f);   // log-average of this scene: ~0.075 by day, ~0.0006 under the lamps
         exposureMeter_ = std::make_unique<ExposureMeter>(device_);
         if (!exposureMeter_->supported()) limitations_.emplace_back("exposure meter off (" + exposureMeter_->reason() + "): CNA's log-average used");
@@ -436,7 +436,7 @@ std::uint8_t encodeCube(float linear, float scale)
 /// readback (after the detected mirror/flip) sees EnvironmentProcessor::faceDirection(face, u, v).
 void faceBasis(int face, Vector3& forward, Vector3& up)
 {
-    using CNA::Graphics::EnvironmentProcessor;
+    using CnaRoom::Effects::EnvironmentProcessor;
     forward = EnvironmentProcessor::faceDirection(face, 0.5f, 0.5f);
     const Vector3 down = EnvironmentProcessor::faceDirection(face, 0.5f, 1.0f)
                          - EnvironmentProcessor::faceDirection(face, 0.5f, 0.0f);
@@ -505,6 +505,24 @@ void SceneRenderer::captureProbeFace(InteriorProbe& probe, RenderTarget2D& targe
             {
                 const Vector4 v = capturedHdr[index].ToVector4();
                 radiance = Vector3(std::max(v.X, 0.0f), std::max(v.Y, 0.0f), std::max(v.Z, 0.0f));
+                if (!std::isfinite(v.X) || !std::isfinite(v.Y) || !std::isfinite(v.Z))
+                {
+                    // The current EasyGL PBR scene can contain non-finite samples (CNA_FINDINGS.md).
+                    // Keep one bad texel from poisoning the complete irradiance convolution.
+                    radiance = Vector3::Zero;
+                    int samples = 0;
+                    for (int dy = -2; dy <= 2; ++dy)
+                        for (int dx = -2; dx <= 2; ++dx)
+                        {
+                            const int nx = std::clamp(sx + dx, 0, size - 1);
+                            const int ny = std::clamp(sy + dy, 0, size - 1);
+                            const auto neighbour = capturedHdr[static_cast<std::size_t>(ny) * size + nx].ToVector4();
+                            if (!std::isfinite(neighbour.X) || !std::isfinite(neighbour.Y) || !std::isfinite(neighbour.Z)) continue;
+                            radiance += Vector3(std::max(neighbour.X, 0.0f), std::max(neighbour.Y, 0.0f), std::max(neighbour.Z, 0.0f));
+                            ++samples;
+                        }
+                    if (samples > 0) radiance *= 1.0f / static_cast<float>(samples);
+                }
             }
             else
             {
@@ -622,7 +640,7 @@ void SceneRenderer::finishProbe(InteriorProbe& probe, int size, const std::vecto
     // no 8-bit input) over an 8x8-per-face downsample, then stored sRGB-encoded
     // so the dark end keeps its precision under the shared scale. The bounce
     // gain stands in for the bounces the capture cannot hold.
-    CNA::Graphics::EnvironmentProcessor processor(device_);
+    CnaRoom::Effects::EnvironmentProcessor processor(device_);
     const float gain = std::clamp(settings.probeBounceGain, 1.0f, 3.0f);
     probe.irradiance = integrateIrradiance(faces, size, probe.scale, gain);
     {
@@ -791,7 +809,7 @@ void SceneRenderer::detectProbeMapping(RenderTarget2D& target, int size, const R
                 for (int y = 0; y < size; y += 4)
                     for (int x = 0; x < size; x += 4)
                     {
-                        const Vector3 expected = sky_.radiance(CNA::Graphics::EnvironmentProcessor::faceDirection(
+                        const Vector3 expected = sky_.radiance(CnaRoom::Effects::EnvironmentProcessor::faceDirection(
                             f, (static_cast<float>(x) + 0.5f) / static_cast<float>(size), (static_cast<float>(y) + 0.5f) / static_cast<float>(size)));
                         const Color& c = texels[static_cast<std::size_t>(y) * static_cast<std::size_t>(size) + static_cast<std::size_t>(x)];
                         const Vector3 got(static_cast<float>(c.getRProperty()) / 255.0f * test.scale,
@@ -1005,7 +1023,7 @@ void SceneRenderer::drawLampShadow()
         {
             try
             {
-                lampShadow_ = std::make_unique<CNA::Graphics::CubeShadowMap>(device_, ShadowQuality::Medium);
+                lampShadow_ = std::make_unique<CnaRoom::Effects::CubeShadowMap>(device_, ShadowQuality::Medium);
             }
             catch (const std::exception& failure)
             {
@@ -1020,14 +1038,14 @@ void SceneRenderer::drawLampShadow()
             }
         }
         const Lamp& lamp = lamps_[static_cast<std::size_t>(shadowedLamp_)];
-        CNA::Graphics::PointLightEXT point;
+        CnaRoom::Effects::PointLightEXT point;
         point.Position = lamp.position;
         point.Range = lamp.range;
         point.Color = lamp.colour;
         point.Intensity = lamp.intensity;
         lampShadow_->update(point);
     }
-    if (shadowedLamp_ < 0 || lampShadow_ == nullptr || lampShadowFace_ >= CNA::Graphics::CubeShadowMap::kFaceCount) return;
+    if (shadowedLamp_ < 0 || lampShadow_ == nullptr || lampShadowFace_ >= CnaRoom::Effects::CubeShadowMap::kFaceCount) return;
     ShaderEffect* caster = lampShadow_->getCasterEffect();
     if (caster == nullptr) return;
     const Lamp& lamp = lamps_[static_cast<std::size_t>(shadowedLamp_)];
@@ -1036,11 +1054,11 @@ void SceneRenderer::drawLampShadow()
     device_.setBlendStateProperty(BlendState::Opaque);
     // Two faces per frame: the whole cube is fresh within three frames of a
     // switch, and each face only draws the casters inside its 90-degree frustum.
-    const Matrix projection = CNA::Graphics::CubeShadowMap::computeFaceProjection(lamp.range);
-    for (int n = 0; n < 2 && lampShadowFace_ < CNA::Graphics::CubeShadowMap::kFaceCount; ++n, ++lampShadowFace_)
+    const Matrix projection = CnaRoom::Effects::CubeShadowMap::computeFaceProjection(lamp.range);
+    for (int n = 0; n < 2 && lampShadowFace_ < CnaRoom::Effects::CubeShadowMap::kFaceCount; ++n, ++lampShadowFace_)
     {
         const int face = lampShadowFace_;
-        const Matrix view = CNA::Graphics::CubeShadowMap::computeFaceView(static_cast<CubeMapFace>(face), lamp.position);
+        const Matrix view = CnaRoom::Effects::CubeShadowMap::computeFaceView(static_cast<CubeMapFace>(face), lamp.position);
         const BoundingFrustum frustum(view * projection);
         lampShadow_->begin(face);
         for (const SceneItem& item : items_)

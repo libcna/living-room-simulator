@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "CnaRoom/Render/FloatCube.hpp"
 
-#include "CNA/Graphics/EnvironmentProcessor.hpp"
+#include "CnaRoom/Effects/EnvironmentProcessor.hpp"
 #include "CNA/GraphicsCapability.hpp"
 #include "CNA/Logger.hpp"
 #include "Microsoft/Xna/Framework/Color.hpp"
@@ -260,7 +260,7 @@ void FloatCubeUploader::sampleFace(TextureCube& cube, int face, std::vector<Pack
     for (int y = 0; y < kTestSize; ++y)
         for (int x = 0; x < kTestSize; ++x)
         {
-            const Vector3 d = CNA::Graphics::EnvironmentProcessor::faceDirection(
+            const Vector3 d = CnaRoom::Effects::EnvironmentProcessor::faceDirection(
                 face, (static_cast<float>(x) + 0.5f) / kTestSize, (static_cast<float>(y) + 0.5f) / kTestSize);
             directions[(y * kTestSize + x) * 3] = d.X;
             directions[(y * kTestSize + x) * 3 + 1] = d.Y;

@@ -44,10 +44,10 @@ if(CNA_ROOM_RENDERER MATCHES "^(OPENGL33|OPENGLES3|OPENGLES2)$")
 endif()
 
 # --- CNA build options -------------------------------------------------------
-# CNA_CNAEXT is the one that matters: without it every CNA/Graphics/*.hpp header
-# compiles to nothing and the whole modern rendering surface this project is
-# built on disappears. It defaults OFF upstream, so it is forced here.
-set(CNA_CNAEXT           ON  CACHE BOOL   "Enable CNA's extended graphics layer" FORCE)
+# CNA retains portable shader packages behind CNA_CNAEXT. The simulator owns
+# its scene effects in CnaRoom::Effects; the removed engine layer is no longer
+# expected from the framework.
+set(CNA_CNAEXT ON CACHE BOOL "Enable CNA's portable shader infrastructure" FORCE)
 set(CNA_BUILD_TESTS      OFF CACHE BOOL   "Build CNA's own tests"                FORCE)
 set(CNA_BUILD_EXAMPLES   OFF CACHE BOOL   "Build CNA's example applications"     FORCE)
 set(CNA_BUILD_C_API      OFF CACHE BOOL   "Build the CNA C API"                  FORCE)

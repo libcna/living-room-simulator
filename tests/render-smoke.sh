@@ -24,13 +24,30 @@ while pos < len(data):
     elif kind == b'IDAT': idat += body
 raw = zlib.decompress(idat)
 channels = {2: 3, 6: 4}[colour]
-stride = width * channels + 1
-# A crude unfilter is unnecessary for a brightness check: sum the filter-0 rows only if
-# all rows are filter 0; otherwise fall back to the byte mean, which is still far from 0
-# for a lit frame and 0 for a black one.
-total = sum(raw[i] for i in range(len(raw)) if i % stride != 0)
-mean = total / max(1, (len(raw) - height))
-print(f'{width}x{height}, mean byte {mean:.1f}')
+assert depth == 8, 'expected 8-bit RGB or RGBA'
+stride = width * channels
+assert len(raw) == height * (stride + 1), 'unexpected PNG scanline data'
+previous = bytearray(stride)
+total = 0
+def paeth(a, b, c):
+    p = a + b - c
+    pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+    return a if pa <= pb and pa <= pc else b if pb <= pc else c
+for y in range(height):
+    offset = y * (stride + 1)
+    kind = raw[offset]
+    assert kind in range(5), 'unexpected PNG filter'
+    row = bytearray(raw[offset + 1:offset + stride + 1])
+    for i in range(stride):
+        left = row[i - channels] if i >= channels else 0
+        above = previous[i]
+        upper_left = previous[i - channels] if i >= channels else 0
+        predictor = (0, left, above, (left + above) // 2, paeth(left, above, upper_left))[kind]
+        row[i] = (row[i] + predictor) & 255
+    total += sum(row[i] for i in range(stride) if i % channels < 3)
+    previous = row
+mean = total / max(1, width * height * 3)
+print(f'{width}x{height}, mean RGB {mean:.1f}')
 assert width == 320 and height == 180, 'unexpected size'
 assert mean > 8.0, 'the frame is black'
 PY
