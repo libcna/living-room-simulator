@@ -1,9 +1,37 @@
 # CNA findings from living-room-simulator
 
-The numbered findings below are historical. CNA's retired engine implementations
+The status table below is the current state of every finding. The numbered findings are historical. CNA's retired engine implementations
 now live in the simulator as `CnaRoom::Effects`; those entries are not claims
 about the current CNA API. Migration details are in
 [CNA_MIGRATION.md](docs/CNA_MIGRATION.md).
+
+## Status against CNA `next` (2026-09-30)
+
+Every finding below was re-checked against CNA on 2026-09-30 and the open ones were fixed in CNA
+there. The entries themselves are left as written. "Retired" means CNA removed the class on
+2026-09-27 (`5572f3ca1`, MOD-RETIRE-1); the simulator carries its own copies as `CnaRoom::Effects`.
+
+| Finding | Status | CNA commit |
+|---|---|---|
+| Non-finite EasyGL PBR pixels | Fixed on EasyGL: a zero normal (singular World) or zero/normal-parallel tangent no longer shades NaN; on llvmpipe such a surface used to lose all direct light. Other renderer families: CNA GSC-0009, open. The `FiniteHDR` pass can go on EasyGL | `6924ca040`, with R-1 |
+| Build diagnostics | GCC 14 false positives from libstdc++ inlining at -O3 (the same appear in about ten CNA files); no code change | — |
+| Concurrent compile failure | Transient, an uncommitted edit in the sibling checkout | — |
+| R-1 | Fixed: the fallback tangent is perpendicular to the normal; `ModelLibrary::repairTangents` can go | `8e2096c64` |
+| R-2 | Fixed: `TextureCube::GetData` no longer uses a framebuffer | `8e36b7da6` |
+| R-3 | Fixed on EasyGL: a double-sided back face is shaded with its basis reversed, mirrored Worlds included. Other families: CNA GSC-0010, open | `a1414a1b0` |
+| R-4, R-8, R-9, R-11, R-13, R-14, R-17, R-18, R-19, R-20, R-22, R-26, R-31, R-32, R-35, R-37 | Moot: the class was retired | — |
+| R-5, R-10, R-12, R-36 | Not CNA defects: material setup, what non-premultiplied blending means, and documented `PbrEffect` limits | — |
+| R-6, R-7, R-16, R-27 | Deliberate limits (GLTF-339, GLTF-206, required extensions, plan_cnb D9) | — |
+| R-15 | Works | — |
+| R-21 | Fixed: half and float cubes store and read back in their own format, so `FloatCubeUploader` is no longer needed; `ColorSrgbEXT` is FNA's, not an XNA format | `742e30972`, `8e36b7da6`, `3b72dba63`, `01c0862fc` |
+| R-23 | Fixed: SpriteBatch draws into a bound cube face | `39daf1ab7` |
+| R-24 | Not a CNA defect: GLSL ES declares samplers lowp by default | — |
+| R-25 | Fixed by SOFTWARE-336: stock programs use XNA's [0, 1] depth. `PlanarReflection` aims its oblique near plane at NDC -1, which is now wrong for anything drawn with stock effects (it should be 0) and still right for raw-GLSL `ShaderEffect`s -- check which the capture uses | `7400285c3`; docs `252f20eb2` |
+| R-28 | Not a defect: `.cnb` references are relative to the compile-time content root, now documented | `78b708bcb` |
+| R-29 | Fixed: one `Texture2D` per image per model, V1/.cnj and V2; `remip`'s content-signature sharing can be simplified | `e45faa1d7`, `87db4ddc7` |
+| R-30 | Documented contract (`ShaderEffect.hpp`); the retired `DepthNormalPrepass` was what tripped it | — |
+| R-33 | Does not reproduce on current CNA: point and linear sampler states reach a `ShaderEffect` indexed draw per unit; the `texelFetch` workaround can go | test `e2972f43d` |
+| R-34 | Fixed: the matrix-upload docs describe XNA's field order | `4b372c970` |
 
 ## Current build diagnostics (2026-09-28)
 
