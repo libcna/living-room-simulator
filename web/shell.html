@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -39,20 +39,20 @@
 <body>
   <div class="layout">
     <header>
-      <div class="brand"><strong>LIVING ROOM</strong><span>ORIGINÁLNÍ C++ SIMULÁTOR · WEBGL2</span></div>
-      <div class="actions"><span id="state">Načítání</span><button id="fullscreen" type="button">Celá obrazovka</button></div>
+      <div class="brand"><strong>LIVING ROOM</strong><span>ORIGINAL C++ SIMULATOR · WEBGL2</span></div>
+      <div class="actions"><span id="state">Loading</span><button id="fullscreen" type="button">Fullscreen</button></div>
     </header>
     <main class="stage">
       <canvas id="canvas" width="960" height="540" tabindex="0" aria-label="Living Room Simulator"></canvas>
       <div id="loading" class="loading" role="status">
-        <div class="loading-inner"><span class="loading-mark" aria-hidden="true"></span><h1>Připravuji místnost</h1><p id="loading-text">Stahuji aplikaci a modely…</p><progress id="progress" value="0" max="100" hidden></progress></div>
+        <div class="loading-inner"><span class="loading-mark" aria-hidden="true"></span><h1>Preparing the room</h1><p id="loading-text">Downloading the app and models…</p><progress id="progress" value="0" max="100" hidden></progress></div>
       </div>
     </main>
     <footer>
-      <span><strong>W A S D</strong> pohyb · <strong>šipky</strong> rozhlížení · <strong>1–8</strong> pohledy</span>
-      <span><strong>Page Up / Down</strong> čas · <strong>F2</strong> počasí · <strong>L</strong> lampy · <strong>T</strong> televize · <strong>F1</strong> stav</span>
+      <span><strong>W A S D</strong> move · <strong>arrow keys</strong> look around · <strong>1–8</strong> viewpoints</span>
+      <span><strong>Page Up / Down</strong> time of day · <strong>F2</strong> weather · <strong>L</strong> lamps · <strong>T</strong> TV · <strong>F1</strong> status</span>
     </footer>
-    <details><summary>Výpis aplikace</summary><pre id="output"></pre></details>
+    <details><summary>Application log</summary><pre id="output"></pre></details>
   </div>
   <script>
     var canvas = document.getElementById('canvas');
@@ -80,31 +80,31 @@
       },
       monitorRunDependencies: function (remaining) {
         this.totalDependencies = Math.max(this.totalDependencies || 0, remaining);
-        if (remaining) this.setStatus('Připravuji data (' + (this.totalDependencies - remaining) + '/' + this.totalDependencies + ')');
+        if (remaining) this.setStatus('Preparing data (' + (this.totalDependencies - remaining) + '/' + this.totalDependencies + ')');
       },
       roomReady: function () {
         loading.hidden = true;
-        state.textContent = 'Scéna připravena';
+        state.textContent = 'Scene ready';
         canvas.focus();
       },
       onAbort: function (reason) {
-        loadingText.textContent = 'Spuštění se nezdařilo: ' + reason;
-        state.textContent = 'Chyba';
+        loadingText.textContent = 'Failed to start: ' + reason;
+        state.textContent = 'Error';
       }
     };
     canvas.addEventListener('click', function () { canvas.focus(); });
     canvas.addEventListener('webglcontextlost', function (event) {
       event.preventDefault();
       loading.hidden = false;
-      loadingText.textContent = 'WebGL kontext byl ztracen. Obnovte stránku.';
+      loadingText.textContent = 'WebGL context lost. Reload the page.';
     });
     window.addEventListener('error', function (event) {
       logLine('JavaScript: ' + event.message);
-      state.textContent = 'Chyba';
+      state.textContent = 'Error';
     });
     window.addEventListener('unhandledrejection', function (event) {
       logLine('JavaScript promise: ' + String(event.reason));
-      state.textContent = 'Chyba';
+      state.textContent = 'Error';
     });
     document.getElementById('fullscreen').addEventListener('click', function () {
       if (Module.requestFullscreen) Module.requestFullscreen(false, true);
