@@ -94,13 +94,6 @@ bool partBounds(ModelMeshPart& part, BoundingBox& out)
 }
 
 
-/// Replaces tangents that are missing, NaN or parallel to the normal. CNA's
-/// importer derives tangents from the UV gradient and falls back to (1, 0, 0)
-/// when a triangle's UVs are degenerate (palette-textured meshes map every
-/// vertex to one texel); a fallback parallel to the normal makes the shader's
-/// Gram-Schmidt step normalise a zero vector, and the NaN normal that follows
-/// turns the surface into a full-strength mirror of the environment.
-/// Returns the number of vertices repaired.
 /// Mean roughness (ORM green) a part samples: its vertices' UVs looked up in
 /// the map (a palette part sits on one texel; a photo-textured part averages
 /// a few dozen of its own).
@@ -142,64 +135,6 @@ float partRoughnessMean(ModelMeshPart& part, const CnaRoom::Assets::Image& orm, 
         ++n;
     }
     return n > 0 ? static_cast<float>(sum / static_cast<double>(n) / 255.0) : 1.0f;
-}
-
-int repairTangents(VertexBuffer& buffer)
-{
-    const VertexDeclaration& declaration = buffer.getVertexDeclarationProperty();
-    const int stride = declaration.getVertexStrideProperty();
-    const int count = buffer.getVertexCountProperty();
-    if (stride <= 0 || count <= 0) return 0;
-    int normalOffset = -1, tangentOffset = -1;
-    bool tangentHasW = false;
-    for (const VertexElement& element : declaration.GetVertexElements())
-    {
-        if (element.getUsageIndexProperty() != 0) continue;
-        const VertexElementUsage usage = element.getVertexElementUsageProperty();
-        const VertexElementFormat format = element.getVertexElementFormatProperty();
-        if (usage == VertexElementUsage::Normal && format == VertexElementFormat::Vector3)
-            normalOffset = element.getOffsetProperty();
-        else if (usage == VertexElementUsage::Tangent
-                 && (format == VertexElementFormat::Vector3 || format == VertexElementFormat::Vector4))
-        {
-            tangentOffset = element.getOffsetProperty();
-            tangentHasW = format == VertexElementFormat::Vector4;
-        }
-    }
-    if (normalOffset < 0 || tangentOffset < 0) return 0;
-    std::vector<std::uint8_t> bytes(static_cast<std::size_t>(count) * static_cast<std::size_t>(stride));
-    try
-    {
-        buffer.GetDataRawEXT(0, bytes.data(), count, stride);
-    }
-    catch (const std::exception&)
-    {
-        return 0;
-    }
-    int repaired = 0;
-    for (int i = 0; i < count; ++i)
-    {
-        std::uint8_t* vertex = bytes.data() + static_cast<std::size_t>(i) * static_cast<std::size_t>(stride);
-        float n[3], t[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-        std::memcpy(n, vertex + normalOffset, sizeof(n));
-        std::memcpy(t, vertex + tangentOffset, tangentHasW ? 16u : 12u);
-        const Vector3 normal(n[0], n[1], n[2]);
-        const Vector3 tangent(t[0], t[1], t[2]);
-        const Vector3 ortho = tangent - normal * Vector3::Dot(normal, tangent);
-        const float length = ortho.Length();
-        const bool bad = !(length > 1e-3f) || !std::isfinite(length) || !std::isfinite(t[3]);
-        if (!bad) continue;
-        const Vector3 axis = std::abs(normal.X) < 0.9f ? Vector3::UnitX : Vector3::UnitY;
-        Vector3 fresh = Vector3::Cross(normal, axis);
-        const float fl = fresh.Length();
-        fresh = fl > 1e-6f ? fresh * (1.0f / fl) : Vector3::UnitZ;
-        t[0] = fresh.X; t[1] = fresh.Y; t[2] = fresh.Z;
-        if (!std::isfinite(t[3]) || t[3] == 0.0f) t[3] = 1.0f;
-        std::memcpy(vertex + tangentOffset, t, tangentHasW ? 16u : 12u);
-        ++repaired;
-    }
-    if (repaired > 0) buffer.SetDataRaw(bytes.data(), count, stride);
-    return repaired;
 }
 
 BoundingBox transformBox(const BoundingBox& box, const Matrix& m)
@@ -389,8 +324,6 @@ const ImportedModel* ModelLibrary::load(const std::string& name, const std::stri
     const auto prepareStart = std::chrono::steady_clock::now();
     Vector3 lo(1e30f, 1e30f, 1e30f), hi(-1e30f, -1e30f, -1e30f);
     int index = 0;
-    int repairedTangents = 0;
-    std::vector<VertexBuffer*> repairedBuffers;
     const ModelMeshCollection& meshes = result->model->getMeshesProperty();
     for (int m = 0; m < meshes.getCountProperty(); ++m)
     {
@@ -402,13 +335,6 @@ const ImportedModel* ModelLibrary::load(const std::string& name, const std::stri
         {
             ModelMeshPart* part = parts[p];
             if (part == nullptr || part->getPrimitiveCountProperty() <= 0) continue;
-            if (VertexBuffer* buffer = part->getVertexBufferProperty();
-                buffer != nullptr && std::find(repairedBuffers.begin(), repairedBuffers.end(), buffer) == repairedBuffers.end())
-            {
-                repairedBuffers.push_back(buffer);
-                repairedTangents += repairTangents(*buffer);
-            }
-
             Material material;
             material.name = name + "." + std::to_string(index);
             material.frontFaceCounterClockwise = true;
@@ -505,8 +431,6 @@ const ImportedModel* ModelLibrary::load(const std::string& name, const std::stri
     result->bounds = result->parts.empty() ? BoundingBox(Vector3::Zero, Vector3::Zero) : BoundingBox(lo, hi);
     result->textureCount = remipped_.size();
     const Vector3 size = result->size();
-    if (repairedTangents > 0)
-        CNA::Logger::Info("living-room-simulator: model " + name + " -- repaired " + std::to_string(repairedTangents) + " degenerate tangents");
     const double prepareMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - prepareStart).count();
     CNA::Logger::Info("living-room-simulator: model " + name + " -- " + std::to_string(result->parts.size()) + " parts, "
                       + std::to_string(result->triangles) + " triangles, " + fmt(size.X) + " x " + fmt(size.Y)

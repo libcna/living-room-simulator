@@ -1,5 +1,9 @@
 # CNA findings from living-room-simulator
 
+This is a historical issue log. See [current maintenance issues](docs/KNOWN_ISSUES.md)
+for work to take now. Historical screenshot paths below refer to files moved to
+`docs/archive/screenshots/` unless they remain in the curated gallery.
+
 The status table below is the current state of every finding. The numbered findings are historical. CNA's retired engine implementations
 now live in the simulator as `CnaRoom::Effects`; those entries are not claims
 about the current CNA API. Migration details are in
@@ -7,16 +11,17 @@ about the current CNA API. Migration details are in
 
 ## Status against CNA `next` (2026-09-30)
 
-Every finding below was re-checked against CNA on 2026-09-30 and the open ones were fixed in CNA
-there. The entries themselves are left as written. "Retired" means CNA removed the class on
+The upstream status was reviewed on 2026-09-30. A subsequent simulator render against the
+locked revisions still found non-finite source pixels; the upstream PBR fix did not resolve
+every trigger in this scene. The historical entries below are left as written. "Retired" means CNA removed the class on
 2026-09-27 (`5572f3ca1`, MOD-RETIRE-1); the simulator carries its own copies as `CnaRoom::Effects`.
 
 | Finding | Status | CNA commit |
 |---|---|---|
-| Non-finite EasyGL PBR pixels | Fixed on EasyGL: a zero normal (singular World) or zero/normal-parallel tangent no longer shades NaN; on llvmpipe such a surface used to lose all direct light. Other renderer families: CNA GSC-0009, open. The `FiniteHDR` pass can go on EasyGL | `6924ca040`, with R-1 |
+| Non-finite EasyGL PBR pixels | Upstream fixed known zero-normal and tangent causes, but the locked CNA baseline still gives 2318–2351 invalid raw pixels in the 320×180 render smoke scene. `FiniteHDR` reduces this to zero before bloom and must stay until the remaining cause is isolated. Other renderer families: CNA GSC-0009, open | `6924ca040`, with R-1 |
 | Build diagnostics | GCC 14 false positives from libstdc++ inlining at -O3 (the same appear in about ten CNA files); no code change | — |
 | Concurrent compile failure | Transient, an uncommitted edit in the sibling checkout | — |
-| R-1 | Fixed: the fallback tangent is perpendicular to the normal; `ModelLibrary::repairTangents` can go | `8e2096c64` |
+| R-1 | Fixed: the fallback tangent is perpendicular to the normal; `ModelLibrary::repairTangents` was removed. Restoring it temporarily produced the same raw invalid-pixel counts (2318, 2331, 2351, 2350) and identical rendered pixels in the smoke scene | `8e2096c64` |
 | R-2 | Fixed: `TextureCube::GetData` no longer uses a framebuffer | `8e36b7da6` |
 | R-3 | Fixed on EasyGL: a double-sided back face is shaded with its basis reversed, mirrored Worlds included. Other families: CNA GSC-0010, open | `a1414a1b0` |
 | R-4, R-8, R-9, R-11, R-13, R-14, R-17, R-18, R-19, R-20, R-22, R-26, R-31, R-32, R-35, R-37 | Moot: the class was retired | — |
@@ -26,7 +31,7 @@ there. The entries themselves are left as written. "Retired" means CNA removed t
 | R-21 | Fixed: half and float cubes store and read back in their own format, so `FloatCubeUploader` is no longer needed; `ColorSrgbEXT` is FNA's, not an XNA format | `742e30972`, `8e36b7da6`, `3b72dba63`, `01c0862fc` |
 | R-23 | Fixed: SpriteBatch draws into a bound cube face | `39daf1ab7` |
 | R-24 | Not a CNA defect: GLSL ES declares samplers lowp by default | — |
-| R-25 | Fixed by SOFTWARE-336: stock programs use XNA's [0, 1] depth. `PlanarReflection` aims its oblique near plane at NDC -1, which is now wrong for anything drawn with stock effects (it should be 0) and still right for raw-GLSL `ShaderEffect`s -- check which the capture uses | `7400285c3`; docs `252f20eb2` |
+| R-25 | Fixed by SOFTWARE-336: stock programs use XNA's [0, 1] depth. The simulator's planar reflection capture uses stock PBR effects and now places its oblique near plane at NDC 0; the CPU reflection tests and four-view render review pass. Raw-GLSL effects still use the GL convention and need separate treatment if they are added to the capture | `7400285c3`; docs `252f20eb2` |
 | R-28 | Not a defect: `.cnb` references are relative to the compile-time content root, now documented | `78b708bcb` |
 | R-29 | Fixed: one `Texture2D` per image per model, V1/.cnj and V2; `remip`'s content-signature sharing can be simplified | `e45faa1d7`, `87db4ddc7` |
 | R-30 | Documented contract (`ShaderEffect.hpp`); the retired `DepthNormalPrepass` was what tripped it | — |
@@ -132,10 +137,10 @@ behaviour contradicts CNA's own documentation or produces wrong pictures from va
 | R-14 | `EnvironmentProcessor` irradiance | limitation | CPU-side integration reads the cube back through a framebuffer (slow on every rebake, and the trigger of R-2) | Rebakes spread over frames; 48 px sky cube |
 | R-15 | Half-float readback | works | `RenderTarget2D` HalfVector4 + `GetData(HalfVector4*)` reads back correctly on llvmpipe (detected at run time, 8-bit fallback kept) | — |
 | R-16 | glTF import, `extensionsRequired` | limitation | Files requiring sheen/clearcoat/iridescence/anisotropy/dispersion are refused (by design) | Extractor drops those extensions |
-| R-17 | `RenderPipeline` SSR | observation | With `setSSREnabled(true)` a rainy night view turned the white window frames pink/violet and the tree canopies into black noise (`docs/screenshots/m7-ssr-rain-night.png`); by day on the glossy TV screen it added nothing visible over the probe reflection | Left off (`--ssr` stays an opt-in) |
+| R-17 | `RenderPipeline` SSR | observation | With `setSSREnabled(true)` a rainy night view turned the white window frames pink/violet and the tree canopies into black noise (`docs/archive/screenshots/m7-ssr-rain-night.png`); by day on the glossy TV screen it added nothing visible over the probe reflection | Left off (`--ssr` stays an opt-in) |
 | R-18 | `RenderPipeline::getSceneTarget` | limitation | Returns null once `end()` has run, so an image-based exposure has to measure the scene before the transparent phase and post chain | Measured before `end()` |
 | R-19 | `AutoExposureEXT` | works | Compute-shader log-average luminance reads back on llvmpipe (ES 3.2); the key value must be calibrated per scene (0.05 here: a lamp-lit room's log-average is ~0.0006 in scene units, a sunlit one ~0.075) | Analytic schedule as prior, measurement clamped to ×/÷1.8 of it |
-| R-21 | `TextureCube` formats | limitation | `TextureCube` rejects `SurfaceFormat::ColorSrgbEXT`, uploads `SetData` as RGBA8 whatever the format, and `GetData` is `Color`-only, so CNA's IBL products are linear 8-bit under one shared `Intensity`: at night the room's diffuse irradiance is ~1/300 of the shade peak that sets the scale, below one code, and the rounding of R/G/B to 0 or 1 paints the ambient magenta (`docs/screenshots/m9-night-irradiance-8bit-vs-half.png`) | `FloatCubeUploader`: irradiance and prefiltered specular (one cube per roughness class, the material picks its class; the shader samples level 0 of a one-mip cube) convolved on the CPU, RGBE-encoded into a `Texture2D` strip and decoded by a draw into each face of a `HalfVector4` `RenderTargetCube` (self-tested by readback at start-up); the 8-bit path stays as the fallback |
+| R-21 | `TextureCube` formats | limitation | `TextureCube` rejects `SurfaceFormat::ColorSrgbEXT`, uploads `SetData` as RGBA8 whatever the format, and `GetData` is `Color`-only, so CNA's IBL products are linear 8-bit under one shared `Intensity`: at night the room's diffuse irradiance is ~1/300 of the shade peak that sets the scale, below one code, and the rounding of R/G/B to 0 or 1 paints the ambient magenta (`docs/archive/screenshots/m9-night-irradiance-8bit-vs-half.png`) | `FloatCubeUploader`: irradiance and prefiltered specular (one cube per roughness class, the material picks its class; the shader samples level 0 of a one-mip cube) convolved on the CPU, RGBE-encoded into a `Texture2D` strip and decoded by a draw into each face of a `HalfVector4` `RenderTargetCube` (self-tested by readback at start-up); the 8-bit path stays as the fallback |
 | R-23 | `SpriteBatch` / `FullscreenPass` into a cube face | bug | With a `RenderTargetCube` face bound, `Clear` lands on the face but a `SpriteBatch` quad (and so `FullscreenPass::drawOverCurrentTarget`) draws nothing: the sprite projection is built from `GetCurrentRenderTarget2DSize`, which reports no target for a cube binding, so the quad is laid out for the back buffer | Face fills drawn as a clip-space quad through `DrawIndexedPrimitives` with a `ShaderEffect` |
 | R-25 | EasyGL depth convention | limitation | XNA's projection matrices map the near plane to NDC z = 0 and EasyGL's shaders do `gl_Position = WVP * position` unchanged, so on GL (clip volume −1..1) the depth buffer only uses its upper half (a precision cost in large scenes) and clipping happens well inside the XNA near plane; a custom oblique near plane has to target −1, not the 0 the matrix suggests | Planar reflections build their oblique projection for NDC −1 |
 | R-27 | `gltf_to_cnb` | limitation | Models with `KHR_materials_variants` (Khronos GlamVelvetSofa, SheenChair) are refused by the CNB v1 model schema (plan_cnb D9) while the runtime glTF import takes them | Those two stay on the glTF import; `scripts/compile-assets.sh` reports them |
@@ -191,7 +196,7 @@ substitutes `(1, 0, 0)`. For any face whose normal is ±X the EasyGL PBR shader 
 reaches 1: the surface reflects the whole environment (a black television screen read as light
 grey; chrome rails on the sofa turned to noise).
 
-Repro: `--view tv-close` before commit `b95ffa9` (screenshot `docs/screenshots/m3-tv-close.png`
+Repro: `--view tv-close` before commit `b95ffa9` (screenshot `docs/archive/screenshots/m3-tv-close.png`
 shows the fixed state). living-room-simulator's `ModelLibrary::repairTangents` counted 6 224 such tangents in
 the current asset set.
 

@@ -3,7 +3,7 @@
 # conditions into screenshots/audit/ for a visual audit. Headless: runs the
 # application under Xvfb with Mesa's software rasteriser unless DISPLAY is set.
 #
-#   scripts/capture-views.sh [--quick] [--out DIR] [--bin PATH]
+#   scripts/capture-views.sh [--quick] [--smoke | --case NAME] [--out DIR] [--bin PATH]
 #
 # --quick renders at 960x540 with 512^2 textures (about 25 s per view here);
 # the default is 1280x720 with the full 1024^2 textures.
@@ -11,12 +11,21 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 bin="$root/build/bin/living-room-simulator"
 out="$root/screenshots/audit"
-width=1280; height=720; texture=1024
+width=1280; height=720; texture=1024; smoke=0; failed=0; only=""
+generated=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --quick) width=960; height=540; texture=512 ;;
-        --out) out="$2"; shift ;;
-        --bin) bin="$2"; shift ;;
+        --smoke) smoke=1 ;;
+        --case)
+            [[ $# -ge 2 ]] || { echo "--case needs a name" >&2; exit 2; }
+            only="$2"; shift ;;
+        --out)
+            [[ $# -ge 2 ]] || { echo "--out needs a directory" >&2; exit 2; }
+            out="$2"; shift ;;
+        --bin)
+            [[ $# -ge 2 ]] || { echo "--bin needs a path" >&2; exit 2; }
+            bin="$2"; shift ;;
         *) echo "unknown argument $1" >&2; exit 2 ;;
     esac
     shift
@@ -26,15 +35,37 @@ mkdir -p "$out"
 
 run() {
     local name="$1"; shift
-    local target="$out/$name.png"
-    if [[ -z "${DISPLAY:-}" ]]; then
-        SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 ${width}x${height}x24" \
-            "$bin" --width "$width" --height "$height" --frames 6 --texture-size "$texture" "$@" \
-            --screenshot "$target" > "$out/$name.log" 2>&1 || echo "FAILED: $name (see $out/$name.log)"
-    else
-        "$bin" --width "$width" --height "$height" --frames 6 --texture-size "$texture" "$@" \
-            --screenshot "$target" > "$out/$name.log" 2>&1 || echo "FAILED: $name (see $out/$name.log)"
+    [[ -z "$only" || "$name" == "$only" ]] || return 0
+    if [[ $smoke -eq 1 ]]; then
+        case "$name" in
+            day-entrance|sun-window|night-entrance|rain-night-window) ;;
+            *) return 0 ;;
+        esac
     fi
+    local target="$out/$name.png"
+    rm -f "$target"
+    if [[ -z "${DISPLAY:-}" ]]; then
+        if ! SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 ${width}x${height}x24" \
+            "$bin" --width "$width" --height "$height" --frames 6 --texture-size "$texture" "$@" \
+            --screenshot "$target" > "$out/$name.log" 2>&1; then
+            echo "FAILED: $name (see $out/$name.log)" >&2
+            failed=1
+            return
+        fi
+    else
+        if ! "$bin" --width "$width" --height "$height" --frames 6 --texture-size "$texture" "$@" \
+            --screenshot "$target" > "$out/$name.log" 2>&1; then
+            echo "FAILED: $name (see $out/$name.log)" >&2
+            failed=1
+            return
+        fi
+    fi
+    if [[ ! -f "$target" ]]; then
+        echo "FAILED: $name wrote no screenshot (see $out/$name.log)" >&2
+        failed=1
+        return
+    fi
+    generated+=("$target")
     grep -E "living-room-simulator: frame 6" "$out/$name.log" | sed -E 's/.*frame 6 -- ([0-9.]+) ms CPU.*draws ([0-9]+) \(\+([0-9]+) shadow\).*/  '"$name"': \1 ms, \2 draws + \3 shadow/' || true
 }
 
@@ -62,14 +93,14 @@ run "snow-day-entrance" --time 11:00 --view entrance --weather snow --hold-weath
 run "overcast-day-entrance" --time 12:00 --view entrance --weather overcast --hold-weather
 
 # Contact sheet (optional, needs Pillow).
-python3 - "$out" <<'PY' || true
-import glob, os, sys
+python3 - "$out" "${generated[@]}" <<'PY' || true
+import os, sys
 try:
     from PIL import Image
 except ImportError:
     sys.exit(0)
 out = sys.argv[1]
-files = sorted(f for f in glob.glob(os.path.join(out, "*.png")) if not f.endswith("contact-sheet.png"))
+files = sorted(sys.argv[2:])
 if not files:
     sys.exit(0)
 thumb = (480, 270)
@@ -83,3 +114,8 @@ sheet.save(os.path.join(out, "contact-sheet.png"))
 print("contact sheet:", os.path.join(out, "contact-sheet.png"))
 PY
 echo "rendered into $out"
+if [[ -n "$only" && ${#generated[@]} -eq 0 && $failed -eq 0 ]]; then
+    echo "unknown capture case: $only" >&2
+    exit 2
+fi
+exit "$failed"

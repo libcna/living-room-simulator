@@ -1,11 +1,10 @@
-# Pinned upstream revisions living-room-simulator was last built and verified against.
-# scripts/fetch-dependencies.sh --pin checks these out; without --pin the
-# branch heads are used. Recorded so a build failure can be attributed.
+# Upstream revisions used for the maintained native OPENGLES3 baseline.
+# scripts/fetch-dependencies.sh uses these by default; --unlocked opts out.
 # branch=next
-CNA=c90f0e39f45e7823623058a1063b364735a9214e
-# branch=feature/gamer-services-collections
-SHARP_RUNTIME=6c4a857de129cf29b5d43430bedf24157d594f12
+CNA=8dc7a7b9945693b7f83a89e8f5e868caac5f9125
+# fetched from sharp-runtime; keep the exact commit regardless of branch name
+SHARP_RUNTIME=88f6b11fbb8b9d1db1b9451e86f8835e1c9cafaa
 # branch=develop
-EASY_GL=deda7a426c3c166c0e03a4790f1ede610e2e46fb
+EASY_GL=1edf4c1a4708149b6a699365f43b58aa467c345f
 # branch=develop
-META_GL=20c8b2dc5bb80e32706784066db9fd9e15b3f46a
+META_GL=40829ca76a4e99511a7734297ee1dc0e1b926320

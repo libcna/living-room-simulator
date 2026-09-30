@@ -6,16 +6,16 @@
 # sharp-runtime, easy-gl and meta-gl relative to *its own* source root, so the
 # whole set lives side by side:
 #
-#   ../cna            branch next
-#   ../sharp-runtime  branch next
-#   ../easy-gl        branch develop   (EasyGL renderer family)
-#   ../meta-gl        branch develop   (easy-gl's own dependency)
+#   .deps/cna            locked revision
+#   .deps/sharp-runtime  locked revision
+#   .deps/easy-gl        locked revision (EasyGL renderer family)
+#   .deps/meta-gl        locked revision (easy-gl's own dependency)
 #
 # scripts/fetch-dependencies.sh clones exactly that layout.
 include_guard(GLOBAL)
 
-set(CNA_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cna" CACHE PATH
-    "Path to the CNA framework checkout (a sibling of this repository by default)")
+set(CNA_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.deps/cna" CACHE PATH
+    "Path to the CNA framework checkout (under .deps/ by default)")
 
 function(cna_room_require_checkout root name clone_url branch)
     if(EXISTS "${root}/CMakeLists.txt")
@@ -28,8 +28,8 @@ function(cna_room_require_checkout root name clone_url branch)
         "    scripts/fetch-dependencies.sh\n"
         "or clone it yourself with\n"
         "    git clone --branch ${branch} ${clone_url} ${root}\n"
-        "and pass -DCNA_ROOT_DIR=/path/to/cna if it does not sit beside this\n"
-        "repository. README.md lists the full set.")
+        "and pass -DCNA_ROOT_DIR=/path/to/cna when using another location.\n"
+        "README.md lists the full set.")
 endfunction()
 
 cna_room_require_checkout("${CNA_ROOT_DIR}" "the CNA framework"

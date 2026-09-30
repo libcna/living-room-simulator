@@ -1,0 +1,33 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": { "major": 3, "minor": 23, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "Native development (locked .deps)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-dev",
+      "environment": { "CCACHE_DIR": "${sourceDir}/build-ccache" },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CNA_ROOM_RENDERER": "OPENGLES3",
+        "CNA_MAX_VENDORED_BUILD_JOBS": "2"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "dev",
+      "displayName": "Native release (locked .deps)",
+      "binaryDir": "${sourceDir}/build-release",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "dev", "configurePreset": "dev", "jobs": 2 },
+    { "name": "release", "configurePreset": "release", "jobs": 2 }
+  ],
+  "testPresets": [
+    { "name": "dev", "configurePreset": "dev", "output": { "outputOnFailure": true } },
+    { "name": "unit", "configurePreset": "dev", "filter": { "exclude": { "name": "render-smoke" } }, "output": { "outputOnFailure": true } }
+  ]
+}

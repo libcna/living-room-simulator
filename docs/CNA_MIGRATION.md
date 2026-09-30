@@ -1,5 +1,9 @@
 # Migration to current CNA
 
+Historical report from 2026-09-28. Use [development notes](DEVELOPMENT.md) and
+[current issues](KNOWN_ISSUES.md) for the maintained build and work queue.
+Paths and verification results below describe the migration as performed then.
+
 The simulator no longer expects CNA's retired graphics engine layer. It builds
 against the sibling `../cna` and `../sharp-runtime` checkouts without modifying
 their source files. `dependencies.lock` records the revisions verified by this

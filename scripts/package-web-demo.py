@@ -8,12 +8,13 @@ and receives a small fetch adapter that streams the pieces in order.
 
 import argparse
 import math
+import os
 from pathlib import Path
 import shutil
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "build-probe" / "bin"
+SOURCE = Path(os.environ.get("CNA_WEB_BUILD_DIR", ROOT / "build-web")) / "bin"
 NAME = "living-room-simulator"
 PART_SIZE = 64 * 1024 * 1024
 FETCH_CALL = "await fetch(packageName)"

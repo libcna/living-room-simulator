@@ -23,7 +23,7 @@ groups become which object (e.g. `SofaLeather_0007-9` + cushions = `leather-sofa
 `scripts/extract-assets.sh` runs `tools/gltf-extract` (glTF-Transform: Draco decode, WebP to
 PNG, subtree selection, transform baking, recentring) to produce them. No texture or geometry is
 altered beyond decoding, recentring and the per-material roughness overrides named in
-`src/Scene/RoomScene.cpp`.
+`src/Scene/RoomSceneFurnishings.cpp`.
 
 | Asset | Author / holder | Source | Licence | Role | Modifications |
 |---|---|---|---|---|---|

@@ -1,6 +1,7 @@
 # Build trees
 build/
 build-*/
+.deps/
 cmake-build-*/
 out/
 
@@ -8,6 +9,7 @@ out/
 .idea/
 .vscode/
 *.swp
+__pycache__/
 *.swo
 *~
 .DS_Store

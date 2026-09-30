@@ -49,17 +49,18 @@ int main()
     const Vector3 b = Vector3::Transform(imagePoint, view);
     check(Vector3::Distance(a, b) < 1e-4f, "reflected view places the room point at its mirror image");
 
-    // Oblique near plane: the glass lands on -1, the room side inside the
+    // Stock PBR effect uses [0, 1] before its GL clip conversion: the glass
+    // lands on 0, the room side inside the
     // range, the wall side below it (clipped).
     const Plane visibleSide(Vector3(0.0f, 0.0f, 1.0f), -2.0f);   // normal away from the camera: the mirror image lies beyond
-    const Matrix oblique = obliqueProjection(projection, mirrored, visibleSide, -1.0f);
+    const Matrix oblique = obliqueProjection(projection, mirrored, visibleSide, 0.0f);
     const Vector3 onGlass(0.2f, 1.2f, 2.0f);
     const float glassDepth = ndcDepth(onGlass, mirrored, oblique);
-    check(std::fabs(glassDepth + 1.0f) < 1e-3f, "glass maps to NDC -1, got " + std::to_string(glassDepth));
+    check(std::fabs(glassDepth) < 1e-3f, "glass maps to NDC 0, got " + std::to_string(glassDepth));
     const float roomDepth = ndcDepth(roomPoint, mirrored, oblique);
-    check(roomDepth > -1.0f && roomDepth < 1.0f, "room side inside the depth range, got " + std::to_string(roomDepth));
+    check(roomDepth > 0.0f && roomDepth < 1.0f, "room side inside the depth range, got " + std::to_string(roomDepth));
     const float wallDepth = ndcDepth(Vector3(0.2f, 1.2f, 2.3f), mirrored, oblique);
-    check(wallDepth < -1.0f, "behind the glass is clipped, got " + std::to_string(wallDepth));
+    check(wallDepth < 0.0f, "behind the glass is clipped, got " + std::to_string(wallDepth));
     // Far end: a point far into the room keeps a depth below 1 (monotonic).
     const float farDepth = ndcDepth(Vector3(0.0f, 1.0f, -40.0f), mirrored, oblique);
     check(farDepth > roomDepth && farDepth <= 1.0f, "depth grows with distance and stays within 1, got " + std::to_string(farDepth));
@@ -107,20 +108,20 @@ int main()
         // The remap keeps the side holding the far corner it picks: for a
         // street seen from above that is the ground's side when the plane is
         // handed over flipped (as a wall is), so the plane goes in unflipped.
-        const Matrix wrongWay = obliqueProjection(projection, mirroredWalk, Plane(-water.Normal, -water.D), -1.0f);
-        check(ndcDepth(house, mirroredWalk, wrongWay) < -1.0f, "the flipped plane would clip the house (the rule PlanarReflection::prepare corrects)");
-        const Matrix obliqueWalk = obliqueProjection(projection, mirroredWalk, water, -1.0f);
+        const Matrix wrongWay = obliqueProjection(projection, mirroredWalk, Plane(-water.Normal, -water.D), 0.0f);
+        check(ndcDepth(house, mirroredWalk, wrongWay) < 0.0f, "the flipped plane would clip the house (the rule PlanarReflection::prepare corrects)");
+        const Matrix obliqueWalk = obliqueProjection(projection, mirroredWalk, water, 0.0f);
         const Vector3 hv = Vector3::Transform(house, mirroredWalk);
         const Vector4 hc = Vector4::Transform(Vector4(hv.X, hv.Y, hv.Z, 1.0f), obliqueWalk);
         check(hc.W > 0.0f && std::fabs(hc.X / hc.W) < 1.0f && hc.Y / hc.W < 0.0f && hc.Y / hc.W > -1.0f,
               "the house image sits in the frame below the horizon (" + std::to_string(hc.X / hc.W) + ", " + std::to_string(hc.Y / hc.W) + ")");
         const float houseDepth = ndcDepth(house, mirroredWalk, obliqueWalk);
-        check(houseDepth > -1.0f && houseDepth < 1.0f, "the house is inside the depth range, got " + std::to_string(houseDepth));
+        check(houseDepth > 0.0f && houseDepth < 1.0f, "the house is inside the depth range, got " + std::to_string(houseDepth));
         const float roadDepth = ndcDepth(Vector3(0.0f, -0.37f, -12.0f), mirroredWalk, obliqueWalk);
-        check(roadDepth < -1.0f, "the road under the water plane is clipped, got " + std::to_string(roadDepth));
+        check(roadDepth < 0.0f, "the road under the water plane is clipped, got " + std::to_string(roadDepth));
         // A lamp head in the frame (its image 31 degrees below the eye line, 8 m ahead).
         const float lampDepth = ndcDepth(Vector3(3.0f, 3.0f, -16.0f), mirroredWalk, obliqueWalk);
-        check(lampDepth > -1.0f && lampDepth < 1.0f, "a lamp head is inside the depth range, got " + std::to_string(lampDepth));
+        check(lampDepth > 0.0f && lampDepth < 1.0f, "a lamp head is inside the depth range, got " + std::to_string(lampDepth));
     }
 
     if (failures == 0) std::printf("cna_room_reflection_tests: all checks passed\n");

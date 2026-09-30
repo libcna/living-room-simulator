@@ -21,12 +21,10 @@ namespace Microsoft::Xna::Framework::Graphics {
 
 namespace CnaRoom {
 
-/// Uploads CPU float cube faces into a half-float cube map. CNA's TextureCube
-/// only takes 8-bit data (CNA_FINDINGS R-21), which quantises a lamp-lit
-/// room's irradiance to a few codes under the shade-driven scale; a
-/// RenderTargetCube can be RGBA16F, so the faces go through an RGBE-encoded
-/// strip and a decode draw into each face. Self-tested on first use: when
-/// the path does not survive a readback the caller keeps its 8-bit cube.
+/// Legacy half-float cube uploader from before CNA supported direct half-float
+/// TextureCube transfers (CNA_FINDINGS R-21). It draws an RGBE strip into
+/// RenderTargetCube faces and self-tests the result. Keep it until a direct
+/// upload path has been checked for face orientation and night-time lighting.
 class FloatCubeUploader
 {
 public:

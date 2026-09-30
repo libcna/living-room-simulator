@@ -1,359 +1,50 @@
-# living-room-simulator
+# Living Room Simulator
 
-A standalone reference application for integration and visual regression testing of
-[CNA](https://github.com/libcna/cna) across supported graphics renderers, windowing
-platforms and operating systems. Keep the scene and capture scenarios stable so changes
-in CNA can be compared against a known reference.
+A C++ reference scene for [CNA](https://github.com/libcna/cna). It renders an explorable living room, changing daylight and weather, and an exterior street. The maintained native baseline is `OPENGLES3` with the revisions in [`dependencies.lock`](dependencies.lock). The application also has a WebGL2 build; its current verification status is in [development notes](docs/DEVELOPMENT.md).
 
-The existing rendering baseline uses the EasyGL family (OPENGLES3, OPENGL33 and WEBGL2).
-Other renderer families require compatibility checks; custom GLSL effects may need
-adaptation or an explicitly documented reduced-feature test profile.
+![The room by day](docs/screenshots/m9-entrance-day.png)
 
-The original Git history is preserved. See [repository origin](docs/ORIGIN.md) for the
-2026-09-28 extraction from CNA Lab and instructions for reproducing it.
+## Get started
 
-## WebGL2 / WebAssembly
+On Ubuntu 24.04, install the packages listed in [development notes](docs/DEVELOPMENT.md), then:
 
-Webová verze sestavuje **stejnou C++ aplikaci** s CNA/EasyGL rendererem `WEBGL2` pomocí
-Emscriptenu. Webová stránka v [`web/shell.html`](web/shell.html) zajišťuje načtení WASM a
-ovládací nápovědu; místnost, počasí, materiály a vykreslování běží v původním C++ kódu.
-
-Připravte závislosti popsané níže a Emscripten SDK (výchozí umístění skriptu je
-`/home/robertvokac/emsdk`; jinde nastavte `EMSDK_ROOT`). Modely jsou externí aktiva a nejsou
-v Gitu:
-
-```bash
+```sh
+scripts/fetch-dependencies.sh
 scripts/fetch-assets.sh
 scripts/extract-assets.sh
-scripts/build-web.sh
-python3 -m http.server 8000 --directory build-probe/bin
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset unit
+./build-dev/bin/living-room-simulator
 ```
 
-Otevřete `http://localhost:8000/living-room-simulator.html` v prohlížeči s WebGL2. Vedle
-HTML musí být v témže adresáři také vygenerované `.js`, `.wasm` a `.data`; `.data` obsahuje
-použité modely (přibližně 128 MiB). Webový build používá sdílenou `build-probe/` a
-`/rv/cnaccache` podle pravidel projektu. Základní ovládání je stejné jako u desktopové
-verze: **W/A/S/D**, šipky, **1–8**, **Page Up/Down**, **F2**, **L** a **T**.
+The first command clones the locked dependencies into ignored `.deps/`. External furniture is also ignored by Git; without the asset commands, the application runs with procedural geometry only. A local development build may take several minutes. `ccache` is optional.
 
-Pro publikování na GitHub Pages zkopírujte build do repozitáře s ukázkami pomocí
-`python3 scripts/package-web-demo.py ../demos.libcna.com/living-room-simulator`.
-Skript rozdělí datový balík na 64MiB soubory a upraví jeho načítání, aby každý
-soubor splnil limit GitHubu. Pro lokální spuštění tohoto balíčku spusťte HTTP server
-v kořeni `demos.libcna.com` a otevřete `living-room-simulator/living-room-simulator.html`.
+For a deterministic screenshot with a display:
 
-**Desktop status:** closed on 2026-09-14 with all nine milestones delivered and 29 audit rounds logged;
-`plan.md` §32 is the closing summary, `NEXT.md` the optional backlog, `CNA_FINDINGS.md` the 37
-CNA findings met on the way.
+```sh
+./build-dev/bin/living-room-simulator --width 640 --height 360 \
+  --frames 3 --view entrance --time 12:00 --weather cloudy \
+  --hold-weather --screenshot room.png
+```
 
-A realistic, explorable 3D living room rendered with [CNA](https://github.com/libcna/cna)
-and [sharp-runtime](https://github.com/libcna/sharp-runtime) from the current sibling checkouts,
-using CNA's **EasyGL** renderer (`OPENGLES3`) and the simulator's own scene effects.
+On a headless Linux machine, run that command under `xvfb-run -a` with `SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1`. The complete test suite is `ctest --preset dev`; its render test needs working X11 and Mesa. Use `scripts/capture-views.sh --quick --smoke --bin build-dev/bin/living-room-simulator` to inspect four representative scenes.
 
-The graphics engine layer removed from CNA now lives in this repository under
-`CnaRoom::Effects`. CNA supplies devices, resources, PBR effects, portable shader packages
-and model loading; the simulator supplies shadows, sky and postprocessing. See
-[current CNA migration](docs/CNA_MIGRATION.md) for provenance and compatibility limits.
+## Where to work
 
-The application is a free-flying camera inside a furnished residential living room: a slow
-continuous day/night cycle, slowly evolving weather seen through the windows, physically based
-materials, cascaded shadow maps, image-based lighting, an HDR post-processing chain and real
-glTF furniture assets. There is no gameplay; the point is the picture.
-
-> Status: **milestone 9, realism audits** (every earlier milestone landed: furniture, lighting,
-> the street outside, day/night, weather, reflections). See `plan.md` for the living plan and
-> `NEXT.md` for what happens next.
-
-![Entrance by day](docs/screenshots/m9-entrance-day.png)
-
-![Morning sun through the trees](docs/screenshots/m9-sun-morning-corner.png)
-
-| Night, lamps on | Midday sun on the sheer, beams in the air | The street in the panes at night |
-|---|---|---|
-| ![Night](docs/screenshots/m9-entrance-night.png) | ![Sun](docs/screenshots/m9-sun-window.png) | ![Street](docs/screenshots/m9-reflections-street-night.png) |
-
-| Rain at night: droplets on the panes, the wet street beyond | Out on the pavement: the lit windows in the puddles | A cool evening: the stove lit, the candle burning |
-|---|---|---|
-| ![Wet street](docs/screenshots/m9-wet-street-night.png) | ![Road](docs/screenshots/m9-road-night-rain.png) | ![Stove](docs/screenshots/m9-stove-night.png) |
-
-The room in motion, four seconds each at twelve frames a second (`scripts/record-gif.sh`):
-the rain running down the panes, the fireside with the flames, the steam over the cup and
-the set's picture, a storm over the street with the trees swaying and the rain driving, and a
-whole clear day from the door in six seconds (`--day-length 0.4`): the lamps off at dawn, the
-sun's patches crossing the wall, the lamps back on at dusk.
-
-| ![Rain on the panes](docs/screenshots/m9-rain-panes.gif) | ![Fireside](docs/screenshots/m9-fireside.gif) |
+| Change | Start here |
 |---|---|
-| ![Storm over the street](docs/screenshots/m9-storm-street.gif) | ![A day in six seconds](docs/screenshots/m9-day-lapse.gif) |
+| Application options, clock and input | `src/RoomApplication.cpp` |
+| Room geometry and object placement | `src/Scene/RoomScene.cpp`, `src/Scene/RoomSceneFurnishings.cpp`, `src/Scene/Exterior.cpp` |
+| Lighting, reflections and frame rendering | `src/Render/SceneRenderer.cpp`, `src/Render/SceneRendererProbes.cpp` |
+| Postprocessing and shadow effects | `src/Effects/` |
+| Model import and texture preparation | `src/Assets/` |
+| Time and weather rules | `src/Sim/` |
 
-## Dependencies
+The [architecture map](docs/ARCHITECTURE.md) explains ownership and data flow. [Development notes](docs/DEVELOPMENT.md) cover builds, assets, WebGL2 and dependency updates. [Visual testing](docs/VISUAL_TESTING.md) describes the reference views; [known issues](docs/KNOWN_ISSUES.md) lists current limitations and cleanup work.
 
-living-room-simulator consumes CNA as a sibling checkout with `add_subdirectory()`; CNA in turn expects its
-own dependencies beside it:
+## Repository records
 
-```
-<parent>/
-  living-room-simulator/        this repository
-  cna/             https://github.com/libcna/cna            branch next
-  sharp-runtime/   https://github.com/libcna/sharp-runtime  branch next
-  easy-gl/         https://github.com/libcna/easy-gl        branch develop
-  meta-gl/         https://github.com/libcna/meta-gl        branch develop
-```
+The [original engineering plan](docs/archive/plan.md), [old continuation queue](docs/archive/NEXT.md), [CNA findings](CNA_FINDINGS.md) and [migration report](docs/CNA_MIGRATION.md) record past work. They are evidence and background, not instructions for choosing the next task. [Historical screenshots](docs/archive/README.md) are archived separately from the small gallery above.
 
-`scripts/fetch-dependencies.sh` clones exactly that layout (add `--pin` to check out the
-revisions in `dependencies.lock`). CNA builds SDL3, SDL3_image and SDL3_mixer from its vendored
-submodules, which on Ubuntu 24.04 need:
-
-```
-apt-get install build-essential cmake ninja-build git \
-    libxss-dev libxkbcommon-dev wayland-protocols libwayland-dev libdecor-0-dev libdbus-1-dev \
-    libudev-dev libibus-1.0-dev libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev libzstd-dev \
-    libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxfixes-dev libxtst-dev libxt-dev \
-    libxv-dev libxxf86vm-dev libpulse-dev libasound2-dev libdrm-dev libgbm-dev
-```
-
-## Building
-
-```
-export CCACHE_DIR=/rv/cnaccache CCACHE_BASEDIR=/rv CMAKE_BUILD_PARALLEL_LEVEL=2
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-    -DCNA_MAX_VENDORED_BUILD_JOBS=2
-cmake --build build --parallel 2
-ctest --test-dir build --output-on-failure
-```
-
-`-DCNA_ROOM_RENDERER=OPENGL33` selects the desktop GL 3.3 identity of the same EasyGL renderer.
-
-## Running
-
-```
-./build/bin/living-room-simulator                       # windowed, 1280x720
-./build/bin/living-room-simulator --width 1920 --height 1080
-./build/bin/living-room-simulator --frames 3 --screenshot shot.png   # headless validation
-./build/bin/living-room-simulator --view entrance --sun -10,205 --exposure 60 --lamps on --tv on   # evening
-./build/bin/living-room-simulator --help                # every option
-```
-
-The clock runs by default (one game day in 24 real minutes, starting 14:30); `--time 22:00`
-starts at night, `--day-length 2` runs a day in two minutes, `--sun ELEV,AZIM` freezes the sun.
-The probes' re-capture keeps pace with the clock: however fast the day runs, a bake finishes
-within ten game minutes.
-
-Weather evolves on its own from cloudy; `--weather rain|storm|snow|hail|clear|overcast|cloudy`
-starts in a kind, `--hold-weather` keeps it, `--temperature -3` makes rain into snow.
-
-Useful options: `--time HH:MM`, `--day-length MIN`, `--weather KIND`, `--view NAME` (entrance, sofa-to-tv, tv-to-sofa, bookshelf, window, window-close,
-material, corner, tv-close, lamp, street, street-left), `--camera x,y,z,yaw,pitch`, `--sun ELEV,AZIM`,
-`--clouds COVER[,DENSITY]`, `--haze H`, `--exposure E`, `--lamps on|off|auto`, `--tv on|off|auto`,
-`--exposure-mode auto|analytic`, `--texture-size N`, `--shadow-quality 1..4`, `--probe-size N`, `--probe-gain G`, `--ssr`,
-`--ssao-radius R --ssao-intensity I --prepass-far F` (the prepass far plane scales CNA's SSAO bias),
-`--overlay`, `--dump-probes DIR` (writes each probe bake's captured faces and irradiance as PNG
-strips), `--reflection-scale S`, the lens look `--grain G --aberration A --vignette V` (`--clean`
-zeroes all three), `--flare I[,T]` (lens flare ghosts, off by default), `--ev STOPS` (exposure compensation
-on top of the adapted exposure, ±3), `--sunbeams D[,G,N]` (the air's scattering per metre,
-default 0.12, its forward bias and the march's steps; 0 turns the beams off; the march runs at
-half size and `--sunbeams-full` marches every pixel), `--lamp-haze D` (the pendant's light in
-the air at night, default 0.35), `--no-steam`, `--motes N[,PX]`
-(dust motes in the beams, default 400 at 2.5 px), the lens itself `--dof F,MM`
-(f-number and focal length, default 4,35),
-`--focus D` (metres; the default focuses on the frame's centre) and `--no-dof`, `--white-balance S`
-(0 leaves every cast in), `--dump-depth FILE`
-(the prepass depth as a grey PNG, the autofocus block marked), `--bloom-intensity I` and
-`--bloom-iterations N`, and `--no-shadows
---no-ssao --no-bloom --no-fxaa --no-hdr --no-ibl --no-sky --no-probes --no-reflections` to isolate
-a feature.
-
-Without a display (CI, containers) run it under Xvfb with Mesa's software rasteriser:
-
-```
-SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" \
-    ./build/bin/living-room-simulator --frames 3 --screenshot shot.png
-```
-
-`--record DIR[,EVERY]` writes every EVERYth frame to `DIR/frame-NNNN.png` in deterministic
-1/60 s steps (for clips: `scripts/record-gif.sh OUT.gif SECONDS [options]` records one and
-assembles a 12 fps GIF with Pillow).
-`--dolly TARGET SECONDS` glides the camera from its start to a camera spec or a view name over
-the seconds (a tracking shot when recording); `--motion-blur S` sets the pipeline's camera
-motion blur (0 by default, not evaluated).
-
-
-Debug switches, as environment variables: `CNA_ROOM_DEBUG_SUNBEAMS=1..6` paints the beam
-march's inputs (depth, position, shadow, atlas, raw scatter, clip) and `CNA_ROOM_SUNBEAM_POINTS`
-probes the cascade compare at world points; `CNA_ROOM_DUMP_ATLAS=FILE` writes the cascade atlas;
-`CNA_ROOM_DEBUG_STEAM` paints the steam and smoke magenta; `CNA_ROOM_DEBUG_TV` logs the picture's
-mean each frame and `CNA_ROOM_TV_TIME_SCALE` runs the programme faster; `CNA_ROOM_DEBUG_LAMPS`
-logs the lamp each item took; `CNA_ROOM_WINDOW_LIGHT=S` scales the windows' light (0 off);
-`CNA_ROOM_DEBUG_REFLECTIONS` and `CNA_ROOM_DEBUG_PUDDLES=1|2` expose the planar reflections and
-the puddle mask; `CNA_ROOM_NO_TREE_SHADOWS` drops the trees' shadow proxies and
-`CNA_ROOM_TREE_SWAY=N` scales their sway; `CNA_ROOM_DEBUG_CONTACT=1|2` paints the contact-shadow
-mask (gated by the normals, or raw); `CNA_ROOM_NO_CNB`
-imports the glTF sources instead of the compiled models and `CNA_ROOM_MODEL_DEBUG` logs the import.
-
-## Controls
-
-| Key | Action |
-|---|---|
-| W / S | move forward / backward |
-| A / D | move left / right |
-| Q / E | move down / up |
-| Left / Right arrow | turn (yaw) |
-| Up / Down arrow | look up / down (pitch) |
-| Shift / Ctrl | sprint / precision movement |
-| 1 – 8 | jump to a viewpoint, R returns to the start view |
-| [ / ] | sun azimuth, - / + sun elevation (Shift: faster) |
-| , / . | cloud coverage |
-| PageUp / PageDown | clock ±30 minutes; P pauses the clock; Home resets it to 14:30 |
-| F2 / F3 | next weather kind / hold the weather |
-| L | lamps on/off (manual override; re-captures the interior probes over the next frames) |
-| T | television on/off |
-| F1 | overlay: clock, weather, exposure, lens and focus, frame and GPU timings, camera |
-| F12 | screenshot |
-| Esc | quit |
-
-The `[ ] - + , .` keys take the sun and clouds out of the clock's and the weather's hands until
-PageUp/PageDown or F2 give them back.
-
-## Graphics features
-
-- HDR (RGBA16F) `RenderPipeline` with ACES tonemapping, image-based auto exposure (a
-  centre-weighted, highlight-rejecting meter on a 64 x 36 downsample of the HDR frame) held
-  within a band around an analytic schedule, exposure-relative bloom, a photographic lens look
-  (fine film grain, a touch of chromatic aberration, a vignette multiplied over the finished
-  frame), a thin-lens depth of field (35 mm f/4 by default) with a centre-area autofocus read
-  from the prepass depth (a thin obstruction such as a window mullion loses to what stands
-  behind it) and pulled like a lens motor, sunbeams (the room's air ray-marched against the
-  cascaded shadow atlas, so the light through the windows reads as beams that the mullions
-  cut and the street trees dapple, with dust motes drifting where the light reaches), an
-  auto white balance that takes most of an overcast
-  sky's cast out by day and only part of the lamps' 2700 K at night, FXAA, SSAO from the same
-  depth/normal prepass, sorted transparency, daylight height fog, optional SSR; GPU timers per
-  pass and an on-screen overlay.
-- A television that plays a synthetic programme (landscape, night drive, studio, test card) on a render
-  target bound as its emissive picture, whose light on the room takes the picture's mean
-  colour and level each frame (read back from a 32x18 render of the same programme), a wall
-  clock whose hands follow the scene's time, steam rising from the cup on the coffee table
-  (a small plume lit by the light at the cup), a knitted throw over the sofa's back, an open
-  paperback, the day's post and keys on the chest, and a wood stove that burns on cool
-  evenings (embers, flickering flames and their light), with a candle lit alongside the lamps.
-- Weather that drifts between clear, cloudy, overcast, rain, storm (lightning), hail and snow:
-  rain streaks, flakes and hailstones outside the windows, wet and glossy or snow-covered
-  street surfaces (the wet road and pavements mirror the houses, lamps and sky through a
-  planar reflection of the street alone, added by their Fresnel share times the wetness and
-  gathered into puddles that mirror while the film between them reflects a broken quarter),
-  droplets on the panes, curtains stirring in the wind; the direct sun fades with the cloud
-  deck (an overcast day is diffuse light with soft, faint shadows).
-- A solar clock: sun and moon paths from latitude, date and time; lamps and street lights
-  switch at dusk and dawn; exposure adapts to the light; lighting caches (sky IBL, interior
-  probes, the pendant's shadow cube) refresh incrementally as the light changes.
-- Sun and moon as directional lights from an atmospheric sky model (clouds, stars, moon, twilight,
-  haze), three-cascade shadow map, sky IBL products regenerated when the sun moves.
-- Three interior environment probes captured from the lit room (half-float), two bounces, giving
-  the room its own ambient light and reflections; their irradiance and their prefiltered specular
-  (one cube per roughness class) are convolved on the CPU into half-float cubes, so a lamp-lit
-  room keeps its colour at night and glossy surfaces reflect it without 8-bit steps.
-- Planar reflections for the mirror, the television screen and, at night, the window panes: the
-  scene is rendered once more from the camera mirrored in the wall, with the near plane laid onto
-  the glass (oblique projection) and the frustum tightened to the glass, and the surfaces look
-  their reflection up in that render (the screen through a Fresnel ramp under its picture, the
-  mirror as silvered glass, the panes' Fresnel share of the lamp-lit room added over the street,
-  bent by the rain droplets' normal map when the panes are wet).
-- Facade extras across the street: window boxes in bloom, satellite dishes, television aerials.
-- Street signage: the shop's lettered sign box and a bus stop with a timetable case, both lit
-  with the street lights.
-- The door ajar on a lit hallway: a floor, walls, a dome light that stays on, a coat on a
-  hook and shoes beyond the door wall.
-- Chimney smoke across the street on cold days, leaning with the wind, from the same plume
-  drawer as the cup's steam.
-- Nine interior probes in three rows and the floor in sections that each take the nearest
-  one, so the probes' light falls off across the floor from the windows inward.
-- Lamp haze at night: the pendant's light scattered by the room's air, shadowed by its cube
-  map, in the same half-size march as the sunbeams (`--lamp-haze D`).
-- Screen-space contact shadows toward the sun (CNAEXT `ContactShadowPass` run as a
-  visibility mask multiplied into the lit scene), experimental and off by default
-  (`--contact-shadows D`): the pass rims silhouettes on this prepass.
-- Running raindrops: the panes' droplets are an eight-frame flipbook whose runners slide down
-  the glass while it rains.
-- Passing clouds: under a broken sky the sun swaps between gap and cloud over a minute or so,
-  the shadows sharpening and softening with it.
-- Wind in the trees: each street tree's crown sways about the top of its trunk with the
-  weather's wind, gusts on top, and its shadow proxies swing with it, so the dapples in the
-  room drift in a storm.
-- More of a lived-in room: slippers kicked off by the sofa, a folded newspaper (a baked
-  front page) on the armchair, a leather bag leaning on the wall by the door.
-- Wear and stains as decals (CNAEXT `DecalPass`, projected through the prepass depth after
-  the opaque pass, black masks that only darken): a coffee ring on the table, scuffs and a
-  worn path on the boards by the door, hand marks on the wall (`--no-decals`).
-- The windows as light sources by day: a wide spot per window carries the sky's diffuse light
-  into the room with distance fall-off, refreshed from the sky each frame, on top of the
-  probes' ambient.
-- Artificial lights in lumens: pendant, floor lamp, table lamp, two sconces, television; one
-  punctual light per object (the most influential), a cube shadow map for the pendant, emissive
-  shades and screen.
-- A procedural street outside: terraced houses with recessed windows and doors (reveals, sills,
-  plinths, gutters and downpipes) whose windows show curtains, lampshades and television glow
-  behind their glass (lit at night in warm, dim and cool kinds), neighbours, trees whose
-  crowns shade as one volume, clipped hedges with a leafy fringe, street lights, a bench, a
-  litter bin and a bicycle leaning on the shop opposite, cars parked along the kerbs, a
-  distant skyline; window panes that reflect the room and transmit the street.
-- Procedural PBR surfaces (plaster, oak, carpet, weave, paint, concrete, brick, asphalt, grass,
-  paving, roof tiles, bark, masked foliage)
-  with normal maps and linear-light mip chains; imported glTF materials with per-slot UV
-  transforms and rebuilt mip chains.
-
-See `plan.md` §31 for the list of CNA/CNAEXT functionality exercised and §26 for what was found
-on the way.
-
-## Assets and licensing
-
-Code is MIT (`LICENSE`). Third-party 3D models keep their own licences (CC0 / CC BY), recorded
-per asset in `THIRD_PARTY_ASSETS.md`; they are fetched rather than committed:
-
-```
-scripts/fetch-assets.sh      # downloads assets/external/downloads/ and verifies SHA-256
-scripts/extract-assets.sh    # Node 18+: extracts per-object GLBs into assets/external/extracted/ (npm ci from the tool's lock file)
-scripts/compile-assets.sh    # optional: CNA .cnb per model into assets/cnb/ (loaded in place of the glTF import)
-```
-
-Without them the application still runs with the procedural architecture only. Imported model
-textures are halved on load above 1024 px (`--model-texture-size N`, 0 keeps them), their mip
-chains are rebuilt on the CPU over the cores and shared between parts by content; the load log
-lists per model where its time went (about 15 s for the full set on the development VM).
-
-`scripts/capture-views.sh [--quick]` renders the canonical audit set (viewpoints × day, dusk,
-night and weather) into `screenshots/audit/` with a contact sheet.
-
-Baked procedural textures are cached as PNG under `assets/cache/textures/` after the first run
-(`--texture-cache DIR` moves it, `--texture-cache off` bakes every time).
-
-Credits (CC BY): *The White Room* by Jay-Artist (CC BY 3.0), *The Grey & White Room* by Wig42
-(CC BY 3.0), both via Benedikt Bitterli's rendering resources and gkjohnson/3d-demo-data;
-Khronos glTF Sample Assets models by Wayfair LLC and Darmstadt Graphics Group GmbH (CC BY 4.0).
-CC0: *Bedroom* by SlykDrako, *Little Lamp* by UP3D, Khronos sample models by Microsoft, Wayfair
-and the Khronos Group. Architecture, trim and every surface texture are generated procedurally by
-this project.
-
-## Known limitations
-
-- Developed and validated on Mesa llvmpipe (no GPU in the development environment): all
-  performance figures in `plan.md` are software-rasteriser numbers; a frame at 1280×720 takes
-  around a second there and would take a few milliseconds on a GPU.
-- CNA bugs and limitations met on the way are catalogued in `CNA_FINDINGS.md` (R-1 … R-35):
-  among them one punctual light per draw, 8-bit IBL cubes, no back-face normal flip, no
-  alpha-tested shadow casters.
-- The exposure is guided by an analytic schedule and a log-average measurement; a view that
-  stares into the pendant at night stays bright.
-- Weather details not modelled: per-lamp lighting of rain, thunder (no audio), snow on tree
-  branches beyond a dusting of the canopy, puddles that grow and dry with the rain (theirs is a
-  fixed pattern scaled by the wetness).
-- No pedestrians or vehicles outside (no redistributable models reachable from the build
-  environment).
-
-## Tests
-
-`ctest --test-dir build` runs CPU-only checks on the solar clock, the weather state machine
-(including the diurnal temperature), the procedural texture bakers, the planar reflection
-matrices (reflected view, oblique near plane, tightened projection) and the cube-map products
-(sampler, irradiance, GGX prefilter) in `tests/`, plus a headless render smoke test
-(`tests/render-smoke.sh`: three frames at 320x180 under `xvfb-run`, the screenshot must not be
-black; skipped where `xvfb-run` is missing).
+Code is MIT licensed. Imported CC BY models include *The White Room* by Jay-Artist and *The Grey & White Room* by Wig42 (CC BY 3.0), plus Khronos sample models by Wayfair and Darmstadt Graphics Group (CC BY 4.0). External models retain their own licences; the full credits, sources and modifications are in [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md). The [repository origin](docs/ORIGIN.md) documents its history.

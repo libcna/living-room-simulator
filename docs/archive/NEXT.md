@@ -1,5 +1,7 @@
 # NEXT — continuation queue
 
+> Historical queue. See `docs/KNOWN_ISSUES.md` for current work.
+
 **The project was closed on 2026-09-14** (plan.md §32 is the closing summary). What follows is
 the backlog as it stood, kept for anyone who reopens the work; none of it is required.
 

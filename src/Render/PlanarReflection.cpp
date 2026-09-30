@@ -237,13 +237,12 @@ bool PlanarReflection::prepare(const ReflectionPlane& plane, const Camera& camer
 
     // Oblique near plane on the glass. The world is reflected and the camera
     // stays, so the visible half-space is the one the plane normal points
-    // away from: the plane is handed over flipped. EasyGL feeds the XNA
-    // matrix to GL unchanged (its shaders do gl_Position = WVP * position)
-    // and GL clips at NDC z = -1, not at the 0 the D3D-style matrix maps
-    // its own near plane to; the capture's depth buffer is its own, so the
-    // different range from the main pass does not matter.
+    // away from: the plane is handed over flipped. CNA's stock PBR shader
+    // converts XNA's [0, 1] clip depth to GL's [-1, 1] after multiplying by
+    // this matrix. The capture uses those stock effects, so the plane must
+    // map to 0 before that conversion.
     Plane visibleSide(-p.Normal, -p.D);
-    projection = ReflectionMath::obliqueProjection(projection, view_, visibleSide, -1.0f);
+    projection = ReflectionMath::obliqueProjection(projection, view_, visibleSide, 0.0f);
     // The remap keeps the side of the plane that holds the far corner it
     // picks, which is the room's side for a wall facing the camera but the
     // ground's side for a street seen from above: when a point half a metre
@@ -255,14 +254,14 @@ bool PlanarReflection::prepare(const ReflectionPlane& plane, const Camera& camer
         const Vector3 probe = centre + p.Normal * 0.5f;
         const Vector3 probeView = Vector3::Transform(probe, view_);
         const Vector4 probeClip = Vector4::Transform(Vector4(probeView.X, probeView.Y, probeView.Z, 1.0f), projection);
-        if (probeClip.W > 0.01f && probeClip.Z / probeClip.W < -1.0f)
+        if (probeClip.W > 0.01f && probeClip.Z / probeClip.W < 0.0f)
         {
             visibleSide = Plane(p.Normal, p.D);
-            projection = ReflectionMath::obliqueProjection(camera.projection(), view_, visibleSide, -1.0f);
+            projection = ReflectionMath::obliqueProjection(camera.projection(), view_, visibleSide, 0.0f);
             if (!ReflectionMath::tightenProjection(view_, camera.projection(), plane.corners, camera.nearPlane(), camera.farPlane(), 0.03f,
                                                    projection))
                 projection = camera.projection();
-            projection = ReflectionMath::obliqueProjection(projection, view_, visibleSide, -1.0f);
+            projection = ReflectionMath::obliqueProjection(projection, view_, visibleSide, 0.0f);
         }
     }
     if (!loggedOblique_)

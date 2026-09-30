@@ -18,10 +18,11 @@ dates and messages. The extracted root tree is exactly the former CNA Lab subtre
 `08f05edca6f2fc650f9f3ee4310e5508c1c5f6cb`; no application code was changed during
 extraction. Subsequent standalone documentation changes are separate commits.
 
-The local branch is `develop` and the upstream is
-https://github.com/libcna/living-room-simulator. The application now lives beside
-`cna/`, `sharp-runtime/`, `easy-gl/` and `meta-gl/`, matching its existing default
-CMake dependency layout. CNA Lab no longer carries a second working copy.
+The local branch at extraction was `develop` and the upstream is
+https://github.com/libcna/living-room-simulator. The original build used sibling
+`cna/`, `sharp-runtime/`, `easy-gl/` and `meta-gl/` checkouts. The maintained
+bootstrap now puts these isolated checkouts under `.deps/` instead. CNA Lab no
+longer carries a second working copy.
 
 The repository is intended as a stable reference application for CNA integration
 and visual checks. The existing EasyGL baseline and pinned dependency revisions

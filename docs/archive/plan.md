@@ -1,5 +1,10 @@
 # living-room-simulator — engineering plan
 
+> Historical record closed on 2026-09-14. It is not the current development
+> procedure. Start at the repository README and `docs/KNOWN_ISSUES.md`.
+> Screenshot paths in this record describe the old tree; most now live under
+> `docs/archive/screenshots/`.
+
 A realistic, explorable 3D living room built on CNA (`next`), sharp-runtime (`next`) and the
 EasyGL renderer. This file is the living plan for the whole project: it is updated every
 iteration, and it is the first thing to read when resuming.
