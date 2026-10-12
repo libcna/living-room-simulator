@@ -228,7 +228,7 @@ namespace CnaRoom::Effects {
         if (!isImageBindingSupported())
         {
             const bool glEs = device_.GetShaderDialectEXT() ==
-                CNA::Internal::Renderers::ShaderDialectEXT::GlslEs;
+                CNA::ShaderDialectEXT::GlslEs;
             throw System::NotSupportedException(
                 "CnaRoom::Effects::ComputeShader::bindImage: the '"
                 + std::string(device_.GetGraphicsRendererName())
