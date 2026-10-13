@@ -20,7 +20,6 @@
 #include "CnaRoom/Effects/DepthNormalPrepass.hpp"
 #include "CnaRoom/Effects/DirectionalLightEXT.hpp"
 #include "CnaRoom/Effects/EnvironmentProcessor.hpp"
-#include "CnaRoom/Effects/GpuTimer.hpp"
 #include "CnaRoom/Effects/RenderPipeline.hpp"
 #include "CnaRoom/Effects/RenderPipelineSettings.hpp"
 #include "CnaRoom/Effects/RenderQuality.hpp"
@@ -67,7 +66,6 @@ using namespace Microsoft::Xna::Framework::Graphics;
 using CnaRoom::Effects::CascadedShadowMap;
 using CnaRoom::Effects::DepthNormalPrepass;
 using CnaRoom::Effects::DirectionalLightEXT;
-using CnaRoom::Effects::GpuTimer;
 using CnaRoom::Effects::RenderPipeline;
 using CnaRoom::Effects::RenderQuality;
 using CnaRoom::Effects::ShadowQuality;
@@ -186,20 +184,6 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
         prepass_.reset();
     }
 
-    gpuTimingAvailable_ = false;
-    for (auto& timer : gpuStage_)
-    {
-        timer = std::make_unique<GpuTimer>(device_);
-        if (!timer->isSupported())
-        {
-            CNA::Logger::Info("living-room-simulator: GPU timing unavailable -- " + timer->getUnsupportedReason());
-            for (auto& other : gpuStage_) other.reset();
-            break;
-        }
-        gpuTimingAvailable_ = true;
-    }
-    gpuStageMs_.fill(-1.0);
-
     if (!device_.SupportsCapability(CNA::GraphicsCapability::FloatRenderTargets)
         && !device_.SupportsCapability(CNA::GraphicsCapability::HalfFloatRenderTargets))
         limitations_.emplace_back("no float render targets; HDR resolves straight to the back buffer");
@@ -234,18 +218,21 @@ void SceneRenderer::initialise(const RenderSettings& settings, int width, int he
         reflection->resize(std::max(16, static_cast<int>(static_cast<float>(width) * settings.reflectionScale)),
                            std::max(16, static_cast<int>(static_cast<float>(height) * settings.reflectionScale)));
     if (!television_->supported()) limitations_.emplace_back("no television picture: " + television_->reason());
-    try
+    // One meter reads the HDR frame once per frame; the measured exposure and the
+    // auto exposure's adaptation both work from that reading.
+    autoExposure_.reset();
+    exposureMeter_ = std::make_unique<ExposureMeter>(device_);
+    if (exposureMeter_->supported())
     {
-        autoExposure_ = std::make_unique<CnaRoom::Effects::AutoExposureEXT>(device_);
+        autoExposure_ = std::make_unique<CnaRoom::Effects::AutoExposureEXT>();
         autoExposure_->setKeyValue(0.05f);   // log-average of this scene: ~0.075 by day, ~0.0006 under the lamps
-        exposureMeter_ = std::make_unique<ExposureMeter>(device_);
-        if (!exposureMeter_->supported()) limitations_.emplace_back("exposure meter off (" + exposureMeter_->reason() + "): CNA's log-average used");
         autoExposure_->setExposureRange(0.3f, 2000.0f);
         autoExposure_->setAdaptationSpeeds(2.5f, 1.2f);
     }
-    catch (const std::exception& failure)
+    else
     {
-        limitations_.emplace_back(std::string("no image-based exposure: ") + failure.what());
+        limitations_.emplace_back("no image-based exposure: " + exposureMeter_->reason());
+        exposureMeter_.reset();
     }
 
     sky_.build();
@@ -636,30 +623,15 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
         television_->update(frameSeconds_ * tvTimeScale);
     }
 
-    const auto openStage = [this](GpuStage stage) {
-        auto& timer = gpuStage_[static_cast<std::size_t>(stage)];
-        if (timer == nullptr) return;
-        if (timer->poll()) gpuStageMs_[static_cast<std::size_t>(stage)] = timer->getLastMilliseconds();
-        timer->begin();
-    };
-    const auto closeStage = [this](GpuStage stage) {
-        auto& timer = gpuStage_[static_cast<std::size_t>(stage)];
-        if (timer != nullptr) timer->end();
-    };
-
     // Spread probe re-captures over frames (one face per frame; the whole
     // set is 18 faces for three probes at one bounce iteration).
     if (!probeBakeQueue_.empty()) stepProbeBake(probeBakeFacesPerFrame());
     cull(camera);
     const float afterCull = milliseconds(watch);
-    openStage(GpuStage::Shadow);
     drawLampShadow();
     drawShadows(camera, settings);
-    closeStage(GpuStage::Shadow);
     const float afterShadow = milliseconds(watch);
-    openStage(GpuStage::Prepass);
     drawPrepass(camera, settings);
-    closeStage(GpuStage::Prepass);
     const float afterPrepass = milliseconds(watch);
 
     drawReflections(camera, settings);
@@ -670,57 +642,49 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     marchContactShadows(camera, settings);
     const float afterContact = milliseconds(watch);
 
-    if (gpuTimingAvailable_) pipeline_->setGpuTimingEnabledEXT(true);
     pipeline_->setCamera(camera.view(), camera.projection(), camera.nearPlane(), settings.prepassFarPlane);
     pipeline_->setTransparentScene([&] { drawTransparent(camera, settings); });
     pipeline_->begin(Color::Black);
 
     device_.setDepthStencilStateProperty(DepthStencilState::None);
     device_.setBlendStateProperty(BlendState::Opaque);
-    openStage(GpuStage::Sky);
     if (settings.sky) sky_.draw(camera.view(), camera.projection(), width_, height_);
-    closeStage(GpuStage::Sky);
     const float afterSky = milliseconds(watch);
 
-    openStage(GpuStage::Opaque);
     drawOpaque(camera, settings);
-    closeStage(GpuStage::Opaque);
     drawDecals(camera, settings);
     if (contact_ != nullptr) contact_->apply();
     const float afterOpaque = milliseconds(watch);
     stats_.contactMs = afterContact - afterMarch;
-    // Its CPU time says little under asynchronous GL; the GPU stage timer does.
-    openStage(GpuStage::Sunbeams);
+    // CPU submission time only: GL runs the march asynchronously, so this says
+    // little about what the pass costs the GPU.
     drawSunbeams(camera, settings);
-    closeStage(GpuStage::Sunbeams);
     stats_.sunbeamMs = (milliseconds(watch) - afterOpaque) + (afterMarch - afterReflections);
-    // Image-based exposure: the HDR scene target holds this frame's opaque
-    // radiance (the pipeline only hands it out while the frame is open, so
-    // the measurement runs before end() and asks for next frame's exposure).
-    if (autoExposure_ != nullptr && autoExposureEnabled_ && pipeline_->getSceneTarget() != nullptr)
+    pipeline_->end();
+    // Image-based exposure: after end() the HDR scene target is unbound and
+    // still holds this frame (opaque and transparent, before the post chain),
+    // so the meter can draw its own small target without wiping the frame's
+    // DiscardContents target by rebinding it. The reading asks for next
+    // frame's exposure.
+    if (autoExposure_ != nullptr && autoExposureEnabled_ && exposureMeter_ != nullptr
+        && pipeline_->getResolvedSceneTargetEXT() != nullptr)
     {
-        try
+        const ExposureMeter::Reading reading = exposureMeter_->measure(*pipeline_->getResolvedSceneTargetEXT());
+        if (reading.valid())
         {
-            plainLuminance_ = autoExposure_->measureAverageLuminance(*pipeline_->getSceneTarget());
-            measuredLuminance_ = plainLuminance_;
-            if (exposureMeter_ != nullptr && exposureMeter_->supported())
-            {
-                const ExposureMeter::Reading reading = exposureMeter_->measure(*pipeline_->getSceneTarget());
-                if (reading.weighted > 0.0f)
-                {
-                    measuredLuminance_ = reading.weighted;
-                    highlightShare_ = reading.highlightShare;
-                }
-            }
+            measuredLuminance_ = reading.weighted;
+            plainLuminance_ = reading.plain;
+            highlightShare_ = reading.highlightShare;
             measuredExposure_ = std::clamp(autoExposure_->getKeyValue() / std::max(measuredLuminance_, 1e-5f), 0.3f, 2000.0f);
+            autoExposure_->update(reading.plain, frameDt_);
         }
-        catch (const std::exception& failure)
+        else if (!exposureMeter_->supported())
         {
-            limitations_.emplace_back(std::string("image-based exposure stopped: ") + failure.what());
+            limitations_.emplace_back("image-based exposure stopped: " + exposureMeter_->reason());
             autoExposure_.reset();
+            exposureMeter_.reset();
         }
     }
-    pipeline_->end();
     whiteBalanceGain_ = whiteBalanceGain(settings);
     if (vignette_ != nullptr)
     {
@@ -747,30 +711,6 @@ void SceneRenderer::render(const Camera& camera, const RenderSettings& settings)
     stats_.opaqueMs = afterOpaque - afterSky;
     stats_.postMs = milliseconds(watch) - afterOpaque;
     stats_.frameMs = milliseconds(watch);
-    stats_.gpuShadowMs = gpuStageMs_[static_cast<std::size_t>(GpuStage::Shadow)];
-    stats_.gpuPrepassMs = gpuStageMs_[static_cast<std::size_t>(GpuStage::Prepass)];
-    stats_.gpuSkyMs = gpuStageMs_[static_cast<std::size_t>(GpuStage::Sky)];
-    stats_.gpuOpaqueMs = gpuStageMs_[static_cast<std::size_t>(GpuStage::Opaque)];
-    stats_.gpuSunbeamMs = gpuStageMs_[static_cast<std::size_t>(GpuStage::Sunbeams)];
-    stats_.gpuPostMs = -1.0;
-    if (pipeline_->isGpuTimingEnabledEXT())
-    {
-        double post = 0.0;
-        bool any = false;
-        std::string breakdown;
-        for (const auto& pass : pipeline_->getPassTimingsEXT())
-        {
-            post += pass.Milliseconds;
-            any = true;
-            breakdown += pass.Name + " " + std::to_string(pass.Milliseconds) + "  ";
-        }
-        if (any && !loggedPassTimings_ && ++timedFrames_ == 4)
-        {
-            loggedPassTimings_ = true;
-            CNA::Logger::Info("living-room-simulator: post passes (GPU ms): " + breakdown);
-        }
-        if (any) stats_.gpuPostMs = post;
-    }
 }
 
 void SceneRenderer::drawShadows(const Camera& camera, const RenderSettings& settings)

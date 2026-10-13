@@ -749,12 +749,6 @@ void RoomApplication::Draw(const GameTime& gameTime)
                       static_cast<double>(s.reflectionMs), s.reflectionDrawCalls, static_cast<double>(s.opaqueMs), static_cast<double>(s.sunbeamMs),
                       static_cast<double>(s.postMs), s.drawCalls, s.shadowDrawCalls, s.triangles, s.visibleItems, s.totalItems);
         lines.emplace_back(line);
-        if (s.gpuOpaqueMs >= 0.0)
-        {
-            std::snprintf(line, sizeof(line), "gpu: shadow %.0f prepass %.0f sky %.1f opaque %.0f beams %.0f post %.0f ms",
-                          s.gpuShadowMs, s.gpuPrepassMs, s.gpuSkyMs, s.gpuOpaqueMs, s.gpuSunbeamMs, s.gpuPostMs);
-            lines.emplace_back(line);
-        }
         const Vector3 eye = camera_.position();
         std::snprintf(line, sizeof(line), "camera %.2f %.2f %.2f  yaw %.0f pitch %.0f  [F1 hide]", static_cast<double>(eye.X),
                       static_cast<double>(eye.Y), static_cast<double>(eye.Z), static_cast<double>(MathHelper::ToDegrees(camera_.yaw())),
@@ -813,9 +807,6 @@ void RoomApplication::logFrameStats()
         << renderer_->plainLuminance() << " plain, highlights " << renderer_->highlightShare() << ")"
         << ", lamps " << (scene_->lampsOn() ? "on" : "off") << (renderer_->probeBakePending() ? ", probe bake pending" : "")
         << "; weather " << weather_.describe();
-    if (s.gpuOpaqueMs >= 0.0)
-        out << "; GPU shadow " << s.gpuShadowMs << " prepass " << s.gpuPrepassMs << " sky " << s.gpuSkyMs
-            << " opaque " << s.gpuOpaqueMs << " beams " << s.gpuSunbeamMs << " post " << s.gpuPostMs << " ms";
     CNA::Logger::Info(out.str());
     for (const std::string& limitation : renderer_->limitations())
         CNA::Logger::Warn("living-room-simulator: limitation -- " + limitation);

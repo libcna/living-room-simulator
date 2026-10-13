@@ -38,7 +38,6 @@ namespace CnaRoom::Effects {
     class CascadedShadowMap;
     class CubeShadowMap;
     class DepthNormalPrepass;
-    class GpuTimer;
     class RenderPipeline;
 }
 
@@ -146,8 +145,6 @@ public:
         float contactMs = 0.0f;
         int reflectionDrawCalls = 0;
         float postMs = 0.0f, frameMs = 0.0f;
-        double gpuShadowMs = -1.0, gpuPrepassMs = -1.0, gpuSkyMs = -1.0, gpuOpaqueMs = -1.0, gpuSunbeamMs = -1.0;
-        double gpuPostMs = -1.0;
     };
 
     explicit SceneRenderer(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
@@ -175,13 +172,15 @@ public:
 
     /// Seconds since the last frame (auto exposure adaptation, television playback).
     void setFrameTime(float dt, float seconds) { frameDt_ = dt; frameSeconds_ = seconds; }
-    /// Image-based exposure from the HDR scene's log-average luminance (Effects::AutoExposureEXT).
+    /// Image-based exposure: the ExposureMeter reads the HDR scene once a frame, and the
+    /// one reading feeds the measured exposure and Effects::AutoExposureEXT's adaptation.
     void setAutoExposureEnabled(bool enabled) { autoExposureEnabled_ = enabled; }
     [[nodiscard]] bool autoExposureAvailable() const { return autoExposure_ != nullptr; }
     /// The exposure the measurement asks for (< 0 until the first measured frame).
     [[nodiscard]] float measuredExposure() const { return measuredExposure_; }
+    /// The centre-weighted, highlight-rejected luminance the exposure follows.
     [[nodiscard]] float measuredLuminance() const { return measuredLuminance_; }
-    /// CNA's whole-frame log-average, for comparison with the centre-weighted meter.
+    /// The whole-frame log-average, for comparison with the centre-weighted reading.
     [[nodiscard]] float plainLuminance() const { return plainLuminance_; }
     [[nodiscard]] float highlightShare() const { return highlightShare_; }
     /// Autofocus: the prepass depth at the frame's centre pulls the lens's
@@ -318,11 +317,6 @@ private:
     std::unique_ptr<CnaRoom::Effects::CascadedShadowMap> shadows_;
     std::unique_ptr<CnaRoom::Effects::DepthNormalPrepass> prepass_;
 
-    enum class GpuStage { Shadow, Prepass, Sky, Opaque, Sunbeams, Count };
-    std::array<std::unique_ptr<CnaRoom::Effects::GpuTimer>, static_cast<std::size_t>(GpuStage::Count)> gpuStage_;
-    std::array<double, static_cast<std::size_t>(GpuStage::Count)> gpuStageMs_{};
-    bool gpuTimingAvailable_ = false;
-
     std::vector<SceneItem> items_;
     std::vector<std::size_t> visibleOpaque_;
     std::vector<std::size_t> visibleTransparent_;
@@ -418,7 +412,6 @@ private:
     void dumpAtlas(const char* path);
     bool prepassDrawn_ = false;     ///< the depth prepass ran this frame
     bool cascadesFitted_ = false;   ///< the cascades were fitted this frame (light above the horizon)
-    bool loggedPassTimings_ = false;
     bool loggedSceneFormat_ = false;
     bool loggedIrradianceFormat_ = false;
     bool loggedCascadeCasters_ = false;
@@ -429,7 +422,6 @@ private:
     Microsoft::Xna::Framework::Vector3 lastIrradianceMean_;
     std::vector<std::uint8_t> lastIrradianceStrip_;   ///< 6 faces side by side, RGBA sRGB
     int lastIrradianceSize_ = 0;
-    int timedFrames_ = 0;
     Stats stats_;
     std::vector<std::string> limitations_;
 };

@@ -30,17 +30,16 @@ namespace CnaRoom::Effects::detail {
             return "Invalid";
         }
 
-        [[nodiscard]] const char* StageName(const CNA::ShaderStageEXT stage) noexcept
+        // The simulator compiles vertex and fragment stages only; any other stage CNA may
+        // report is named by number rather than by a name this code would have to track.
+        [[nodiscard]] std::string StageName(const CNA::ShaderStageEXT stage)
         {
             switch (stage)
             {
-                case CNA::ShaderStageEXT::Unknown: return "Unknown";
                 case CNA::ShaderStageEXT::Vertex: return "Vertex";
                 case CNA::ShaderStageEXT::Fragment: return "Fragment";
-                case CNA::ShaderStageEXT::Compute: return "Compute";
-                case CNA::ShaderStageEXT::Count: return "Invalid";
+                default: return "Stage" + std::to_string(static_cast<int>(stage));
             }
-            return "Invalid";
         }
     }
 

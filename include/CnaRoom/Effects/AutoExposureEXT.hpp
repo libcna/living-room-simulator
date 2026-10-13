@@ -1,39 +1,24 @@
 // SPDX-License-Identifier: MS-PL
 #pragma once
 
-
-#include <memory>
-#include <vector>
-
-namespace Microsoft::Xna::Framework::Graphics {
-    class GraphicsDevice;
-    class Texture2D;
-}
-
 namespace CnaRoom::Effects {
 
 /** @addtogroup cnaext_engine
  *  @{
  */
 
-    class ComputeShader;
     class RenderPipelineSettings;
-    template<typename T> class StorageBufferT;
 
     /**
-     * @brief Measures a frame's average luminance on the GPU and turns it into an exposure.
+     * @brief Turns a frame's average luminance into an exposure, with the eye's own adaptation.
      *
-     * plans/plan_modern.md `MOD-1552`, revisiting `MOD-308`. Auto-exposure was out of scope for the
-     * tonemapping phase for one concrete reason -- it needs a reduction over the whole frame, which
-     * is a compute problem rather than a tonemapping one. Phase 15 gave CNA compute, so this is
-     * that reduction and the small amount of control theory around it.
+     * The measurement is not made here. `ExposureMeter` reads the HDR scene once per frame and
+     * hands its plain geometric-mean luminance to @ref update; this class is the small amount of
+     * control theory around that number, and nothing in it touches the graphics device.
      *
-     * The reduction samples a fixed grid over the scene, reduces each work group's samples in
-     * shared memory, and returns one partial per group; the last, tiny sum happens on the CPU
-     * because reading 64 floats costs less than a second dispatch to add them.
-     *
-     * **Log-average**, not a plain mean: a few very bright pixels would otherwise drag the whole
-     * frame dark, which is exactly the artefact auto-exposure is blamed for.
+     * **Log-average**, not a plain mean: the meter's reading is a geometric mean, because a few very
+     * bright pixels would otherwise drag the whole frame dark, which is exactly the artefact
+     * auto-exposure is blamed for.
      *
      * **Adaptation is deliberate and asymmetric.** An eye adjusts to darkness far more slowly than
      * to light, and a camera that snapped instantly to each frame's luminance would strobe on every
@@ -43,38 +28,18 @@ namespace CnaRoom::Effects {
     class AutoExposureEXT
     {
     public:
-        /**
-         * @brief Creates the reducer and compiles its compute program.
-         *
-         * @param device The device to run on.
-         * @throws System::NotSupportedException If the renderer has no compute support.
-         * @throws std::runtime_error If the reduction shader does not compile.
-         */
-        explicit AutoExposureEXT(Microsoft::Xna::Framework::Graphics::GraphicsDevice& device);
-
-        /** @brief Destroys the reducer and its GPU resources. */
-        ~AutoExposureEXT();
-
-        AutoExposureEXT(const AutoExposureEXT&)            = delete;
-        AutoExposureEXT& operator=(const AutoExposureEXT&) = delete;
+        /** @brief Creates the controller at exposure 1, key 0.18, range 0.01..64. */
+        AutoExposureEXT() = default;
 
         /**
-         * @brief Measures the log-average luminance of one texture.
+         * @brief Feeds one frame's measured luminance and moves the exposure toward what it asks for.
          *
-         * @param scene The frame to measure.
-         * @return The log-average luminance, in the texture's own units.
-         */
-        [[nodiscard]] float measureAverageLuminance(
-            Microsoft::Xna::Framework::Graphics::Texture2D& scene);
-
-        /**
-         * @brief Measures the frame and moves the exposure toward what it asks for.
-         *
-         * @param scene        The frame to measure.
-         * @param deltaSeconds Time since the last call; zero or less snaps straight to the target.
+         * @param averageLuminance The frame's log-average (geometric mean) luminance in scene units.
+         *                         A value that is not finite counts as black.
+         * @param deltaSeconds     Time since the last call; zero or less snaps straight to the target.
          * @return The exposure to render the next frame with.
          */
-        float update(Microsoft::Xna::Framework::Graphics::Texture2D& scene, float deltaSeconds);
+        float update(float averageLuminance, float deltaSeconds);
 
         /**
          * @brief Writes the current exposure into a settings bag.
@@ -136,9 +101,13 @@ namespace CnaRoom::Effects {
          */
         void setExposureRange(float minimum, float maximum);
 
+        /** @brief Returns the lowest exposure the adaptation may reach. */
+        [[nodiscard]] float getMinimumExposure() const;
+
+        /** @brief Returns the highest exposure the adaptation may reach. */
+        [[nodiscard]] float getMaximumExposure() const;
+
     private:
-        std::unique_ptr<ComputeShader> reducer_;
-        std::unique_ptr<StorageBufferT<float>> partials_;
         float exposure_ = 1.0f;
         float keyValue_ = 0.18f;
         float brighteningSpeed_ = 3.0f;

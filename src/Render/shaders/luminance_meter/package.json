@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "namespace": "CnaRoom::detail::LuminanceMeterGenerated",
+  "package": "luminance_meter",
+  "payloads": [
+    {
+      "symbol": "kFullscreenEsVertexSource",
+      "source": "fullscreen.es.vert.glsl",
+      "language": "glsl-es",
+      "stage": "vertex",
+      "format": "text",
+      "entry_point": "main"
+    },
+    {
+      "symbol": "kLuminanceCellsEsFragmentSource",
+      "source": "luminance_cells.es.frag.glsl",
+      "language": "glsl-es",
+      "stage": "fragment",
+      "format": "text",
+      "entry_point": "main"
+    },
+    {
+      "symbol": "kFullscreenDesktopVertexSource",
+      "source": "fullscreen.desktop.vert.glsl",
+      "language": "glsl",
+      "stage": "vertex",
+      "format": "text",
+      "entry_point": "main"
+    },
+    {
+      "symbol": "kLuminanceCellsDesktopFragmentSource",
+      "source": "luminance_cells.desktop.frag.glsl",
+      "language": "glsl",
+      "stage": "fragment",
+      "format": "text",
+      "entry_point": "main"
+    }
+  ]
+}

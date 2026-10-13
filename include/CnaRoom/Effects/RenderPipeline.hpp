@@ -202,39 +202,6 @@ namespace CnaRoom::Effects {
         [[nodiscard]] const std::string& getTransparencyFallbackReasonEXT() const;
 
         /**
-         * @brief Measures each post-process pass with its own GPU timer query.
-         *
-         * plans/plan_modern.md `MOD-2164`. **Off by default.** Results are read a frame late and never
-         * waited for, so switching it on does not insert the stall it exists to look for; a pass
-         * whose result has not landed yet keeps the last one it reported.
-         *
-         * Where the renderer has no timer query this is accepted and does nothing —
-         * @ref isGpuTimingEnabledEXT then returns false and @ref getPassTimingsEXT stays empty, so
-         * a caller can tell "not measured here" from "this pass took no time".
-         *
-         * @param value True to measure.
-         */
-        void setGpuTimingEnabledEXT(bool value);
-
-        /**
-         * @brief Whether pass timing is on **and** the renderer can actually do it.
-         *
-         * @return True when the chain is measuring.
-         */
-        [[nodiscard]] bool isGpuTimingEnabledEXT() const;
-
-        /**
-         * @brief The most recent GPU time for each post-process pass, in chain order.
-         *
-         * Only the post-process chain. The scene draw, the prepass and the shadow passes belong to
-         * the application, and timing them from here would report the pipeline's own `begin`/`end`
-         * brackets rather than the work inside them.
-         *
-         * @return One entry per pass, or empty when timing is off or unavailable.
-         */
-        [[nodiscard]] const std::vector<PostProcessChain::PassTiming>& getPassTimingsEXT() const;
-
-        /**
          * @brief Supplies the shadow pass `begin` should run before the frame.
          *
          * plans/plan_modern.md MOD-858/MOD-859. The pipeline cannot draw the scene by itself, for the
@@ -345,6 +312,20 @@ namespace CnaRoom::Effects {
          * @return The HDR scene target, or null.
          */
         [[nodiscard]] Microsoft::Xna::Framework::Graphics::RenderTarget2D* getSceneTarget() const;
+
+        /**
+         * @brief Returns the scene target the last `end()` resolved from, as a readable texture.
+         *
+         * Valid between `end()` and the next `begin()`, when the target is unbound and still holds
+         * the HDR frame (opaque and transparent) every post-process pass sampled -- the chain
+         * never writes back into it. This is where a measurement of the frame belongs: inside the
+         * frame the target is bound, and it is `DiscardContents`, so a pass that unbound it to
+         * draw somewhere else and came back would have wiped the frame.
+         *
+         * @return The scene target, or null while a frame is open or when the last frame went
+         *         straight to the back buffer.
+         */
+        [[nodiscard]] Microsoft::Xna::Framework::Graphics::RenderTarget2D* getResolvedSceneTargetEXT() const;
 
         /**
          * @brief Returns the format the scene target was actually created with.

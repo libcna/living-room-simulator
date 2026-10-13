@@ -1,137 +1,24 @@
 // SPDX-License-Identifier: MS-PL
 #include "CnaRoom/Effects/AutoExposureEXT.hpp"
 
-
-#include "CnaRoom/Effects/ComputeShader.hpp"
 #include "CnaRoom/Effects/RenderPipelineSettings.hpp"
-#include "CNA/Graphics/ShaderCodeEXT.hpp"
-#include "CNA/Graphics/ShaderPackageEXT.hpp"
-#include "CnaRoom/Effects/StorageBuffer.hpp"
-#include "Microsoft/Xna/Framework/Graphics/GraphicsDevice.hpp"
-#include "Microsoft/Xna/Framework/Graphics/Texture2D.hpp"
-#include "shaders/auto_exposure/AutoExposureShaderPackage.generated.hpp"
 
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <stdexcept>
-#include <string>
-#include <vector>
 
 namespace CnaRoom::Effects {
 
-    using Microsoft::Xna::Framework::Graphics::GraphicsDevice;
-    using Microsoft::Xna::Framework::Graphics::Texture2D;
-
-    namespace {
-
-        /// 8 x 8 groups of 8 x 8 invocations: a 64 x 64 sample grid over the frame, and 64
-        /// partial sums to bring back.
-        constexpr int kGroups = 8;
-        constexpr int kGroupSize = 8;
-        constexpr int kPartials = kGroups * kGroups;
-
-        template <std::size_t N>
-        [[nodiscard]] std::vector<std::uint8_t> ToBytes(const std::uint32_t (&words)[N])
-        {
-            const auto* begin = reinterpret_cast<const std::uint8_t*>(words);
-            return std::vector<std::uint8_t>(begin, begin + sizeof(words));
-        }
-
-        [[nodiscard]] CNA::Graphics::ShaderPackageEXT CreateReductionPackage()
-        {
-            using namespace detail::AutoExposureGenerated;
-            return CNA::Graphics::ShaderPackageEXT(
-                {
-                    CNA::Graphics::ShaderCodeEXT(CNA::ShaderLanguageEXT::GlslEs,
-                                  CNA::ShaderStageEXT::Compute, "main",
-                                  "auto_exposure/reduction.es.comp.glsl",
-                                  std::string(kReductionEsComputeSource)),
-                    CNA::Graphics::ShaderCodeEXT(CNA::ShaderLanguageEXT::GlslDesktop,
-                                  CNA::ShaderStageEXT::Compute, "main",
-                                  "auto_exposure/reduction.desktop.comp.glsl",
-                                  std::string(kReductionDesktopComputeSource)),
-                    CNA::Graphics::ShaderCodeEXT(CNA::ShaderLanguageEXT::SpirV,
-                                  CNA::ShaderStageEXT::Compute, "main",
-                                  "auto_exposure/reduction.vulkan.comp.spv",
-                                  ToBytes(kReductionVulkanComputeSpirV)),
-                    CNA::Graphics::ShaderCodeEXT(CNA::ShaderLanguageEXT::Wgsl,
-                                  CNA::ShaderStageEXT::Compute, "main",
-                                  "auto_exposure/reduction.vulkan.comp.wgsl",
-                                  std::string(kReductionVulkanComputeWgsl)),
-                    CNA::Graphics::ShaderCodeEXT(CNA::ShaderLanguageEXT::Hlsl,
-                                  CNA::ShaderStageEXT::Compute, "main",
-                                  "auto_exposure/reduction.directx.comp.hlsl", R"(
-Texture2D<float4> uScene : register(t0);
-SamplerState uSceneSampler : register(s0);
-RWByteAddressBuffer Partials : register(u1);
-groupshared float sharedSums[64];
-
-[numthreads(8, 8, 1)]
-void main(uint3 dispatchId : SV_DispatchThreadID,
-          uint3 groupId : SV_GroupID,
-          uint local : SV_GroupIndex)
-{
-    float2 uv = (float2(dispatchId.xy) + 0.5) / float2(64.0, 64.0);
-    float3 colour = uScene.SampleLevel(uSceneSampler, uv, 0).rgb;
-    float luminance = dot(colour, float3(0.2126, 0.7152, 0.0722));
-    sharedSums[local] = log(max(luminance, 1e-4));
-    GroupMemoryBarrierWithGroupSync();
-    for (uint stride = 32; stride > 0; stride >>= 1)
+    float AutoExposureEXT::update(const float averageLuminance, const float deltaSeconds)
     {
-        if (local < stride)
-            sharedSums[local] += sharedSums[local + stride];
-        GroupMemoryBarrierWithGroupSync();
-    }
-    if (local == 0)
-    {
-        uint group = groupId.y * 8 + groupId.x;
-        Partials.Store(group * 4, asuint(sharedSums[0]));
-    }
-}
-)"),
-                },
-                {CNA::ShaderStageEXT::Compute},
-                {
-                    CNA::Graphics::ShaderBindingRequirementEXT(
-                        "uScene", 0, CNA::Graphics::ShaderBindingTypeEXT::SampledTexture2D,
-                        CNA::ShaderStageEXT::Compute),
-                    CNA::Graphics::ShaderBindingRequirementEXT(
-                        "Partials", 1, CNA::Graphics::ShaderBindingTypeEXT::StorageBuffer,
-                        CNA::ShaderStageEXT::Compute),
-                });
-        }
-
-    } // namespace
-
-    AutoExposureEXT::AutoExposureEXT(GraphicsDevice& device)
-        : reducer_(std::make_unique<ComputeShader>(device, CreateReductionPackage())),
-          partials_(std::make_unique<StorageBufferT<float>>(device, kPartials))
-    {
-    }
-
-    AutoExposureEXT::~AutoExposureEXT() = default;
-
-    float AutoExposureEXT::measureAverageLuminance(Texture2D& scene)
-    {
-        reducer_->bindTexture(0, "uScene", scene);
-        reducer_->bindStorageBuffer(1, partials_->getBuffer());
-        reducer_->dispatch(kGroups, kGroups);
-
-        const std::vector<float> partials = partials_->getData();
-        float sum = 0.0f;
-        for (const float partial : partials) sum += partial;
-        // The last add happens here rather than in a second dispatch: 64 floats is less work to
-        // bring back than a kernel launch is to make.
-        const float samples = static_cast<float>(kPartials)
-                            * static_cast<float>(kGroupSize * kGroupSize);
-        return std::exp(sum / samples);
-    }
-
-    float AutoExposureEXT::update(Texture2D& scene, const float deltaSeconds)
-    {
-        const float average = measureAverageLuminance(scene);
+        // The meter's reading. Before 2026-10-13 this class reduced the frame itself with a
+        // compute shader: 4096 point samples on a 64 x 64 grid, each floored at 1e-4 before the
+        // log. The meter's plain reading is the same geometric mean over 64 x 36 cells, each the
+        // box mean of 64 taps and floored at 1e-5 -- averaging before the log lifts a cell with
+        // internal contrast slightly (log of a mean is at least the mean of logs), and the lower
+        // floor lets a black frame read darker. In practice the two agree to a few percent; the
+        // key value is calibrated against the meter.
+        const float average = std::isfinite(averageLuminance) ? std::max(averageLuminance, 0.0f) : 0.0f;
         const float target = std::clamp(keyValue_ / std::max(average, 1e-4f), minimumExposure_,
                                         maximumExposure_);
 
@@ -201,5 +88,9 @@ void main(uint3 dispatchId : SV_DispatchThreadID,
         maximumExposure_ = maximum;
         exposure_ = std::clamp(exposure_, minimumExposure_, maximumExposure_);
     }
+
+    float AutoExposureEXT::getMinimumExposure() const { return minimumExposure_; }
+
+    float AutoExposureEXT::getMaximumExposure() const { return maximumExposure_; }
 
 } // namespace CnaRoom::Effects

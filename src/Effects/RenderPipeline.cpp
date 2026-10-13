@@ -408,21 +408,6 @@ namespace CnaRoom::Effects {
         drawTransparent_ = std::move(drawTransparent);
     }
 
-    void RenderPipeline::setGpuTimingEnabledEXT(const bool value)
-    {
-        chain_.setGpuTimingEnabled(value);
-    }
-
-    bool RenderPipeline::isGpuTimingEnabledEXT() const
-    {
-        return chain_.isGpuTimingEnabled();
-    }
-
-    const std::vector<PostProcessChain::PassTiming>& RenderPipeline::getPassTimingsEXT() const
-    {
-        return chain_.getPassTimings();
-    }
-
     const std::string& RenderPipeline::getTransparencyFallbackReasonEXT() const
     {
         return transparencyFallbackReason_;
@@ -504,6 +489,11 @@ namespace CnaRoom::Effects {
     RenderTarget2D* RenderPipeline::getSceneTarget() const
     {
         return frameOpen_ && usingSceneTarget_ ? sceneTarget_.get() : nullptr;
+    }
+
+    RenderTarget2D* RenderPipeline::getResolvedSceneTargetEXT() const
+    {
+        return !frameOpen_ && usingSceneTarget_ ? sceneTarget_.get() : nullptr;
     }
 
     SurfaceFormat RenderPipeline::getSceneTargetFormat() const

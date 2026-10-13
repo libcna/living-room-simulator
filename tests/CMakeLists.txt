@@ -16,6 +16,12 @@ add_executable(cna_room_cube_tests CubeTests.cpp)
 target_link_libraries(cna_room_cube_tests PRIVATE CnaRoom::Core CnaRoom::Warnings)
 add_test(NAME cubes COMMAND cna_room_cube_tests)
 
+# The exposure meter's CPU half (cell statistics, the RGBA8 log2 codec) and the
+# auto exposure's adaptation, on synthetic readings.
+add_executable(cna_room_exposure_tests ExposureTests.cpp)
+target_link_libraries(cna_room_exposure_tests PRIVATE CnaRoom::Core CnaRoom::Warnings)
+add_test(NAME exposure COMMAND cna_room_exposure_tests)
+
 # A headless render: the binary starts, draws three frames at 320x180 and writes
 # a screenshot that is not black. Skipped where xvfb-run is missing.
 add_test(NAME render-smoke COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/render-smoke.sh" "$<TARGET_FILE:living-room-simulator>" "${CMAKE_BINARY_DIR}/render-smoke.png")
