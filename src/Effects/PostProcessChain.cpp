@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MS-PL
 #include "CnaRoom/Effects/PostProcessChain.hpp"
 
-#include "CNA/Internal/Renderers/Common/IGraphicsRenderer.hpp"
 #include "CNA/Logger.hpp"
 
 
@@ -95,18 +94,9 @@ namespace CnaRoom::Effects {
         };
         trace("scene", context.source);
 
-        // Collected **before** this frame's ranges open, and that ordering is the whole design.
-        // A query object holds one result: reopening it discards whatever the last range put there,
-        // so polling after the loop would read a range that was submitted moments ago and has not
-        // finished -- which reports a number for the first pass, whose work the driver happens to
-        // have retired, and nothing at all for every pass after it. Collecting first reads results
-        // the previous frame's present or read-back has already flushed.
-        updateTimings();
-
         if (passes_.empty())
         {
             copyPass_->apply(context);
-            timings_.clear();
             return;
         }
 
@@ -127,84 +117,11 @@ namespace CnaRoom::Effects {
                 : pool_.acquire(context.width, context.height, intermediateFormat,
                                 DepthFormat::None, static_cast<int>(index % 2));
 
-            const bool timed = gpuTimingRequested_ && index < timers_.size()
-                            && timers_[index] && timers_[index]->isSupported();
-            if (timed) timers_[index]->begin();
             passes_[index]->apply(step);
-            if (timed) timers_[index]->end();
             trace(passes_[index]->getName(), step.destination);
 
             // The next pass reads what this one just wrote.
             step.source = step.destination;
-        }
-    }
-
-    bool PostProcessChain::isGpuTimingEnabled() const
-    {
-        if (!gpuTimingRequested_)
-            return false;
-
-        // Asking the timers only worked once the chain had run: they are made lazily in
-        // updateTimings, so the read straight after setGpuTimingEnabled(true) answered false on a
-        // device whose timer works perfectly well, and answered true one apply later. This is the
-        // route the header sends a caller to in order to find out what the request got, so it has
-        // to be answerable before the first frame.
-        if (!timers_.empty())
-            return timers_[0] != nullptr && timers_[0]->isSupported();
-
-        // No timer made yet: ask the device the same question a timer would.
-        return device_.GetRenderer().SupportsGpuTimerEXT();
-    }
-
-    void PostProcessChain::setGpuTimingEnabled(const bool value)
-    {
-        gpuTimingRequested_ = value;
-        if (!value)
-        {
-            timers_.clear();
-            timings_.clear();
-        }
-    }
-
-    const std::vector<PostProcessChain::PassTiming>& PostProcessChain::getPassTimings() const
-    {
-        return timings_;
-    }
-
-    void PostProcessChain::updateTimings()
-    {
-        if (!gpuTimingRequested_)
-        {
-            timings_.clear();
-            return;
-        }
-
-        // Timers are made lazily and one per slot, because the chain's contents change: a pipeline
-        // rebuilds it whenever a pass is switched on. Growing here rather than in addPass keeps the
-        // two lists in step without addPass having to know about timing at all.
-        while (timers_.size() < passes_.size())
-            timers_.push_back(std::make_unique<GpuTimer>(device_));
-
-        if (!timers_.empty() && timers_[0] && !timers_[0]->isSupported())
-        {
-            // The renderer has no timer query. An empty list rather than a list of zeroes, so a
-            // caller can tell "not measured here" from "took no time".
-            timings_.clear();
-            return;
-        }
-
-        timings_.resize(passes_.size());
-        for (std::size_t index = 0; index < passes_.size(); ++index)
-        {
-            timings_[index].Name = passes_[index]->getName();
-            // Never waits. A pass whose result has not landed keeps the last one it reported, which
-            // is what makes this a measurement of the frame rather than a stall inside it.
-            if (timers_[index]) timers_[index]->poll();
-            if (timers_[index] && timers_[index]->getSampleCount() > 0)
-            {
-                timings_[index].Milliseconds = timers_[index]->getLastMilliseconds();
-                timings_[index].SampleCount  = timers_[index]->getSampleCount();
-            }
         }
     }
 
