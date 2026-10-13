@@ -42,6 +42,21 @@ ctest --preset dev
 
 The unit preset runs simulation, texture baker, reflection and cube calculations. The full preset includes a small headless render that requires Xvfb and Mesa. `scripts/capture-views.sh --quick --smoke --bin build-dev/bin/living-room-simulator` captures four useful views; see [visual testing](VISUAL_TESTING.md). Run the full capture set before merging a rendering change.
 
+## Shader packages
+
+Shader sources that ship as generated C++ headers (`*ShaderPackage.generated.hpp`) are produced by CNA's `tools/shader_package/generate_shader_package.py` from a `package.json` manifest next to the sources. The exposure meter's package keeps its manifest and GLSL in `src/Render/shaders/luminance_meter/`; after editing a source there, regenerate and check from the repository root:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 ../cna/tools/shader_package/generate_shader_package.py \
+  src/Render/shaders/luminance_meter/package.json \
+  --output src/Render/shaders/luminance_meter/LuminanceMeterShaderPackage.generated.hpp
+PYTHONDONTWRITEBYTECODE=1 python3 ../cna/tools/shader_package/generate_shader_package.py \
+  src/Render/shaders/luminance_meter/package.json \
+  --output src/Render/shaders/luminance_meter/LuminanceMeterShaderPackage.generated.hpp --check
+```
+
+The simulator's packages carry GLSL ES 3.00 and desktop GLSL 3.30 vertex and fragment stages only (the renderers it supports), so no shader compiler is needed to regenerate them. The older packages under `src/Effects/shaders/` were generated from CNA's retired engine sources and are kept as checked-in payloads.
+
 The CI workflow builds and runs the unit preset on Ubuntu. A local render review is still needed for graphics changes. The current baseline is EasyGL `OPENGLES3`; `OPENGL33` and `WEBGL2` are related renderers but must be verified for each change. Other CNA renderer families have not been established as supported here.
 
 ## WebGL2
