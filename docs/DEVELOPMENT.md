@@ -34,13 +34,13 @@ The external asset fetch checks SHA-256 hashes from `assets/external/manifest.js
 ## Run and test
 
 ```sh
-./build-dev/bin/living-room-simulator --help
-./build-dev/bin/living-room-simulator --view entrance --time 22:00 --weather rain --hold-weather
+./build-dev/bin/room-simulator --help
+./build-dev/bin/room-simulator --view entrance --time 22:00 --weather rain --hold-weather
 ctest --preset unit
 ctest --preset dev
 ```
 
-The unit preset runs simulation, texture baker, reflection and cube calculations. The full preset includes a small headless render that requires Xvfb and Mesa. `scripts/capture-views.sh --quick --smoke --bin build-dev/bin/living-room-simulator` captures four useful views; see [visual testing](VISUAL_TESTING.md). Run the full capture set before merging a rendering change.
+The unit preset runs simulation, texture baker, reflection and cube calculations. The full preset includes a small headless render that requires Xvfb and Mesa. `scripts/capture-views.sh --quick --smoke --bin build-dev/bin/room-simulator` captures four useful views; see [visual testing](VISUAL_TESTING.md). Run the full capture set before merging a rendering change.
 
 ## Shader packages
 
@@ -70,6 +70,6 @@ scripts/build-web.sh
 python3 -m http.server 8000 --directory build-web/bin
 ```
 
-Open `http://localhost:8000/living-room-simulator.html`. The generated `.html`, `.js`, `.wasm` and `.data` must stay together. `CNA_WEB_BUILD_DIR` overrides `build-web/`. The script uses `ccache` if present and keeps its default cache in the ignored build area. The WebGL2 path was previously built, but it has not yet been rerun against the pinned baseline documented here; verify it before publishing a new package.
+Open `http://localhost:8000/room-simulator.html`. The generated `.html`, `.js`, `.wasm` and `.data` must stay together. `CNA_WEB_BUILD_DIR` overrides `build-web/`. The script uses `ccache` if present and keeps its default cache in the ignored build area. The WebGL2 path was previously built, but it has not yet been rerun against the pinned baseline documented here; verify it before publishing a new package.
 
 For a static demo package after verification, run `python3 scripts/package-web-demo.py DESTINATION`. It reads from the same `CNA_WEB_BUILD_DIR` and splits the large `.data` file into 64 MiB pieces. The package includes `LICENSE` and `THIRD_PARTY_ASSETS.md`.

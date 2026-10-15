@@ -72,7 +72,7 @@ in current upstream dependencies, if encountered, are recorded in
 The desktop window was also checked at 640×360, using the following command:
 
 ```sh
-LP_NUM_THREADS=2 SDL_VIDEODRIVER=x11 ./build/bin/living-room-simulator \
+LP_NUM_THREADS=2 SDL_VIDEODRIVER=x11 ./build/bin/room-simulator \
   --width 640 --height 360 --texture-size 128 --view entrance --time 12:00 \
   --weather clear --hold-weather --log-every 60
 ```

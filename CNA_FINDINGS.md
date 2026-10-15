@@ -1,4 +1,4 @@
-# CNA findings from living-room-simulator
+# CNA findings from room-simulator
 
 This is a historical issue log. See [current maintenance issues](docs/KNOWN_ISSUES.md)
 for work to take now. Historical screenshot paths below refer to files moved to
@@ -79,7 +79,7 @@ Reproduce and inspect the raw scene with the final binary:
 
 ```sh
 SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 CNA_ROOM_TRACE_POST=1 \
-  xvfb-run -a -s '-screen 0 320x180x24' ./build/bin/living-room-simulator \
+  xvfb-run -a -s '-screen 0 320x180x24' ./build/bin/room-simulator \
   --width 320 --height 180 --frames 1 --texture-size 64 --time 12:00 \
   --view entrance --weather cloudy --hold-weather --screenshot build/hdr-check.png
 ```
@@ -119,7 +119,7 @@ used here. Numbered so `plan.md` and commit messages can refer to them. "Bug" me
 behaviour contradicts CNA's own documentation or produces wrong pictures from valid input;
 "limitation" means documented or defensible behaviour that still cost a workaround.
 
-| # | Area | Kind | Summary | Workaround in living-room-simulator |
+| # | Area | Kind | Summary | Workaround in room-simulator |
 |---|---|---|---|---|
 | R-1 | glTF import, `ComputeTangentsEXT` | bug | Fallback tangent (1,0,0) for degenerate-UV triangles can be parallel to the normal; the shader's Gram-Schmidt step normalises a zero vector and the NaN normal turns the surface into a full mirror | `ModelLibrary::repairTangents` re-uploads every imported vertex buffer |
 | R-2 | EasyGL `TextureCube::GetData` | bug | Framebuffer readback of a cube that has already been bound for sampling reports incomplete and throws; `EnvironmentProcessor::generateIrradiance` on a reused cube crashes the app | A fresh `TextureCube` per bake (`SkySystem::bakeEnvironment`, `SceneRenderer::finishProbe`) |
@@ -197,7 +197,7 @@ reaches 1: the surface reflects the whole environment (a black television screen
 grey; chrome rails on the sofa turned to noise).
 
 Repro: `--view tv-close` before commit `b95ffa9` (screenshot `docs/archive/screenshots/m3-tv-close.png`
-shows the fixed state). living-room-simulator's `ModelLibrary::repairTangents` counted 6 224 such tangents in
+shows the fixed state). room-simulator's `ModelLibrary::repairTangents` counted 6 224 such tangents in
 the current asset set.
 
 Suggested fix upstream: choose the fallback perpendicular to the normal (cross with the least
@@ -214,7 +214,7 @@ time). The same cube, after it has been bound to a sampler unit by a draw and re
 `SkySystem` that reuses its environment cube across bakes crashes the process on the first
 rebake (`gdb` backtrace: `ReadCube` ← `generateIrradiance` ← `SkySystem::bakeEnvironment`).
 
-Repro: `./build/bin/living-room-simulator --frames 60 --time 17:55 --day-length 1` on the revision before
+Repro: `./build/bin/room-simulator --frames 60 --time 17:55 --day-length 1` on the revision before
 commit "M5". Workaround: a fresh `TextureCube` per bake. Root cause not isolated (texture
 completeness after a sampler bind? the still-bound sampler while attaching?); worth a CNA test
 that binds, draws, refills and reads a cube.
@@ -271,7 +271,7 @@ darkens where a nearer surface lies within `bias..thickness` of the ray. Run ove
 source into a mask (there is no pipeline hook before the tonemap, and the scene target cannot
 be read and rebound mid-frame), three things showed in the room: every surface facing away
 from the light comes out shadowed, because the ray dips behind the surface's own depth within
-the thickness and the pass has no normal to know it (living-room-simulator gates the mask by the prepass
+the thickness and the pass has no normal to know it (room-simulator gates the mask by the prepass
 normal's cosine to the light in its own composite); with the light direction set along the
 camera axis so the ray climbs straight out of the depth, the mask still rims every silhouette
 (the depth read across an edge mixes near and far and lands in the band), at bias 0.015 and

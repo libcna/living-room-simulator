@@ -31,5 +31,5 @@ if [[ ! -f "${cache}" ]] ||
         -DCNA_ENABLE_VIDEO=OFF
 fi
 
-cmake --build "${build_dir}" --target living-room-simulator --parallel "${CNA_BUILD_JOBS:-2}"
-echo "Web build: ${build_dir}/bin/living-room-simulator.html"
+cmake --build "${build_dir}" --target room-simulator --parallel "${CNA_BUILD_JOBS:-2}"
+echo "Web build: ${build_dir}/bin/room-simulator.html"

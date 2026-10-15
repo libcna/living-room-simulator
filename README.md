@@ -15,7 +15,7 @@ scripts/extract-assets.sh
 cmake --preset dev
 cmake --build --preset dev
 ctest --preset unit
-./build-dev/bin/living-room-simulator
+./build-dev/bin/room-simulator
 ```
 
 The first command clones the locked dependencies into ignored `.deps/`. External furniture is also ignored by Git; without the asset commands, the application runs with procedural geometry only. A local development build may take several minutes. `ccache` is optional.
@@ -23,12 +23,12 @@ The first command clones the locked dependencies into ignored `.deps/`. External
 For a deterministic screenshot with a display:
 
 ```sh
-./build-dev/bin/living-room-simulator --width 640 --height 360 \
+./build-dev/bin/room-simulator --width 640 --height 360 \
   --frames 3 --view entrance --time 12:00 --weather cloudy \
   --hold-weather --screenshot room.png
 ```
 
-On a headless Linux machine, run that command under `xvfb-run -a` with `SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1`. The complete test suite is `ctest --preset dev`; its render test needs working X11 and Mesa. Use `scripts/capture-views.sh --quick --smoke --bin build-dev/bin/living-room-simulator` to inspect four representative scenes.
+On a headless Linux machine, run that command under `xvfb-run -a` with `SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1`. The complete test suite is `ctest --preset dev`; its render test needs working X11 and Mesa. Use `scripts/capture-views.sh --quick --smoke --bin build-dev/bin/room-simulator` to inspect four representative scenes.
 
 ## Where to work
 

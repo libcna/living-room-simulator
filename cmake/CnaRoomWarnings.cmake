@@ -1,4 +1,4 @@
-# Compiler warnings for living-room-simulator's own code. Applied to the project's targets
+# Compiler warnings for room-simulator's own code. Applied to the project's targets
 # only; CNA and its dependencies keep their own settings.
 include_guard(GLOBAL)
 

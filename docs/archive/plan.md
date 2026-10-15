@@ -1,4 +1,4 @@
-# living-room-simulator — engineering plan
+# room-simulator — engineering plan
 
 > Historical record closed on 2026-09-14. It is not the current development
 > procedure. Start at the repository README and `docs/KNOWN_ISSUES.md`.
@@ -25,7 +25,7 @@ Whenever work resumes:
 
 1. read this section, then `NEXT.md` (the short continuation queue);
 2. check `git status` / `git log` and the *Completed work* and *Measured results* sections below;
-3. build (`cmake --build build --target living-room-simulator`), run the canonical screenshot set
+3. build (`cmake --build build --target room-simulator`), run the canonical screenshot set
    (`scripts/capture-views.sh`), and look at the images before choosing a task;
 4. pick the highest-value item: the largest realism defect first, then the largest technical
    weakness, then underused CNA functionality;

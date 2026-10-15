@@ -15,7 +15,7 @@ import shutil
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = Path(os.environ.get("CNA_WEB_BUILD_DIR", ROOT / "build-web")) / "bin"
-NAME = "living-room-simulator"
+NAME = "room-simulator"
 PART_SIZE = 64 * 1024 * 1024
 FETCH_CALL = "await fetch(packageName)"
 

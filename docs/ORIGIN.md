@@ -1,7 +1,7 @@
 # Repository origin
 
 Living Room Simulator was developed as a standalone application and imported into
-[CNA Lab](https://github.com/libcna/cna-lab) as the `living-room-simulator/` subtree.
+[CNA Lab](https://github.com/libcna/cna-lab) as the `room-simulator/` subtree.
 The import commit was `89f6dac1`, and the original application tip was
 `590c2508d1295c66adbb7834e6d0c26c91788a3b` (Add repeatable packaging for web demo).
 
@@ -9,7 +9,7 @@ On 2026-09-28 the application was extracted back into its own repository using:
 
 ```bash
 # Run in a CNA Lab checkout containing the historical snapshot.
-git subtree split --prefix=living-room-simulator a71b942e7824f6493d65adaa1c1be912daf509c0
+git subtree split --prefix=room-simulator a71b942e7824f6493d65adaa1c1be912daf509c0
 ```
 
 The result is the same original tip, `590c2508d1295c66adbb7834e6d0c26c91788a3b`.
@@ -19,7 +19,7 @@ dates and messages. The extracted root tree is exactly the former CNA Lab subtre
 extraction. Subsequent standalone documentation changes are separate commits.
 
 The local branch at extraction was `develop` and the upstream is
-https://github.com/libcna/living-room-simulator. The original build used sibling
+https://github.com/libcna/room-simulator. The original build used sibling
 `cna/`, `sharp-runtime/`, `easy-gl/` and `meta-gl/` checkouts. The maintained
 bootstrap now puts these isolated checkouts under `.deps/` instead. CNA Lab no
 longer carries a second working copy.

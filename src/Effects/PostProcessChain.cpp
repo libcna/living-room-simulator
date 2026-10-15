@@ -89,7 +89,7 @@ namespace CnaRoom::Effects {
                 for (const auto& v : pixels)
                     sum += (v.getRProperty() + v.getGProperty() + v.getBProperty()) / (3.0 * 255.0);
             }
-            CNA::Logger::Info("living-room-simulator: post trace " + name + " mean "
+            CNA::Logger::Info("room-simulator: post trace " + name + " mean "
                 + std::to_string(sum / count) + " invalid " + std::to_string(invalid));
         };
         trace("scene", context.source);

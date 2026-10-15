@@ -75,7 +75,7 @@ bool RoomApplication::configure(int argc, char** argv)
         const auto next = [&](const char* what) -> const char* {
             if (i + 1 >= argc)
             {
-                std::fprintf(stderr, "living-room-simulator: %s needs a value\n", what);
+                std::fprintf(stderr, "room-simulator: %s needs a value\n", what);
                 std::exit(2);
             }
             return argv[++i];
@@ -83,7 +83,7 @@ bool RoomApplication::configure(int argc, char** argv)
         if (arg == "--help" || arg == "-h")
         {
             std::printf(
-                "living-room-simulator %s -- a realistic living room rendered with CNA (%s)\n\n"
+                "room-simulator %s -- a realistic living room rendered with CNA (%s)\n\n"
                 "  --width W --height H      window size (default 1280x720)\n"
                 "  --no-vsync                do not wait for vertical retrace\n"
                 "  --frames N                draw N frames, then exit (prints frame statistics)\n"
@@ -168,7 +168,7 @@ bool RoomApplication::configure(int argc, char** argv)
                                           cameraOverridePitch_);
             if (!cameraOverride_)
             {
-                std::fprintf(stderr, "living-room-simulator: --camera wants x,y,z,yaw,pitch\n");
+                std::fprintf(stderr, "room-simulator: --camera wants x,y,z,yaw,pitch\n");
                 std::exit(2);
             }
         }
@@ -185,7 +185,7 @@ bool RoomApplication::configure(int argc, char** argv)
             float hours = 0.0f;
             if (!TimeOfDay::parseClock(next("--time"), hours))
             {
-                std::fprintf(stderr, "living-room-simulator: --time wants HH:MM\n");
+                std::fprintf(stderr, "room-simulator: --time wants HH:MM\n");
                 std::exit(2);
             }
             clock_.setHours(hours);
@@ -208,7 +208,7 @@ bool RoomApplication::configure(int argc, char** argv)
             WeatherKind kind = WeatherKind::Cloudy;
             if (!WeatherSystem::parse(next("--weather"), kind))
             {
-                std::fprintf(stderr, "living-room-simulator: --weather wants clear|cloudy|overcast|rain|storm|snow|hail\n");
+                std::fprintf(stderr, "room-simulator: --weather wants clear|cloudy|overcast|rain|storm|snow|hail\n");
                 std::exit(2);
             }
             weather_.setKind(kind, true);
@@ -235,7 +235,7 @@ bool RoomApplication::configure(int argc, char** argv)
             else if (v == "analytic") exposureMode_ = 1;
             else
             {
-                std::fprintf(stderr, "living-room-simulator: --exposure-mode wants auto or analytic\n");
+                std::fprintf(stderr, "room-simulator: --exposure-mode wants auto or analytic\n");
                 std::exit(2);
             }
         }
@@ -335,7 +335,7 @@ bool RoomApplication::configure(int argc, char** argv)
         else if (arg == "--dump-depth") depthDumpPath_ = next("--dump-depth");
         else
         {
-            std::fprintf(stderr, "living-room-simulator: unknown option '%s' (try --help)\n", arg.c_str());
+            std::fprintf(stderr, "room-simulator: unknown option '%s' (try --help)\n", arg.c_str());
             std::exit(2);
         }
     }
@@ -350,7 +350,7 @@ void RoomApplication::Initialize()
     graphics_->setGraphicsProfileProperty(Microsoft::Xna::Framework::Graphics::GraphicsProfile::HiDef);
     graphics_->ApplyChanges();
 
-    getWindowProperty().setTitleProperty("living-room-simulator -- a living room built with CNA");
+    getWindowProperty().setTitleProperty("room-simulator -- a living room built with CNA");
     setIsMouseVisibleProperty(true);
     setIsFixedTimeStepProperty(false);
 
@@ -361,7 +361,7 @@ void RoomApplication::LoadContent()
 {
     Game::LoadContent();
     GraphicsDevice& device = getGraphicsDeviceProperty();
-    CNA::Logger::Info(std::string("living-room-simulator: renderer ") + CNA_ROOM_RENDERER_NAME);
+    CNA::Logger::Info(std::string("room-simulator: renderer ") + CNA_ROOM_RENDERER_NAME);
 
     System::Diagnostics::Stopwatch watch = System::Diagnostics::Stopwatch::StartNew();
     materials_ = std::make_unique<MaterialLibrary>(device);
@@ -422,10 +422,10 @@ void RoomApplication::LoadContent()
             dollyToPitch_ = MathHelper::ToRadians(pitch);
             dollyElapsed_ = 0.0f;
             dollyActive_ = true;
-            CNA::Logger::Info("living-room-simulator: dolly to " + dollyTarget_ + " over " + std::to_string(dollySeconds_) + " s");
+            CNA::Logger::Info("room-simulator: dolly to " + dollyTarget_ + " over " + std::to_string(dollySeconds_) + " s");
         }
         else
-            CNA::Logger::Warn("living-room-simulator: --dolly target not understood: " + dollyTarget_);
+            CNA::Logger::Warn("room-simulator: --dolly target not understood: " + dollyTarget_);
     }
 
     updateSky();
@@ -451,11 +451,11 @@ void RoomApplication::LoadContent()
     probeBakeSunY_ = renderer_->sky().state().sunDirection.Y;
     probeBakeLamps_ = scene_->lampsOn();
     contentLoaded_ = true;
-    CNA::Logger::Info("living-room-simulator: clock " + clock_.clockText() + ", sun elevation "
+    CNA::Logger::Info("room-simulator: clock " + clock_.clockText() + ", sun elevation "
                       + std::to_string(sunElevationDegrees_) + " deg, azimuth " + std::to_string(sunAzimuthDegrees_)
                       + " deg, exposure " + std::to_string(settings_.exposure) + ", lamps "
                       + (scene_->lampsOn() ? "on" : "off"));
-    CNA::Logger::Info("living-room-simulator: content loaded in "
+    CNA::Logger::Info("room-simulator: content loaded in "
                       + std::to_string(static_cast<double>(watch.getElapsedTicksProperty()) / 10000.0)
                       + " ms (materials " + std::to_string(materialsMs) + " ms, " + std::to_string(models_->compiledLoads())
                       + " models from .cnb)");
@@ -466,7 +466,7 @@ void RoomApplication::applyViewpoint(const std::string& name)
     const Viewpoint* view = scene_ != nullptr ? scene_->viewpoint(name) : nullptr;
     if (view == nullptr)
     {
-        CNA::Logger::Warn("living-room-simulator: no viewpoint named '" + name + "'; using the first");
+        CNA::Logger::Warn("room-simulator: no viewpoint named '" + name + "'; using the first");
         if (scene_ == nullptr || scene_->viewpoints().empty()) return;
         view = &scene_->viewpoints().front();
     }
@@ -513,7 +513,7 @@ void RoomApplication::handleHotkeys(const KeyboardState& keyboard, const Keyboar
     const auto pressed = [&](Keys key) { return keyboard.IsKeyDown(key) && !previous.IsKeyDown(key); };
     if (pressed(Keys::R)) applyViewpoint(startView_);
     if (pressed(Keys::F1)) settings_.debugOverlay = !settings_.debugOverlay;
-    if (pressed(Keys::F12)) captureScreenshot("living-room-simulator-" + std::to_string(framesDrawn_) + ".png");
+    if (pressed(Keys::F12)) captureScreenshot("room-simulator-" + std::to_string(framesDrawn_) + ".png");
     if (pressed(Keys::L))
     {
         lampsMode_ = scene_->lampsOn() ? 0 : 1;   // manual until restarted; the clock no longer switches them
@@ -795,7 +795,7 @@ void RoomApplication::logFrameStats()
 {
     const SceneRenderer::Stats& s = renderer_->stats();
     std::ostringstream out;
-    out << "living-room-simulator: frame " << framesDrawn_ << " -- " << s.frameMs << " ms CPU (cull " << s.cullMs
+    out << "room-simulator: frame " << framesDrawn_ << " -- " << s.frameMs << " ms CPU (cull " << s.cullMs
         << ", shadow " << s.shadowMs << ", prepass " << s.prepassMs << ", reflection " << s.reflectionMs << " (" << s.reflectionDrawCalls
         << " draws), sky " << s.skyMs << ", opaque "
         << s.opaqueMs << ", beams " << s.sunbeamMs << ", post " << s.postMs << "); draws " << s.drawCalls << " (+" << s.shadowDrawCalls
@@ -809,7 +809,7 @@ void RoomApplication::logFrameStats()
         << "; weather " << weather_.describe();
     CNA::Logger::Info(out.str());
     for (const std::string& limitation : renderer_->limitations())
-        CNA::Logger::Warn("living-room-simulator: limitation -- " + limitation);
+        CNA::Logger::Warn("room-simulator: limitation -- " + limitation);
 }
 
 void RoomApplication::captureScreenshot(const std::string& path)
@@ -833,11 +833,11 @@ void RoomApplication::captureScreenshot(const std::string& path)
         }
         Texture2D shot = Texture2D::CreateFromPixels(device, width, height, rgba);
         shot.SaveAsPng(path);
-        CNA::Logger::Info("living-room-simulator: wrote " + path);
+        CNA::Logger::Info("room-simulator: wrote " + path);
     }
     catch (const System::NotSupportedException&)
     {
-        CNA::Logger::Error("living-room-simulator: this renderer cannot read the back buffer, so '" + path
+        CNA::Logger::Error("room-simulator: this renderer cannot read the back buffer, so '" + path
                            + "' was not written");
     }
 }

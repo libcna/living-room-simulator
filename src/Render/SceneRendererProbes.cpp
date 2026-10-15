@@ -298,7 +298,7 @@ void SceneRenderer::finishProbe(InteriorProbe& probe, int size, const std::vecto
         const Vector3 m = lastIrradianceMean_ * probe.scale;
         probe.meanIrradiance = m;
         const float lum = std::max(0.2126f * m.X + 0.7152f * m.Y + 0.0722f * m.Z, 1e-9f);
-        CNA::Logger::Info("living-room-simulator: probe at " + std::to_string(probe.position.X) + "," + std::to_string(probe.position.Y) + ","
+        CNA::Logger::Info("room-simulator: probe at " + std::to_string(probe.position.X) + "," + std::to_string(probe.position.Y) + ","
                           + std::to_string(probe.position.Z) + " mean irradiance " + std::to_string(m.X) + "," + std::to_string(m.Y) + ","
                           + std::to_string(m.Z) + " (chroma " + std::to_string(m.X / lum) + "," + std::to_string(m.Y / lum) + ","
                           + std::to_string(m.Z / lum) + "), peak " + std::to_string(peak));
@@ -326,7 +326,7 @@ void SceneRenderer::finishProbe(InteriorProbe& probe, int size, const std::vecto
         if (!loggedSpecularClasses_)
         {
             loggedSpecularClasses_ = true;
-            CNA::Logger::Info("living-room-simulator: probe specular classes (" + std::to_string(kSpecularClasses.size()) + " x 32 px, 32 samples) in "
+            CNA::Logger::Info("room-simulator: probe specular classes (" + std::to_string(kSpecularClasses.size()) + " x 32 px, 32 samples) in "
                               + std::to_string(static_cast<double>(classWatch.getElapsedTicksProperty()) / 10000.0) + " ms"
                               + (complete ? "" : " -- upload failed, CNA's 8-bit chain used"));
         }
@@ -376,12 +376,12 @@ void SceneRenderer::dumpProbe(const InteriorProbe& /*probe*/, int size, const st
             Texture2D image = Texture2D::CreateFromPixels(device_, 6 * n, n, lastIrradianceStrip_);
             image.SaveAsPng(stem + "-irr.png");
         }
-        CNA::Logger::Info("living-room-simulator: probe dump " + stem + "-{env,irr}.png (exposure " + std::to_string(exposure) + ")");
+        CNA::Logger::Info("room-simulator: probe dump " + stem + "-{env,irr}.png (exposure " + std::to_string(exposure) + ")");
         ++probeDumpCount_;
     }
     catch (const std::exception& error)
     {
-        CNA::Logger::Warn(std::string("living-room-simulator: probe dump failed: ") + error.what());
+        CNA::Logger::Warn(std::string("room-simulator: probe dump failed: ") + error.what());
     }
 }
 
@@ -432,7 +432,7 @@ void SceneRenderer::detectCaptureFormat()
     }
     if (!captureHdr_ && limitations_.empty())
         limitations_.emplace_back("8-bit probe capture: half-float readback gave wrong values");
-    CNA::Logger::Info(std::string("living-room-simulator: probe capture ") + (captureHdr_ ? "half-float" : "8-bit sRGB, radiance clipped at 2.0"));
+    CNA::Logger::Info(std::string("room-simulator: probe capture ") + (captureHdr_ ? "half-float" : "8-bit sRGB, radiance clipped at 2.0"));
 }
 
 void SceneRenderer::detectProbeMapping(RenderTarget2D& target, int size, const RenderSettings& settings)
@@ -475,7 +475,7 @@ void SceneRenderer::detectProbeMapping(RenderTarget2D& target, int size, const R
                 bestMirror = probeMirrorX_;
                 bestFlip = probeFlipY_;
             }
-            CNA::Logger::Info("living-room-simulator: probe mapping mirrorX=" + std::to_string(probeMirrorX_) + " flipY="
+            CNA::Logger::Info("room-simulator: probe mapping mirrorX=" + std::to_string(probeMirrorX_) + " flipY="
                               + std::to_string(probeFlipY_) + " error " + std::to_string(error));
         }
     probeMirrorX_ = bestMirror;
@@ -553,9 +553,9 @@ bool SceneRenderer::stepProbeBake(int faces)
         if (probeBakeCount_ <= 3)
         {
             for (const auto& probe : probes_)
-                CNA::Logger::Info("living-room-simulator: probe at " + std::to_string(probe->position.X) + "," + std::to_string(probe->position.Y)
+                CNA::Logger::Info("room-simulator: probe at " + std::to_string(probe->position.X) + "," + std::to_string(probe->position.Y)
                                   + "," + std::to_string(probe->position.Z) + " peak radiance " + std::to_string(probe->scale));
-            CNA::Logger::Info("living-room-simulator: baked " + std::to_string(probes_.size()) + " interior probes at "
+            CNA::Logger::Info("room-simulator: baked " + std::to_string(probes_.size()) + " interior probes at "
                               + std::to_string(probeBakeSize_) + " px, " + std::to_string(probeBakeStepsDone_) + " faces, in "
                               + std::to_string(probeBakeSeconds_) + " s");
         }

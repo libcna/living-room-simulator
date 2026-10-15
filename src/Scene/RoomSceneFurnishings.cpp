@@ -154,7 +154,7 @@ void RoomScene::buildFurniture()
             };
             slipper("slipper left", 0.70f, front + 0.19f, 6.0f);
             slipper("slipper right", 0.86f, front + 0.16f, -24.0f);
-            CNA::Logger::Info("living-room-simulator: sofa front z " + std::to_string(front) + ", slippers at z " + std::to_string(front + 0.16f));
+            CNA::Logger::Info("room-simulator: sofa front z " + std::to_string(front) + ", slippers at z " + std::to_string(front + 0.16f));
         }
     }
     placeModel("coffee-table", Vector3(0.0f, 0.0f, 0.45f), 0.0f, 0.0f, true, lacquer);
@@ -192,7 +192,7 @@ void RoomScene::buildFurniture()
             Vector3 forward(seatCentre.X - chairCentre.X, 0.0f, seatCentre.Z - chairCentre.Z);
             if (forward.Length() < 0.02f) forward = Vector3(-1.0f, 0.0f, 0.0f);
             forward.Normalize();
-            CNA::Logger::Info("living-room-simulator: armchair seat top " + std::to_string(seatTop) + " at " + std::to_string(seatCentre.X) + ", " + std::to_string(seatCentre.Z)
+            CNA::Logger::Info("room-simulator: armchair seat top " + std::to_string(seatTop) + " at " + std::to_string(seatCentre.X) + ", " + std::to_string(seatCentre.Z)
                               + " forward " + std::to_string(forward.X) + ", " + std::to_string(forward.Z) + (seat != nullptr ? "" : " (no seat part found)"));
             // Local -Z is the masthead's edge; RotY(yaw) sends it to -forward.
             const float yaw = std::atan2(forward.X, forward.Z) + MathHelper::ToRadians(9.0f);
@@ -244,7 +244,7 @@ void RoomScene::buildFurniture()
             if (Texture2D* ring = materials_.decal("ring"))
                 renderer_.addDecal(ring, Matrix::CreateScale(0.11f, 0.11f, 0.04f) * Matrix::CreateRotationX(MathHelper::PiOver2)
                                              * Matrix::CreateTranslation(centre.X + 0.13f, 0.419f, centre.Z - 0.09f), 0.65f);
-            CNA::Logger::Info("living-room-simulator: steam over the cup at " + std::to_string(centre.X) + "," + std::to_string(cup.Max.Y) + "," + std::to_string(centre.Z));
+            CNA::Logger::Info("room-simulator: steam over the cup at " + std::to_string(centre.X) + "," + std::to_string(cup.Max.Y) + "," + std::to_string(centre.Z));
         }
     }
     placeModel("candle-holders", Vector3(0.45f, 0.419f, 0.60f), 90.0f);
@@ -384,7 +384,7 @@ void RoomScene::buildFurniture()
             for (std::size_t i = chestFirst + 1; i < renderer_.itemCount(); ++i) chest = BoundingBox::CreateMerged(chest, renderer_.item(i).worldBounds);
             const float top = chest.Max.Y + 0.001f;
             const float cx = (chest.Min.X + chest.Max.X) * 0.5f, cz = chest.Min.Z + 0.17f;   // the end past the vase
-            CNA::Logger::Info("living-room-simulator: chest top " + std::to_string(top) + " x " + std::to_string(chest.Min.X) + ".." + std::to_string(chest.Max.X) + " z "
+            CNA::Logger::Info("room-simulator: chest top " + std::to_string(top) + " x " + std::to_string(chest.Min.X) + ".." + std::to_string(chest.Max.X) + " z "
                               + std::to_string(chest.Min.Z) + ".." + std::to_string(chest.Max.Z));
             MeshBuilder post;
             post.addBox(Vector3(-0.055f, 0.0f, -0.11f), Vector3(0.055f, 0.003f, 0.11f), 0.3f);
@@ -715,7 +715,7 @@ void RoomScene::buildLamps()
     glows_.insert(glows_.end(), extraGlows_.begin(), extraGlows_.end());
     for (const Glow& glow : glows_)
         if (materials_.find(glow.material) == nullptr)
-            CNA::Logger::Warn("living-room-simulator: glow material '" + glow.material + "' not found");
+            CNA::Logger::Warn("room-simulator: glow material '" + glow.material + "' not found");
     setLampsOn(false);
     setStreetLightsOn(false);
     setTelevisionOn(false);

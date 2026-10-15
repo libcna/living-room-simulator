@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 the living-room-simulator contributors
+Copyright (c) 2026 the room-simulator contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This licence covers the original source code of living-room-simulator. The effects
+This licence covers the original source code of room-simulator. The effects
 ported from CNA in include/CnaRoom/Effects/ and src/Effects/ retain the Microsoft
 Public License (Ms-PL), identified in their SPDX headers; its full text is in
 src/Effects/LICENSE. Third-party 3D models,

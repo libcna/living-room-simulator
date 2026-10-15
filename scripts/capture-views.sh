@@ -9,7 +9,7 @@
 # the default is 1280x720 with the full 1024^2 textures.
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-bin="$root/build/bin/living-room-simulator"
+bin="$root/build/bin/room-simulator"
 out="$root/screenshots/audit"
 width=1280; height=720; texture=1024; smoke=0; failed=0; only=""
 generated=()
@@ -66,7 +66,7 @@ run() {
         return
     fi
     generated+=("$target")
-    grep -E "living-room-simulator: frame 6" "$out/$name.log" | sed -E 's/.*frame 6 -- ([0-9.]+) ms CPU.*draws ([0-9]+) \(\+([0-9]+) shadow\).*/  '"$name"': \1 ms, \2 draws + \3 shadow/' || true
+    grep -E "room-simulator: frame 6" "$out/$name.log" | sed -E 's/.*frame 6 -- ([0-9.]+) ms CPU.*draws ([0-9]+) \(\+([0-9]+) shadow\).*/  '"$name"': \1 ms, \2 draws + \3 shadow/' || true
 }
 
 # Daylight, the default (cloudy) weather.

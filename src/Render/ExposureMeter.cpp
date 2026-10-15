@@ -90,7 +90,7 @@ ExposureMeter::ExposureMeter(GraphicsDevice& device) : device_(device)
     catch (const std::exception& error)
     {
         reason_ = std::string("luminance meter unavailable: ") + error.what();
-        CNA::Logger::Warn("living-room-simulator: " + reason_);
+        CNA::Logger::Warn("room-simulator: " + reason_);
         effect_.reset();
         pass_.reset();
         cells_.reset();
@@ -116,7 +116,7 @@ ExposureMeter::Reading ExposureMeter::measure(RenderTarget2D& scene)
     catch (const std::exception& error)
     {
         reason_ = std::string("exposure measurement failed: ") + error.what();
-        CNA::Logger::Warn("living-room-simulator: " + reason_);
+        CNA::Logger::Warn("room-simulator: " + reason_);
         supported_ = false;
         return Reading{};
     }

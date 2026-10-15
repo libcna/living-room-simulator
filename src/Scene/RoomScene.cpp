@@ -121,8 +121,8 @@ void RoomScene::build()
     buildLamps();
     buildViewpoints();
     for (const std::string& failure : models_.failures())
-        CNA::Logger::Warn("living-room-simulator: model -- " + failure);
-    CNA::Logger::Info("living-room-simulator: room built -- " + std::to_string(meshes_.size()) + " procedural meshes, "
+        CNA::Logger::Warn("room-simulator: model -- " + failure);
+    CNA::Logger::Info("room-simulator: room built -- " + std::to_string(meshes_.size()) + " procedural meshes, "
                       + std::to_string(geometryBytes() / 1024) + " KB of geometry, " + std::to_string(placedModels_)
                       + " imported placements");
 }
@@ -419,7 +419,7 @@ void RoomScene::buildWear()
     if (Texture2D* marks = materials_.decal("marks"))
         renderer_.addDecal(marks, Matrix::CreateScale(0.24f, 0.28f, 0.05f) * Matrix::CreateRotationY(-MathHelper::PiOver2)
                                       * Matrix::CreateTranslation(L.halfWidth, 1.08f, L.doorCentreZ - L.doorWidth * 0.5f - L.doorFrameWidth - 0.15f), 0.18f);
-    CNA::Logger::Info("living-room-simulator: " + std::to_string(renderer_.decalCount()) + " wear decals");
+    CNA::Logger::Info("room-simulator: " + std::to_string(renderer_.decalCount()) + " wear decals");
 }
 
 void RoomScene::buildTrim()
@@ -617,7 +617,7 @@ void RoomScene::applyWeather(const WeatherState& weather, float seconds)
         if (plumes.size() != smokePlumeCount_)
         {
             smokePlumeCount_ = plumes.size();
-            CNA::Logger::Info("living-room-simulator: chimney smoke: " + std::to_string(plumes.size()) + " plumes of " + std::to_string(chimneyTops_.size()) + " chimneys at "
+            CNA::Logger::Info("room-simulator: chimney smoke: " + std::to_string(plumes.size()) + " plumes of " + std::to_string(chimneyTops_.size()) + " chimneys at "
                               + std::to_string(weather.temperatureC) + " C, strength " + std::to_string(smoke));
         }
         renderer_.setSmokePlumes(std::move(plumes));
@@ -743,7 +743,7 @@ void RoomScene::updateWindowLights()
     if (!loggedWindowLights_)
     {
         loggedWindowLights_ = true;
-        CNA::Logger::Info("living-room-simulator: window lights " + std::to_string(intensity) + " (sky " + std::to_string(sky.X) + "," + std::to_string(sky.Y) + "," + std::to_string(sky.Z) + ")");
+        CNA::Logger::Info("room-simulator: window lights " + std::to_string(intensity) + " (sky " + std::to_string(sky.X) + "," + std::to_string(sky.Y) + "," + std::to_string(sky.Z) + ")");
     }
 }
 
@@ -773,7 +773,7 @@ void RoomScene::updateTelevisionGlow()
         if (!loggedTelevisionGlow_ || std::getenv("CNA_ROOM_DEBUG_TV") != nullptr)
         {
             loggedTelevisionGlow_ = true;
-            CNA::Logger::Info("living-room-simulator: television picture mean " + std::to_string(mean.X) + " " + std::to_string(mean.Y) + " " + std::to_string(mean.Z)
+            CNA::Logger::Info("room-simulator: television picture mean " + std::to_string(mean.X) + " " + std::to_string(mean.Y) + " " + std::to_string(mean.Z)
                               + " luminance " + std::to_string(lum) + " level " + std::to_string(level));
         }
     }
